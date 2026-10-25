@@ -533,7 +533,7 @@ G.DB = (() => {
    * cierra de verdad es la clave de la API restringida a estos dominios en
    * Google Cloud; esto frena las copias que ni lo miran (14-10-2026).
    */
-  const HOSTS = ['ptminh96.github.io/pokesurvivor'];
+  const HOSTS = ['ptminh96.github.io'];
 
   async function initCloud() {
     const cfg = G.FIREBASE_CONFIG;
