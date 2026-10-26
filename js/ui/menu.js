@@ -1,10 +1,10 @@
-/* ============ menu.js — menú principal, colección y mejoras ============ */
+/* ============ menu.js — main menu, collection, and upgrades ============ */
 G.MenuUI = (() => {
   const $ = G.UI.$;
   const GEN_NAMES = ['Kanto', 'Johto', 'Hoenn', 'Sinnoh', 'Teselia', 'Kalos', 'Alola', 'Galar', 'Paldea'];
   let dexGen = 1, dexSel = null;
-  // Filtros de la colección (se combinan): tengo / me faltan, rarezas (varias),
-  // shiny, favoritos, tipo y búsqueda; y el orden. Duran mientras no recargas.
+  // Collection filters (combined): owned / missing, rarities (multiple),
+  // shiny, favorites, type, and search; plus sorting. Persist until you reload.
   const DEX0 = () => ({ status: 'all', rar: new Set(), shiny: false, fav: false, type: '', q: '', sort: 'num' });
   let dexF = DEX0();
   const SORTS = [['num', 'Nº'], ['name', 'Nombre'], ['rar', 'Rareza'], ['new', 'Recién conseguidos'], ['used', 'Más usados']];
@@ -37,7 +37,7 @@ G.MenuUI = (() => {
     };
   }
 
-  // ---------------- menú principal ----------------
+  // ---------------- main menu ----------------
 
   function open() {
     const s = G.DB.save;
@@ -51,7 +51,7 @@ G.MenuUI = (() => {
     $('menu-partner').classList.toggle('shiny', shiny);
     $('menu-partner-name').innerHTML = mon.name + (shiny ? ' ' + G.Icons.html('shiny', 24) : '');
     $('menu-partner-info').innerHTML = G.UI.typeChips(mon.types) + ' ' + G.UI.stars(mon.rarity);
-    // Normal / shiny a mano, aquí mismo (en el móvil no se encontraba en la ficha).
+    // Toggle normal / shiny here (it was hard to find on the mobile details screen).
     const seg = $('menu-shiny');
     seg.classList.toggle('hidden', !G.DB.ownsShiny(mon.dex));
     seg.lastChild.innerHTML = G.Icons.html('shiny', 12) + ' Shiny';
@@ -77,12 +77,12 @@ G.MenuUI = (() => {
       (G.DB.guest ? '<br><span style="color:#ffb0b8">Modo invitado: no se guarda</span>' : '');
 
     socialLine();
-    // Premios de misiones por recoger.
+    // Mission rewards to claim.
     G.Progress.checkAch();
     const pend = G.Progress.pending();
     $('menu-goals-sub').textContent = pend ? pend + (pend === 1 ? ' premio por recoger' : ' premios por recoger') : 'Misiones, logros y perfil';
     $('menu-goals-sub').classList.toggle('gold', pend > 0);
-    // Con cuenta en la nube: amigos en línea, invitaciones y (una vez) el apodo.
+    // With a cloud account: online friends, invitations, and the nickname (once).
     if (G.DB.online && !G.Social.started) {
       G.Social.start().then(r => {
         if (r === 'need-nick' && !G.NickUI.skipped && G.UI.isOpen('scr-menu')) G.NickUI.open();
@@ -92,7 +92,7 @@ G.MenuUI = (() => {
     G.InvitePop.refresh();
   }
 
-  /** Texto bajo "Mochila": cuántos objetos y MT llevas (y los Amuletos Iris, si hay). */
+  /** Text under "Bag": number of items and TMs carried (and Shiny Charms, if any). */
   function bagLine() {
     const s = G.DB.save, sum = o => Object.values(o || {}).reduce((a, b) => a + (+b || 0), 0);
     const items = sum(s.bag), tms = sum(s.tms), iris = G.Gacha.BANNERS.filter(b => G.Gacha.hasIris(s, b.gen)).length;
@@ -102,7 +102,7 @@ G.MenuUI = (() => {
     $('menu-bag-sub').textContent = parts.join(' · ') || G.T('Vacía');
   }
 
-  /** Texto bajo "Amigos" y "Jugar": quién está en línea, solicitudes, sala. */
+  /** Text under "Friends" and "Play": who is online, requests, and room status. */
   function socialLine() {
     const room = G.Social.room;
     const play = document.querySelector('#scr-menu [data-go=play] small');
@@ -124,7 +124,7 @@ G.MenuUI = (() => {
     const owned = Object.keys(s.owned).filter(d => G.DEX_BY[d]).length;
     $('dex-total').textContent = `${owned} / ${G.DEX.length}`;
 
-    // Pestañas de generación (y "Todas"), con cuántos tienes de cada una.
+    // Generation tabs (and "All"), with your count for each.
     const tabs = $('dex-gens');
     tabs.innerHTML = '';
     ['Todas', ...GEN_NAMES].forEach((name, g) => {
@@ -137,7 +137,7 @@ G.MenuUI = (() => {
       tabs.appendChild(b);
     });
 
-    // Tengo / me faltan (uno), rarezas (las que quieras), shiny y favoritos.
+    // Owned / missing (one), rarities (any selection), shiny, and favorites.
     const fb = $('dex-filters');
     fb.innerHTML = '';
     const chip = (html, on, fn) => {
@@ -165,7 +165,7 @@ G.MenuUI = (() => {
       sb.appendChild(c);
     }
 
-    // Tipo y búsqueda (la búsqueda mira en todas las generaciones).
+    // Type and search (search spans all generations).
     const ts = $('dex-type');
     ts.innerHTML = `<option value="">Todos los tipos</option>` +
       Object.keys(G.U.TYPE_NAME).map(t => `<option value="${t}">${G.U.TYPE_NAME[t]}</option>`).join('');
@@ -186,7 +186,7 @@ G.MenuUI = (() => {
     showDetail(dexSel);
   }
 
-  /** Lo que se ve con la generación, los filtros y el orden de ahora. */
+  /** Visible Pokémon for the current generation, filters, and sort order. */
   function dexList() {
     const s = G.DB.save, f = dexF;
     const q = f.q.trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
@@ -194,7 +194,7 @@ G.MenuUI = (() => {
     const list = G.DEX.filter(p => {
       const own = !!s.owned[p.dex];
       if (q) {
-        // Por número, o por nombre (sin tildes); de los que no tienes no se busca el nombre.
+        // By number or name (ignoring accents); unowned Pokémon are not searched by name.
         if (num != null ? p.dex !== num : !(own && [p.name, G.T(p.name)].some(name => name.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').includes(q)))) return false;
       } else if (dexGen && p.gen !== dexGen) return false;
       if (f.status === 'own' && !own) return false;
@@ -209,18 +209,18 @@ G.MenuUI = (() => {
     const by = { num: (a, b) => a.dex - b.dex, name: (a, b) => G.T(a.name).localeCompare(G.T(b.name), G.I18n.locale),
                  rar: (a, b) => b.rarity - a.rarity || a.dex - b.dex, new: (a, b) => at(b) - at(a) || a.dex - b.dex,
                  used: (a, b) => used(b) - used(a) || a.dex - b.dex }[f.sort];
-    // Los que no tienes no tienen nombre a la vista: al ordenar por nombre van al final.
+    // Unowned Pokémon have no visible name, so sort them last by name.
     if (f.sort === 'name') list.sort((a, b) => (!s.owned[a.dex]) - (!s.owned[b.dex]) || by(a, b)); else list.sort(by);
     return list;
   }
 
   /*
-   * La rejilla se pinta por tandas de PAGE: con "Todas" son 966 Pokémon, cada
-   * uno con su animación y su hoja de sprites, y pintarlos de golpe paraba el
-   * juego (y la música) un segundo al borrar la búsqueda o cambiar el orden.
-   * Al acercarse al final de la lista se pinta la siguiente tanda.
-   * keep: volver a pintar los mismos que había (marcar un favorito no te
-   * devuelve arriba).
+   * The grid renders in batches of PAGE: "All" contains 966 Pokémon, and each
+   * one with its animation and sprite sheet; rendering them all at once stopped
+   * game (and music) for one second when clearing the search or changing sort.
+   * Render the next batch as the list approaches its end.
+   * keep: redraw the same entries (marking a favorite does not send you back
+   * to the top).
    */
   const PAGE = 48;
   let qT = 0, gridList = [], gridShown = 0, gridIO = null;
@@ -247,7 +247,7 @@ G.MenuUI = (() => {
     for (let i = gridShown; i < end; i++) grid.appendChild(dexCell(gridList[i]));
     gridShown = end;
     if (gridShown >= gridList.length) return;
-    // Marca al final: cuando se acerca a la vista, la siguiente tanda.
+    // Marker at the end: render the next batch as it approaches the viewport.
     const more = document.createElement('div');
     more.className = 'dex-more';
     grid.appendChild(more);
@@ -277,7 +277,7 @@ G.MenuUI = (() => {
     return cell;
   }
 
-  // Variante que se está viendo en la ficha (normal o shiny).
+  // Variant shown in the details panel (normal or shiny).
   let viewShiny = false;
 
   function showDetail(dex) {
@@ -289,14 +289,14 @@ G.MenuUI = (() => {
     if (!hasSh) viewShiny = false;
     else if (isPartner && dex !== showDetail.last) viewShiny = !!s.partnerShiny;
     if (dex !== showDetail.last) extraOpen = '';
-    // Al redibujar el mismo Pokémon (abrir el selector de Menta, enseñar una MT...)
-    // no se vuelve arriba: se quedaba fuera de la vista lo que acababas de abrir.
+    // When redrawing the same Pokémon (opening the Mint selector, showing a TM...)
+    // Do not scroll back to the top: the item just opened could end up out of view.
     const sameMon = dex === showDetail.last, d0 = $('dex-detail');
     const scrolls = sameMon && d0 ? [d0, d0.closest('.box')].filter(Boolean).map(el => [el, el.scrollTop]) : [];
     showDetail.last = dex;
 
     const max = { hp: 183, atk: 1.55, spd: 137, def: 160 };
-    // Con su naturaleza (20-10-2026): el stat que sube, en verde; el que baja, en rojo.
+    // With its nature (2026-10-20): the boosted stat is green; the lowered stat is red.
     const nat = own ? G.Mons.natureOf(dex) : null, q = own ? G.Mons.monFor(dex) : p;
     const natCls = k => (!nat ? '' : nat.up === k ? ' nat-up' : nat.down === k ? ' nat-down' : '');
     const bar = (label, v, m, txt, k) =>
@@ -355,10 +355,10 @@ G.MenuUI = (() => {
     if (own) wireExtras(dex, box);
   }
 
-  // ---------------- naturaleza, habilidad y MT (Tienda Kecleon, 20-10-2026) ----------------
-  // Se ven en la ficha de cada Pokémon y aquí se usan la Menta, las Cápsulas y las MT de la Mochila.
+  // ---------------- nature, ability, and TM (Kecleon Shop, 20-10-2026) ----------------
+  // Shown in each Pokémon's details panel; this uses Mints, Capsules, and TMs from the Bag.
   const STAT_NAME = { pa: 'Ataque', sa: 'At. Esp.', df: 'Defensa', sd: 'Def. Esp.', spd: 'Velocidad' };
-  let extraOpen = '';          // 'nat' | 'cap' | 'caph' | 'tm' | '' (qué selector está abierto)
+  let extraOpen = '';          // 'nat' | 'cap' | 'caph' | 'tm' | '' (which selector is open)
   const natLine = n => (n.up ? `+${G.T(STAT_NAME[n.up])} −${G.T(STAT_NAME[n.down])}` : G.T('neutra'));
 
   function monExtras(dex) {
@@ -418,17 +418,17 @@ G.MenuUI = (() => {
     }
   }
 
-  // ---------------- mejoras ----------------
+  // ---------------- upgrades ----------------
 
   let upgDex = null, upgPartner = null;
 
   function openUpgrades() {
     G.UI.show('scr-upgrades', true);
     const s = G.DB.save;
-    // Se recuerda el último que miraste, salvo que hayas cambiado de compañero: entonces se abre en el nuevo.
+    // Remember the last viewed Pokémon, unless you changed teammates; then open the new one.
     if (!upgDex || !s.owned[upgDex] || s.partner !== upgPartner) upgDex = s.partner;
     upgPartner = s.partner;
-    // Selector con tus Pokémon: el compañero primero, luego los que ya tienen mejoras.
+    // Pokémon selector: the current partner first, followed by those with upgrades.
     const sel = $('upg-mon');
     const lv = d => Object.values(s.pupg[d] || {}).reduce((a, b) => a + b, 0);
     const mons = Object.keys(s.owned).map(Number).filter(d => G.DEX_BY[d])
@@ -452,7 +452,7 @@ G.MenuUI = (() => {
       const lvl = levels[u.id] || 0;
       const maxed = lvl >= u.max;
       const cost = maxed ? 0 : G.Upgrades.cost(u.id, lvl);
-      // Mejoras que necesitan otra (Segundo movimiento inicial → Repertorio).
+      // Upgrades that require another (Second starting move → Repertoire).
       const locked = !maxed && u.needs && !levels[u.needs];
       const pick2 = u.id === 'start2' && lvl > 0 ? G.startMove2Of(upgDex) : null;
       const el = document.createElement('div');
@@ -474,7 +474,7 @@ G.MenuUI = (() => {
       if (u.id === 'start' && lvl > 0) el.querySelector('[data-start]').onclick = () => { startOpen = !startOpen; renderUpgrades(); };
       if (u.id === 'start2' && lvl > 0) el.querySelector('[data-start2]').onclick = () => { start2Open = !start2Open; renderUpgrades(); };
       el.querySelector('[data-buy]').onclick = () => {
-        // Se vuelve a leer todo al pulsar (la partida puede haber cambiado desde que se dibujó).
+        // Read everything again on click (the save may have changed since rendering).
         const sv = G.DB.save, lv = G.DB.upgradesOf(upgDex), now = lv[u.id] || 0;
         if (now >= u.max || (u.needs && !lv[u.needs])) { renderUpgrades(); return; }
         const price = G.Upgrades.cost(u.id, now);
@@ -495,8 +495,8 @@ G.MenuUI = (() => {
     box.appendChild(bindPanel());
   }
 
-  // ---------------- atajos: hueco fijo para cada movimiento ----------------
-  // save.pbind[dex] = [movimiento del hueco 1, del 2, del 3, del 4] (o null).
+  // ---------------- hotkeys: fixed slot for each move ----------------
+  // save.pbind[dex] = [move in slot 1, 2, 3, 4] (or null).
   function bindPanel() {
     const s = G.DB.save;
     s.pbind = s.pbind || {};
@@ -516,7 +516,7 @@ G.MenuUI = (() => {
         const l = (s.pbind[upgDex] || [null, null, null, null]).slice(0, 4);
         while (l.length < 4) l.push(null);
         const i = +sel.dataset.slot, id = sel.value || null;
-        // Un movimiento sólo puede estar en un hueco.
+        // A move can only occupy one slot.
         for (let j = 0; j < 4; j++) if (id && l[j] === id) l[j] = null;
         l[i] = id;
         s.pbind[upgDex] = l;
@@ -528,7 +528,7 @@ G.MenuUI = (() => {
     return el;
   }
 
-  // ---------------- movimiento inicial (Mejoras → Movimiento inicial) ----------------
+  // ---------------- starting move (Upgrades → Starting Move) ----------------
   let startOpen = false;
   function startPicker() {
     const s = G.DB.save, cur = G.startMoveOf(upgDex), base = G.baseStartOf(upgDex);
@@ -543,9 +543,9 @@ G.MenuUI = (() => {
         const id = b.dataset.id;
         s.pstart = s.pstart || {};
         if (id === base) delete s.pstart[upgDex]; else s.pstart[upgDex] = id;
-        // Si era el segundo inicial, el segundo vuelve a salir al azar.
+        // If it was the second starting move, the second move is randomized again.
         if (s.pstart2 && s.pstart2[upgDex] === id) delete s.pstart2[upgDex];
-        // El inicial no puede estar vetado.
+        // The starting move cannot be banned.
         const l = banList(), i = l.indexOf(id);
         if (i >= 0) l.splice(i, 1);
         G.DB.commit();
@@ -557,8 +557,8 @@ G.MenuUI = (() => {
     return el;
   }
 
-  // ---------------- segundo movimiento inicial (con Repertorio) ----------------
-  // save.pstart2[dex]; sin elegir (o "Al azar"), el segundo sale al azar como siempre.
+  // ---------------- second starting move (with Repertoire) ----------------
+  // save.pstart2[dex]; if none is selected (or "Random"), choose the second at random as usual.
   let start2Open = false;
   function start2Picker() {
     const s = G.DB.save, cur = G.startMove2Of(upgDex), first = G.startMoveOf(upgDex);
@@ -574,7 +574,7 @@ G.MenuUI = (() => {
         const id = b.dataset.id;
         s.pstart2 = s.pstart2 || {};
         if (!id) delete s.pstart2[upgDex]; else s.pstart2[upgDex] = id;
-        // El elegido no puede estar vetado.
+        // The selected move cannot be banned.
         const l = banList(), i = id ? l.indexOf(id) : -1;
         if (i >= 0) l.splice(i, 1);
         G.DB.commit();
@@ -587,8 +587,8 @@ G.MenuUI = (() => {
     return el;
   }
 
-  // ---------------- veto: movimientos bloqueados ----------------
-  // Lista por Pokémon en save.pban[dex]; con N niveles de Veto, N movimientos.
+  // ---------------- bans: blocked moves ----------------
+  // Per-Pokémon list in save.pban[dex]; N Ban levels allow N moves.
   let banOpen = false;
   function banList() {
     const s = G.DB.save;

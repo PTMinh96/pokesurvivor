@@ -1,32 +1,32 @@
-/* ============ rift.js — grietas y arena del legendario ============
+/* ============ rift.js — rifts and the Legendary arena ============
  *
- * De vez en cuando (pocas veces por partida) se abre una GRIETA cerca de un
- * jugador. Dura GRIETA_TTL segundos; si entras, te lleva (con todo el grupo)
- * a una arena cerrada en el Mundo Distorsión, contra un Pokémon LEGENDARIO.
+ * Occasionally (a few times per run), a RIFT opens near a player. It lasts
+ * GRIETA_TTL seconds; entering takes the entire group to a closed arena in the
+ * Distortion World to fight a LEGENDARY Pokémon.
  *
- *   ganas    el legendario suelta tickets (el ×10, la mitad de las veces) y monedas, y cada uno se lleva un
- *            VÍNCULO (fusiona movimientos, ver Player.fuse); a los pocos
- *            segundos volvéis al mapa donde estabais y se elige la fusión
- *   pierdes  (caéis todos o se acaba el tiempo) volvéis sin premio, con algo
- *            de vida; la partida sigue
+ *   win      the Legendary drops tickets (a ×10 ticket half the time) and coins,
+ *            and everyone gets a BOND (fuses moves; see Player.fuse); after a
+ *            few seconds, return to the map and choose the fused move
+ *   lose     (everyone falls or time runs out) return without a reward, with
+ *            some health; the run continues
  *
- * Mientras dura la arena, los enemigos del mapa se guardan (EnemyMgr.stash) y
- * no aparecen nuevos; al volver todo sigue como estaba.
+ * While in the arena, map enemies are stashed (EnemyMgr.stash) and no new ones
+ * spawn; when you return, everything is as it was.
  *
- * Cooperativo: lo decide el anfitrión. Mensajes (ver coop.js):
- *   'rift' x y ttl · 'riftx' · 'arena' cfg · 'aw' (ganada) · 'al' (perdida)
- *   y del invitado al anfitrión 're' (he entrado en la grieta).
+ * Co-op: the host decides. Messages (see coop.js):
+ *   'rift' x y ttl · 'riftx' · 'arena' cfg · 'aw' (won) · 'al' (lost)
+ *   guest to host: 're' (entered the rift).
  */
 G.Rift = (() => {
-  // (0.14 hasta el 11-10-2026: más grietas para que se vean los vínculos)
-  // Menos azar (12-10-2026): cada vez que no sale, la siguiente es más
-  // probable (20 %, 40 %, 60 %, 80 %, 100 %): como mucho 2,5 min sin grieta.
-  // Desde 2 min antes de la Sentencia de Arceus (minuto 30) ya no se abren.
+  // (0.14 through 2026-10-11: more rifts so links are easier to see.)
+  // Less randomness (2026-10-12): each missed spawn makes the next one more
+  // likely (20%, 40%, 60%, 80%, 100%): at most 2.5 minutes without a rift.
+  // Stop opening rifts 2 minutes before Arceus's Judgment (minute 30).
   const CHECK = 30, CHANCE = 0.2, TTL = 45;
   const ARENA_R = 11, ARENA_TIME = 120, FROM = 75;
   let rift = null;          // { x, y, ttl, t }
   let arena = null;         // { tx, ty, r, dex, shiny, x, y, back, biome, t, phase, endT, bossId }
-  let zone = null;          // dónde estaba la última arena { x, y, r } (ver leftBehind)
+  let zone = null;          // where the last arena was { x, y, r } (see leftBehind)
   let checkT = CHECK, asked = false, downT = 0, misses = 0;
   const authority = () => !G.Coop.active || G.Coop.isHost;
   const TS = () => G.Tiles.T * G.Sprites.PX;
@@ -34,16 +34,17 @@ G.Rift = (() => {
   function reset() { rift = null; arena = null; zone = null; checkT = CHECK; asked = false; downT = 0; misses = 0; }
 
   /**
-   * ¿Sigue este jugador en la arena aunque aquí ya se haya vuelto al mapa?
-   * En grupo, el anfitrión vuelve unas décimas antes que los invitados (el aviso
-   * tarda en llegar) y en ese rato los ve aún allí: el jefe que esperaba salía a su
-   * lado, a miles de metros, y ya no se le encontraba (ni salían más grietas).
+   * Is this player still in the arena even though the map has already been
+   * restored here? In co-op, the host returns a fraction of a second before
+   * guests (the notification takes time to arrive) and still sees them there.
+   * The waiting boss then spawned beside the host, thousands of meters away, and
+   * could no longer be found (and no more rifts appeared).
    */
   function leftBehind(p) {
     return !arena && !!zone && G.U.dist2(p.x, p.y, zone.x, zone.y) < zone.r * zone.r;
   }
 
-  // ---------------- grieta en el mapa ----------------
+  // ---------------- map rift ----------------
 
   function update(dt, pl, time) {
     if (rift) {
@@ -55,7 +56,7 @@ G.Rift = (() => {
       checkT -= dt;
       if (checkT <= 0) {
         checkT = CHECK;
-        if (G.EnemyMgr.bossAlive()) return;           // con un jefe vivo no cuenta como intento
+        if (G.EnemyMgr.bossAlive()) return;           // A living boss does not count as an attempt
         if (Math.random() < CHANCE * (1 + misses)) { misses = 0; open(); }
         else misses++;
       }
@@ -76,11 +77,11 @@ G.Rift = (() => {
     }
   }
 
-  /** Aparece la grieta (también la que manda el anfitrión). */
+  /** Show the rift (including one sent by the host). */
   function show(x, y, ttl) {
     rift = { x, y, ttl, t: 0 };
     asked = false;
-    // (El aviso grande lo dibuja hud.js mientras rift.t < 4,5 s.)
+    // hud.js draws the large notice while rift.t < 4.5 s.
     G.Audio.sfx('rift');
     G.FX.ring(x, y, 6, 80, '#b48aff', 0.7, 5);
   }
@@ -94,15 +95,15 @@ G.Rift = (() => {
 
   // ---------------- arena ----------------
 
-  /** Quien manda: elige legendario y lugar, y avisa a todos. */
-  let nextType = null;          // pruebas/vídeos: tipo de la próxima arena
+  /** Host: chooses the Legendary and location, then notifies everyone. */
+  let nextType = null;          // Tests/videos: type of the next arena.
 
   function start(forceType) {
     if (arena) return;
     forceType = forceType || nextType; nextType = null;
     let pool = G.DEX.filter(p => p.leg && G.SPRITE_META[p.dex]);
     if (forceType && pool.some(p => p.types.includes(forceType))) pool = pool.filter(p => p.types.includes(forceType));
-    // Los legendarios que aún no has vencido salen 4 veces más (menos repetidos).
+    // Legendaries not yet defeated spawn 4 times more often (fewer duplicates).
     const beaten = (G.DB.save && G.DB.save.legends) || {};
     const ws = pool.map(p => (beaten[p.dex] ? 1 : 4));
     let r = Math.random() * ws.reduce((a, b) => a + b, 0), mi = 0;
@@ -111,7 +112,7 @@ G.Rift = (() => {
     const cfg = {
       tx: 5000 + Math.floor(Math.random() * 3000), ty: 5000 + Math.floor(Math.random() * 3000), r: ARENA_R,
       dex: mon.dex, shiny: G.Sprites.hasShiny(mon.dex) && Math.random() < 1 / 512,
-      // La arena es la de uno de sus tipos, al azar.
+      // Choose an arena matching one of its types at random.
       type: forceType || G.U.pick(mon.types)
     };
     if (G.Coop.isHost) G.Coop.broadcast(['arena', cfg]);
@@ -119,7 +120,7 @@ G.Rift = (() => {
     spawnLegend();
   }
 
-  /** En cada ordenador: viaje a la arena. */
+  /** On each computer: travel to the arena. */
   function begin(cfg) {
     const pl = G.Game.player;
     const ts = TS();
@@ -135,10 +136,10 @@ G.Rift = (() => {
     G.Hazards.clear();
     G.World.setArena({ tx: cfg.tx, ty: cfg.ty, r: cfg.r, type: cfg.type });
     G.World.setBiome(G.Tiles.arenaBiome(cfg.type), true);
-    // Cada arena trae su clima (el volcán, sol; el glaciar, nieve...).
+    // Each arena has its own weather (sun in the volcano, snow on the glacier, etc.).
     const th = G.Tiles.ARENA_THEMES[cfg.type];
     if (th && th.weather) G.Weather.force(th.weather, ARENA_TIME + 15);
-    // Todos al sur de la arena, en fila; el legendario aparece al norte.
+    // Everyone starts in a row at the south of the arena; the legendary appears to the north.
     const ps = G.Game.everyone();
     ps.forEach((p, i) => { p.x = arena.x + (i - (ps.length - 1) / 2) * 34; p.y = arena.y + ts * 3; });
     G.Camera.x = pl.x; G.Camera.y = pl.y;
@@ -162,8 +163,8 @@ G.Rift = (() => {
     };
     const e = new G.Enemy(def, arena.x, arena.y - ts * 3.5, { hp: 1, spd: 1, dmg: 1 }, true);
     e.legend = true;
-    // Choca con las paredes y columnas como tú: si volara por encima de las
-    // rocas, tus disparos no podrían alcanzarle (bug de Celebi).
+    // Collides with walls and pillars like the player: if it flew over rocks,
+    // shots could not reach it (Celebi bug).
     e.flying = false;
     if (arena.shiny) e.makeShiny();
     G.EnemyMgr.add(e);
@@ -173,7 +174,7 @@ G.Rift = (() => {
     G.Audio.sfx('boss');
   }
 
-  /** Nadie sale del círculo de la arena (por si algo empuja demasiado). */
+  /** Keep everyone inside the arena circle (in case something pushes too hard). */
   function keepInside() {
     const ts = TS(), max = (arena.r - 1.4) * ts;
     for (const e of G.EnemyMgr.all()) {
@@ -221,17 +222,17 @@ G.Rift = (() => {
     G.Audio.sfx('back');
   }
 
-  /** En cada ordenador: vuelta al mapa. */
+  /** On each computer: return to the map. */
   function finish() {
     const pl = G.Game.player;
     const a = arena;
     arena = null;
     G.World.setBiome(a.biome, true);
     G.Weather.clear();
-    // Invitado: no se borra nada. El anfitrión avisa de los de la arena que se
-    // van y de los del mapa que vuelven; si el invitado terminaba su cuenta
-    // atrás un poco más tarde (pasa casi siempre), borraba los que acababan de
-    // volver y no se veían hasta que caían (sólo sus ataques).
+    // Guest: do not clear anything. The host reports which arena enemies leave
+    // and which map enemies return; if the guest's countdown finished slightly
+    // later (which usually happens), it removed the newly returned enemies.
+    // They were invisible until defeated (only their attacks appeared).
     if (authority()) G.EnemyMgr.restore();
     G.Projectiles.clear();
     G.Combat.clearFields();
@@ -244,9 +245,9 @@ G.Rift = (() => {
     if (pl.bonds > 0) G.Game.offerBond();
   }
 
-  // ---------------- dibujo ----------------
+  // ---------------- rendering ----------------
 
-  /** La grieta, para ordenarla por Y con el resto de la escena. */
+  /** The rift, for sorting by Y with the rest of the scene. */
   function drawable() {
     if (!rift) return null;
     return {
@@ -268,7 +269,7 @@ G.Rift = (() => {
     };
   }
 
-  // ---------------- red ----------------
+  // ---------------- networking ----------------
 
   function onEvent(ev) {
     switch (ev[0]) {
@@ -286,9 +287,9 @@ G.Rift = (() => {
     get inArena() { return !!arena; },
     get timeLeft() { return arena ? Math.max(0, ARENA_TIME - arena.t) : 0; },
     debugOpen() { open(); },
-    /** Para pruebas: arena de un tipo ya. */
+    /** For testing: start an arena of a specific type immediately. */
     debugArena(type) { start(type); },
-    /** Para vídeos: la próxima grieta en la que entres será de este tipo. */
+    /** For videos: the next rift you enter will have this type. */
     debugNextType(type) { nextType = type; }
   };
 })();

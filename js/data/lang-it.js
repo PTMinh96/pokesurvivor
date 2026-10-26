@@ -1,7 +1,7 @@
-/* ============ lang-it.js — traduzione in italiano ============
- * Chiave: il testo in spagnolo così come appare a schermo. {x} = segnaposto (nome,
- * numero...). Vedi js/core/i18n.js. I nomi di mosse, strumenti e tipi
- * sono quelli ufficiali in italiano.
+/* ============ lang-it.js — Italian translation ============
+ * Key: the Spanish text as it appears on screen. {x} = placeholder (name,
+ * number...). See js/core/i18n.js. Move, item, and type names are the official
+ * Italian names.
  */
 G.I18n.add({
   'Acero': 'Acciaio', 'Agua': 'Acqua', 'Bicho': 'Coleottero', 'Dragón': 'Drago', 'Eléctrico': 'Elettro', 'Fantasma': 'Spettro',

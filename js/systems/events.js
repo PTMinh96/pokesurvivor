@@ -1,22 +1,22 @@
-/* ============ events.js — eventos a mitad de partida y duendes del tesoro ============
+/* ============ events.js — mid-run events and treasure sprites ============
  *
- * Cada 4-5 minutos (nunca con un jefe vivo ni en la grieta) pasa uno de estos:
+ * Every 4-5 minutes (never while a boss is alive or in a rift), one of these occurs:
  *
- *   horde   Horda de un tipo: 30 s en los que todos los que salen son de un
- *           mismo tipo (si tu tipo les gana, es tu momento)
- *   gold    Hora dorada: 30 s de enemigos dorados que dan el doble de
- *           experiencia y a veces sueltan monedas
- *   lost    Pokémon perdido: lo tocas, te sigue y lo llevas hasta la marca.
- *           Los enemigos le hacen daño; si cae (o tardas más de 2 min), se va.
- *           Premio: cura la mitad de la vida, monedas, un ticket y, 1 de cada
- *           5 veces, se une a tu colección.
+ *   horde   Type horde: for 30 s, every spawn is the same type (if your type
+ *           counters it, this is your moment)
+ *   gold    Golden hour: for 30 s, golden enemies grant double experience and
+ *           sometimes drop coins
+ *   lost    Lost Pokémon: touch it and it will follow you to the marker.
+ *           Enemies can damage it; it leaves if defeated or after 2 min.
+ *           Reward: half your health restored, coins, a ticket, and a 1-in-5
+ *           chance for it to join your collection.
  *
- * Duendes del tesoro (1-2 por partida, ver Enemy behavior 'thief'): un
- * Meowth cargado de monedas (o, 1 de cada 4, un Gholdengo con un ticket ×10)
- * que huye y se escapa a los 15 s si no lo atrapas.
+ * Treasure sprites (1-2 per run; see Enemy behavior 'thief'): a Meowth carrying
+ * coins (or, 1 in 4 times, a Gholdengo with a ×10 ticket) that flees and escapes
+ * after 15 s if you do not catch it.
  *
- * Cooperativo: decide el anfitrión y avisa con 'ev' (ver coop.js). Todos ven lo
- * mismo y el premio es para todos.
+ * Co-op: the host decides and announces it with 'ev' (see coop.js). Everyone
+ * sees the same event and receives the reward.
  */
 G.Events = (() => {
   const EVERY = [240, 300], DUR = 30, LOST_TIME = 120;
@@ -32,7 +32,7 @@ G.Events = (() => {
     thiefT = G.U.rand(THIEF_FIRST[0], THIEF_FIRST[1]); thieves = 0;
   }
 
-  // ---------------- ciclo ----------------
+  // ---------------- cycle ----------------
 
   function update(dt, players, time) {
     if (cur) {
@@ -96,10 +96,10 @@ G.Events = (() => {
     if (G.Coop.isHost) G.Coop.broadcast(['ev', 'e']);
   }
 
-  /** Lo que sale durante una horda (lo usa G.Enemies.bagAt). */
+  /** Enemies that can spawn during a horde (used by G.Enemies.bagAt). */
   function bag() { return cur && cur.id === 'horde' && cur.defs.length ? cur.defs : null; }
 
-  // ---------------- duende del tesoro ----------------
+  // ---------------- treasure sprite ----------------
 
   function spawnThief(players, time) {
     const gold = Math.random() < 0.25;
@@ -125,7 +125,7 @@ G.Events = (() => {
     }
   }
 
-  // ---------------- Pokémon perdido ----------------
+  // ---------------- lost Pokémon ----------------
 
   function spawnLost(players) {
     const alive = players.filter(p => !p.dead);
@@ -180,7 +180,7 @@ G.Events = (() => {
     }
     L.anim.loop(L.moving ? 'Walk' : 'Idle');
 
-    // Los enemigos que lo tocan le hacen daño.
+    // Enemies that touch it damage it.
     if ((L.hitCd -= dt) <= 0) {
       const hits = G.EnemyMgr.queryCircle(L.x, L.y, L.r).filter(e => !e.dead && e.behavior !== 'thief');
       if (hits.length) {
@@ -211,7 +211,7 @@ G.Events = (() => {
     end();
   }
 
-  /** En cada ordenador: cura, y si toca, el Pokémon se une a tu colección. */
+  /** On each computer: heal and, if applicable, add the Pokémon to your collection. */
   function reward(dex, grant) {
     const pl = G.Game.player;
     if (pl && !pl.dead) { pl.heal(pl.maxHp * 0.5); G.FX.ring(pl.x, pl.y, 6, 70, '#5fe08a', 0.5, 3); }
@@ -229,7 +229,7 @@ G.Events = (() => {
     end();
   }
 
-  // ---------------- red ----------------
+  // ---------------- networking ----------------
 
   function onNet(ev) {
     switch (ev[1]) {
@@ -247,15 +247,15 @@ G.Events = (() => {
     }
   }
 
-  // ---------------- dibujo ----------------
+  // ---------------- rendering ----------------
 
-  /** El Pokémon perdido y la marca, para ordenarlos por Y con el resto. */
+  /** The lost Pokémon and marker, to order by Y with other entities. */
   function drawables() {
     if (!lost) return [];
     const L = lost;
     const now = performance.now() / 1000;
     const goal = {
-      y: L.ty - 4000,          // en el suelo, debajo de todo
+      y: L.ty - 4000,          // On the ground, behind everything.
       draw(ctx) {
         const k = 0.5 + Math.sin(now * 4) * 0.5;
         ctx.save();
@@ -281,7 +281,7 @@ G.Events = (() => {
         L.anim.draw(ctx, L.x, L.y, { flash: L.flash > 0 });
         const h = G.Sprites.bodyHeight(L.dex, 1);
         if (L.state === 'wait') {
-          // "!" que bota encima: está esperando a que lo toques.
+          // Bouncing "!" above it: waiting for the player to touch it.
           const by = L.y - h - 14 - Math.abs(Math.sin(now * 5)) * 6;
           ctx.save();
           ctx.font = '700 16px Pixelify, monospace'; ctx.textAlign = 'center';
@@ -297,7 +297,7 @@ G.Events = (() => {
     return [goal, mon];
   }
 
-  /** Flecha en el borde hacia el Pokémon perdido (o hacia la marca, si ya te sigue). */
+  /** Edge arrow pointing to the lost Pokémon (or the marker if it is following you). */
   function drawHud(ctx, w, h, pl, F) {
     const cam = G.Camera;
     if (lost) {
@@ -350,7 +350,7 @@ G.Events = (() => {
     reset, update, bag, onNet, drawables, drawHud,
     get golden() { return !!cur && cur.id === 'gold'; },
     get current() { return cur ? cur.id : null; },
-    /** Para pruebas. */
+    /** For testing. */
     debugStart(id) { start(id, G.Game.st.time, G.Game.everyone()); },
     debugThief() { spawnThief(G.Game.everyone(), G.Game.st.time); },
     _dbg() { return lost && { x: lost.x, y: lost.y, tx: lost.tx, ty: lost.ty, state: lost.state, hp: lost.hp }; }

@@ -1,14 +1,14 @@
-/* ============ run-ui.js — cartas de nivel, pausa y fin de run ============ */
+/* ============ run-ui.js — level-up cards, pause, and end-of-run ============ */
 G.RunUI = (() => {
   const $ = G.UI.$;
   let offers = null, offerCb = null, coopMode = false;
 
   /*
-   * Al aparecer unas cartas (nivel, vínculo, objeto) no se pueden elegir
-   * durante GUARD s y se ven apagadas: en plena pelea se pulsa 1-4 (o se toca
-   * la pantalla) para cambiar de ataque y se elegía una carta sin querer.
-   * Cambiar las cartas o el 2.º paso del vínculo no lo vuelven a poner: ahí ya
-   * estás eligiendo a propósito.
+   * When cards (level, bond, item) appear, they are disabled for GUARD seconds
+   * and dimmed: during a fight, pressing 1-4 (or tapping the screen) switches
+   * attacks and used to select a card accidentally. Changing cards or taking
+   * the second bond step does not reapply the guard; by then you are choosing
+   * intentionally.
    */
   const GUARD = 0.6;
   let guardUntil = 0, guardT = 0;
@@ -20,7 +20,7 @@ G.RunUI = (() => {
   }
   const guarded = () => performance.now() < guardUntil;
 
-  /** @param coop  en grupo: tras elegir, se queda esperando a los demás */
+  /** @param coop  in co-op: after choosing, wait for the others */
   function showLevelUp(level, list, cb, coop = false) {
     offerCb = cb; coopMode = coop;
     $('lvl-num').textContent = level;
@@ -34,12 +34,12 @@ G.RunUI = (() => {
   }
 
   /**
-   * Cambiar las cartas: 1 vez gratis por partida y 1 más por cada jefe
-   * derrotado (en grupo cuentan los jefes del equipo; cada uno tiene los suyos).
+   * Reroll cards: once free per run, plus one for each boss defeated (in co-op,
+   * count the team's bosses; each player has their own rerolls).
    */
   function rerollsLeft() {
     const p = G.Game.player;
-    // 1 gratis + los comprados en Mejoras (antes, 1 más por cada jefe).
+    // 1 free + those purchased in Upgrades (previously, one more per boss).
     return p ? Math.max(0, 1 + (p.rerollBonus || 0) - (p.rerolls || 0)) : 0;
   }
 
@@ -71,7 +71,7 @@ G.RunUI = (() => {
         `<div class="ico" style="background:${c.color}33">${G.Icons.html(c.icon, 32)}</div>
          <div class="txt"><div class="nm">${c.title} ${tag}</div><div class="ds">${c.desc}</div></div>
          <div class="key">${i + 1}</div>`;
-      el.dataset.sfx = 'none';             // el juego pone su propio sonido al elegir
+      el.dataset.sfx = 'none';             // The game plays its own sound on selection.
       el.onclick = () => pick(i);
       box.appendChild(el);
     });
@@ -83,14 +83,14 @@ G.RunUI = (() => {
     offers = null; offerCb = null;
     $('lvl-reroll').classList.add('hidden');
     if (coopMode) {
-      // Se queda la carta elegida a la vista mientras eligen los demás.
+      // Keep the selected card visible while the others choose.
       $('cards').querySelectorAll('.card').forEach((el, j) => el.classList.toggle('picked', j === i));
       $('cards').classList.add('done');
     } else G.UI.hide('scr-levelup');
     cb(c);
   }
 
-  /** Cooperativo: quién falta por elegir. */
+  /** Co-op: who still needs to choose. */
   function setWaiting(names) {
     const me = G.Social.me ? G.Social.me.name : '';
     const others = names.filter(n => n !== me);
@@ -109,8 +109,8 @@ G.RunUI = (() => {
   }
 
   /**
-   * Mensaje de apoyo (Ko-fi) al acabar: tras un récord o cada 10 partidas,
-   * nunca en la primera y como mucho una vez al día. Se cierra con la X.
+   * Support message (Ko-fi) at the end: after a record or every 10 runs,
+   * never on the first run and at most once a day. Close with X.
    */
   function askSupport(r) {
     if (!G.Funding || !G.Funding.url) return false;
@@ -160,7 +160,7 @@ G.RunUI = (() => {
     G.UI.show('scr-over');
   }
 
-  /** Has encontrado un objeto llevando ya otro: ¿con cuál te quedas? */
+  /*  * You found an item while already carrying one: which one do you keep? */
   function showItemChoice(cur, next, cb) {
     const box = $('item-cards');
     box.innerHTML = '';
@@ -178,13 +178,13 @@ G.RunUI = (() => {
     guard(box);
   }
 
-  // ---------------- vínculo: qué movimientos se fusionan ----------------
+  // ---------------- bond: which moves fuse ----------------
 
   let bond = null;          // { opt, cb, first, list }
 
   /**
-   * @param opt  pl.bondOptions(): 'add' (uno suelto al grupo) o 'pair' (dos sueltos, en dos pasos)
-   * @param cb   recibe la lista de movimientos que se juntan
+   * @param opt  pl.bondOptions(): 'add' (one move to the group) or 'pair' (two moves, in two steps)
+   * @param cb   receives the list of moves to fuse
    */
   function showBond(opt, cb) {
     bond = { opt, cb, first: null, list: [] };
@@ -244,9 +244,9 @@ G.RunUI = (() => {
   }
 
   /*
-   * Resumen de la partida en la pausa: tus ataques (categoría, daño hecho y
-   * daño por segundo), tus estadísticas con todo lo subido y el objeto y las
-   * cartas de mejora que llevas.
+   * Run summary in the pause screen: your attacks (category, damage dealt, and
+   * damage per second), your stats with all upgrades, your item, and your
+   * upgrade cards.
    */
   function pauseSummary() {
     const pl = G.Game.player;
@@ -288,7 +288,7 @@ G.RunUI = (() => {
       <h3>Tus esferas</h3>${orbsSummary(pl)}`;
   }
 
-  /** Las esferas que llevas (con su tecla y lo que hacen) y las mejoras que tienes puestas. */
+  /** Orbs you carry (with their key and effect) and the upgrades you have equipped. */
   function orbsSummary(pl) {
     const key = i => G.Touch.active ? '' : `<kbd>${i + 5}</kbd> `;
     const rows = (pl.orbs || []).map((s, i) => {

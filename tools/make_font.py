@@ -1,17 +1,16 @@
 # -*- coding: utf-8 -*-
-"""Fuente del juego con números más fáciles de distinguir.
+"""Game font with more easily distinguished numerals.
 
-Pixelify Sans (OFL) dibuja el 2, el 5, el 8 (y la S) casi iguales, todos
-redondeados. Este script saca dos versiones fijas de la fuente variable
-(normal 400 y negrita 700) y redibuja los números con un mapa de píxeles de
-5x7 más anguloso: el 2 con escalones, el 5 con la esquina recta, el 8
-estrechado por la cintura... Las esquinas siguen recortadas como en el resto
-de letras para que no desentonen.
+Pixelify Sans (OFL) draws 2, 5, 8 (and S) nearly alike, all rounded. This
+script creates two static instances of the variable font (regular 400 and bold
+700) and redraws the numerals with a sharper 5x7 pixel grid: a stepped 2, a
+square-cornered 5, and a narrower 8 at the waist. Corners remain clipped like
+the rest of the letters so they match.
 
-    python tools/make_font.py   ->  assets/fonts/PixelifyPS-400.ttf y -700.ttf
+    python tools/make_font.py   ->  assets/fonts/PixelifyPS-400.ttf and -700.ttf
 
-Necesita fontTools (pip install fonttools). La fuente cambia de nombre
-("Pixelify PS"), como pide la licencia OFL para versiones modificadas.
+Requires fontTools (pip install fonttools). The font is renamed to
+"Pixelify PS", as required by the OFL for modified versions.
 """
 import os
 from fontTools.ttLib import TTFont
@@ -23,7 +22,7 @@ SRC = os.path.join(ROOT, 'assets', 'fonts', 'PixelifySans.ttf')
 OUT = os.path.join(ROOT, 'assets', 'fonts', 'PixelifyPS-{}.ttf')
 FAMILY = 'Pixelify PS'
 
-# 5 columnas x 7 filas, de arriba abajo. '#' = píxel.
+# 5 columns × 7 rows, top to bottom. '#' = pixel.
 DIGITS = {
     'zero':  ['.###.', '#...#', '#...#', '#...#', '#...#', '#...#', '.###.'],
     'two':   ['.###.', '#...#', '....#', '...#.', '..#..', '.#...', '#####'],
@@ -40,15 +39,15 @@ DIGITS = {
 def build(weight):
     font = instancer.instantiateVariableFont(TTFont(SRC), {'wght': weight})
     glyf, hmtx = font['glyf'], font['hmtx']
-    # Caja de los números de la fuente original (la del 0) y grosor de su trazo.
+    # Bounding box of the original font's numerals (using 0) and stroke width.
     z = glyf['zero']
     coords = z.getCoordinates(glyf)[0]
     xs = sorted(set(x for x, _ in coords))
     ys = sorted(set(y for _, y in coords))
     x0, x1, y0, y1 = xs[0], xs[-1], ys[0], ys[-1]
-    stroke = xs[2] - xs[0]                    # p. ej. 60 -> 161 en la normal
+    stroke = xs[2] - xs[0]                    # e.g. 60 -> 161 in the regular font
     cw, ch = (x1 - x0) / 5, (y1 - y0) / 7
-    bleed = max(0, (stroke - cw) / 2)        # la negrita tiene el trazo más gordo que un píxel
+    bleed = max(0, (stroke - cw) / 2)        # Bold strokes are wider than one pixel.
     for name, rows in DIGITS.items():
         pen = TTGlyphPen(glyf)
         for r, row in enumerate(rows):
@@ -60,8 +59,8 @@ def build(weight):
                 c2 = c
                 while c2 + 1 < 5 and row[c2 + 1] == '#':
                     c2 += 1
-                # Tramo horizontal de píxeles (con algo de grosor extra en la negrita),
-                # sin salirse de la caja original.
+                # Horizontal pixel run (slightly thicker for bold),
+                # staying within the original bounding box.
                 ax = round(max(x0, x0 + c * cw - bleed))
                 bx = round(min(x1, x0 + (c2 + 1) * cw + bleed))
                 top = round(min(y1, y1 - r * ch + bleed))
@@ -73,7 +72,7 @@ def build(weight):
         g.recalcBounds(glyf)
         glyf[name] = g
         hmtx[name] = (hmtx[name][0], g.xMin)
-    # Nombre nuevo (OFL: una versión modificada no debe llamarse igual).
+    # New name (OFL: a modified version must not use the same name).
     style = 'Regular' if weight == 400 else 'Bold'
     for rec in font['name'].names:
         if rec.nameID in (1, 16):

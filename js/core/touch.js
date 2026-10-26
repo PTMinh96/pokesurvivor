@@ -1,28 +1,28 @@
-/* ============ touch.js — controles táctiles ============
- * Joystick flotante: pones el dedo en cualquier sitio de la pantalla de juego
- * y ahí aparece; arrastras para moverte y al soltar desaparece. Si el dedo se
- * aleja más que el radio, la base le sigue (nunca se queda "atascado").
+/* ============ touch.js — touch controls ============
+ * Floating joystick: touch anywhere on the game screen and it appears there;
+ * drag to move and release to hide it. If the finger moves beyond the radius,
+ * the base follows it (so it never gets "stuck").
  *
- * Botones del HUD (iconos de ataque, pausa): el HUD los registra en cada
- * fotograma con addButton(); un toque (o un clic con el ratón) sobre uno lo
- * pulsa en vez de abrir el joystick. Varios dedos a la vez funcionan.
+ * HUD buttons (attack icons, pause): the HUD registers them each frame with
+ * addButton(); touching (or clicking) one activates it instead of opening the
+ * joystick. Multiple fingers work at once.
  *
- * Joystick fijo (Ajustes > Controles > Colocar los botones): siempre en el
- * mismo sitio; sólo se coge tocando cerca de él.
+ * Fixed joystick (Settings > Controls > Arrange Buttons): stays in one place
+ * and activates only when touched nearby.
  */
 G.Touch = (() => {
   let cv = null, stick = null;
-  let active = G.Settings.touch;      // ¿se está usando táctil?
+  let active = G.Settings.touch;      // Is touch input active?
   let buttons = [];
 
   const R = () => 56 * (G.Settings.get('stick') || 1);
   const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 
-  /** Dónde ha colocado el jugador una cosa ('bar', 'pause', 'stick'): [x, y] en 0..1, o null. */
+  /** Player-set position for an element ('bar', 'pause', 'stick'): [x, y] in 0..1, or null. */
   function spot(k) { const p = G.Settings.get('pad'); return p && Array.isArray(p[k]) ? p[k] : null; }
   const STICK_DEF = [0.14, 0.72];
   const fixed = () => G.Settings.get('stickMode') === 'fixed';
-  /** Centro del joystick fijo, en px de pantalla. */
+  /** Fixed joystick center in screen pixels. */
   function stickBase(w = cv.clientWidth, h = cv.clientHeight) {
     const p = spot('stick') || STICK_DEF, r = R();
     return { x: clamp(p[0] * w, r + 4, w - r - 4), y: clamp(p[1] * h, r + 4, h - r - 4) };
@@ -36,12 +36,12 @@ G.Touch = (() => {
     cv.addEventListener('pointerup', up);
     cv.addEventListener('pointercancel', up);
     cv.addEventListener('contextmenu', e => e.preventDefault());
-    // iPhone: la pulsación larga sobre el juego abría la lupa y el menú de
-    // "Copiar / Seleccionar todo". Cortar el toque aquí lo evita (los eventos
-    // pointer, que son los que usa el joystick, siguen llegando).
-    // Además, los botones (movimientos, pausa) se pulsan también desde aquí: en
-    // iPhone (Safari y Chrome usan WebKit) a veces no llegaba el pointerdown de
-    // un segundo dedo con el otro en el joystick y no se podía cambiar de movimiento.
+    // iPhone: a long press on the game opened the magnifier and the
+    // "Copy / Select All" menu. Stop the touch here to prevent this (pointer
+    // events used by the joystick still arrive).
+    // Buttons (moves, pause) are also activated here: on iPhone (Safari and
+    // Chrome use WebKit), pointerdown from a second finger sometimes failed
+    // while another finger was on the joystick, preventing move changes.
     cv.addEventListener('touchstart', e => {
       if (e.cancelable) e.preventDefault();
       if (!active) { active = true; document.body.classList.add('touch'); }
@@ -62,7 +62,7 @@ G.Touch = (() => {
     return null;
   }
 
-  // Un mismo toque llega por touchstart y por pointerdown: se pulsa una sola vez.
+  // The same touch arrives as touchstart and pointerdown; activate only once.
   let lastKey = '', lastAt = 0;
   function press(b) {
     const k = Math.round(b.x) + ',' + Math.round(b.y), now = performance.now();
@@ -78,7 +78,7 @@ G.Touch = (() => {
     if (b) { e.preventDefault(); press(b); return; }
     if (!touchy || stick || !G.Game || G.Game.state !== 'playing') return;
     if (fixed()) {
-      // Fijo: sólo si el dedo cae cerca del joystick (si no, no hace nada).
+      // Fixed joystick: only respond when the finger lands nearby.
       const b0 = stickBase();
       if (Math.hypot(e.clientX - b0.x, e.clientY - b0.y) > R() * 2.2) return;
       e.preventDefault();
@@ -87,7 +87,7 @@ G.Touch = (() => {
       e.preventDefault();
       stick = { id: e.pointerId, ox: e.clientX, oy: e.clientY, x: e.clientX, y: e.clientY };
     }
-    try { cv.setPointerCapture(e.pointerId); } catch (err) { /* nada */ }
+    try { cv.setPointerCapture(e.pointerId); } catch (err) { /* ignored */ }
   }
 
   function move(e) {
@@ -101,17 +101,17 @@ G.Touch = (() => {
   function up(e) { if (stick && e.pointerId === stick.id) stick = null; }
   function reset() { stick = null; }
 
-  /** Dirección del joystick (con fuerza 0..1), o null si no se usa. */
+  /** Joystick direction (with strength 0..1), or null if unused. */
   function vector() {
     if (!stick) return null;
     const dx = stick.x - stick.ox, dy = stick.y - stick.oy, d = Math.hypot(dx, dy);
     if (d < 7) return [0, 0];
-    // A partir de medio radio ya va a toda velocidad.
+    // Reach full speed at half the joystick radius.
     const k = Math.min(1, (d - 7) / (R() * 0.5 - 7));
     return [dx / d * k, dy / d * k];
   }
 
-  /** Márgenes del iPhone (barra de inicio abajo, muesca a los lados), en px. */
+  /** iPhone safe-area insets (home bar at the bottom, notches on the sides), in pixels. */
   let safe = null;
   function safeArea() {
     if (safe) return safe;
@@ -129,19 +129,19 @@ G.Touch = (() => {
   addEventListener('orientationchange', () => { safe = null; });
   function resetSafe() { safe = null; }
 
-  /** El HUD vacía y vuelve a registrar sus botones cada fotograma. */
+  /** The HUD clears and re-registers its buttons every frame. */
   function clearButtons() { buttons = []; }
   function addButton(x, y, w, h, fn, pad = 6) { buttons.push({ x, y, w, h, fn, pad }); }
 
-  /** Dibuja el joystick (coordenadas de pantalla, CSS px). */
+  /** Draw the joystick (screen coordinates, CSS pixels). */
   function draw(ctx) {
-    // El fijo se ve siempre (más tenue sin tocarlo), para saber dónde está.
+    // Always show the fixed joystick (dimmed when idle) so its location is clear.
     const base = !stick && fixed() && active ? stickBase() : null;
     if (!stick && !base) return;
     const s = stick || { ox: base.x, oy: base.y, x: base.x, y: base.y };
     drawStick(ctx, s, R(), base ? 0.55 : 1);
   }
-  /** Dibuja un joystick (también lo usa el editor de botones); k: opacidad. */
+  /** Draw a joystick (also used by the button editor); k: opacity. */
   function drawStick(ctx, stick, r, k = 1) {
     const dx = stick.x - stick.ox, dy = stick.y - stick.oy, d = Math.hypot(dx, dy);
     const kx = stick.ox + (d > r ? dx / d * r : dx), ky = stick.oy + (d > r ? dy / d * r : dy);

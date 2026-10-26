@@ -1,34 +1,34 @@
-/* ============ mons.js — naturaleza, habilidad y MT de cada Pokémon ============
- * (20-10-2026, de la Tienda Kecleon del PR #236 de TheAdro7, adaptado.)
+/* ============ mons.js — Pokémon natures, abilities, and TMs ============
+ * (Adapted from TheAdro7's PR #236 for the Kecleon Shop, 2026-10-20.)
  *
- * Cada Pokémon de tu colección tiene:
- *   - NATURALEZA (data/natures.js): +10 % a un stat y −10 % a otro, como en los
- *     juegos (5 son neutras). Se cambia con una Menta.
- *   - HABILIDAD (data/abilities.js, efecto en data/ability-fx.js): una de las
- *     suyas; la oculta sale 1 de cada 20. Se cambia con una Cápsula Habilidad
- *     (la oculta, con la Cápsula Habilidad Oculta).
- *   - MT aprendidas: ataques que no son de sus tipos pero sí los aprende en los
- *     juegos (Mewtwo, Bola Sombra; Psyduck, Lanzallamas no). Salen en sus cartas
- *     de nivel y se pueden elegir de movimiento inicial (G.Moves.poolFor).
+ * Each Pokémon in your collection has:
+ *   - NATURE (data/natures.js): +10% to one stat and −10% to another, as in the
+ *     games (5 are neutral). Change it with a Mint.
+ *   - ABILITY (data/abilities.js, effect in data/ability-fx.js): one of its
+ *     abilities; the hidden ability has a 1-in-20 chance. Change it with an
+ *     Ability Capsule (or a Hidden Ability Capsule for the hidden ability).
+ *   - Learned TMs: moves outside its types that it can learn in the games
+ *     (Mewtwo can learn Shadow Ball; Psyduck cannot learn Flamethrower). They
+ *     appear in level-up cards and can be selected as starting moves (G.Moves.poolFor).
  *
- * Lo que le TOCÓ (naturaleza y habilidad) no se guarda: sale "al azar" pero fijo
- * para cada cuenta y Pokémon (semilla: fecha de creación de la partida + nº de la
- * Pokédex), así todos los aparatos de la misma cuenta ven lo mismo y también los
- * Pokémon que ya tenías antes de esto tienen la suya. Lo cambiado con Menta o
- * Cápsula sí se guarda (save.pnat / save.pabil, con la fecha para fusionar).
+ * Assigned nature and ability are not stored: they are "random" but fixed per
+ * account and Pokémon (seed: save creation date + Pokédex number), so every
+ * device on the same account sees the same values, including for Pokémon owned
+ * before this feature. Changes made with a Mint or Capsule are stored
+ * (save.pnat / save.pabil, with timestamps for merging).
  */
 G.Mons = (() => {
   const HIDDEN_RATE = 1 / 20;
   const save = () => G.DB && G.DB.save;
 
-  /** Nombre en el idioma del juego: [es, en, fr, it, zh-Hans, zh-Hant] (pt-BR, el inglés). */
+  /** Name in the game's language: [es, en, fr, it, zh-Hans, zh-Hant] (pt-BR uses English). */
   const LANG_I = { es: 0, en: 1, fr: 2, it: 3, 'pt-BR': 1, 'zh-Hans': 4, 'zh-Hant': 5 };
   function name(n) {
     if (!Array.isArray(n)) return String(n || '');
     return n[LANG_I[G.I18n ? G.I18n.lang : 'es'] || 0] || n[1] || n[0];
   }
 
-  // Número pseudoaleatorio fijo para (cuenta, Pokémon, sal), entre 0 y 1.
+  // Fixed pseudo-random number for (account, Pokémon, salt), between 0 and 1.
   function hash(str) {
     let h = 2166136261;
     for (let i = 0; i < str.length; i++) { h ^= str.charCodeAt(i); h = Math.imul(h, 16777619); }
@@ -39,9 +39,9 @@ G.Mons = (() => {
 
   // ---------------- naturaleza ----------------
 
-  /** La que le tocó (sin Menta). */
+  /** The assigned nature (without a Mint). */
   function rolledNature(dex) { return G.NATURES[Math.floor(roll(dex, 'nat') * G.NATURES.length)]; }
-  /** La que tiene ahora: la de la Menta o la que le tocó. */
+  /** Current nature: from a Mint or the assigned one. */
   function natureOf(dex) {
     const s = save(), p = s && s.pnat && s.pnat[dex];
     return (p && G.NATURE_BY[p[0]]) || rolledNature(dex);
@@ -54,8 +54,8 @@ G.Mons = (() => {
   }
 
   /**
-   * El Pokémon con su naturaleza aplicada (una copia: G.DEX_BY no se toca).
-   * pa/sa: daño de sus ataques físicos/especiales · df/sd: defensas · spd: velocidad.
+   * Pokémon with its nature applied (a copy; G.DEX_BY is not modified).
+   * pa/sa: physical/special move damage · df/sd: defenses · spd: speed.
    */
   function monFor(dex) {
     const base = G.DEX_BY[dex];
@@ -70,22 +70,22 @@ G.Mons = (() => {
 
   // ---------------- habilidad ----------------
 
-  /** [habilidad 1, habilidad 2 o 0, oculta o 0] */
+  /** [ability 1, ability 2 or 0, hidden ability or 0] */
   const slots = dex => (G.DEX_ABIL && G.DEX_ABIL[dex]) || [0, 0, 0];
-  /** Hueco que le tocó: 2 (oculta) 1 de cada 20 si tiene; si no, 0 o 1. */
+  /** Assigned slot: 2 (hidden) with a 1-in-20 chance if available; otherwise 0 or 1. */
   function rolledSlot(dex) {
     const l = slots(dex);
     if (l[2] && roll(dex, 'hid') < HIDDEN_RATE) return 2;
     return l[1] && roll(dex, 'abil') < 0.5 ? 1 : 0;
   }
-  /** { id, slot }: la de la Cápsula o la que le tocó. */
+  /** { id, slot }: from a Capsule or randomly assigned. */
   function abilityOf(dex) {
     const s = save(), p = s && s.pabil && s.pabil[dex], l = slots(dex);
     let slot = p && l[p[0]] ? p[0] : rolledSlot(dex);
     if (!l[slot]) slot = 0;
     return { id: l[slot] || '', slot };
   }
-  /** Huecos a los que se puede cambiar (la oculta, sólo con la Cápsula Oculta). */
+  /** Slots you can switch to (hidden ability only with a Hidden Ability Capsule). */
   function abilityChoices(dex, hidden) {
     const l = slots(dex), cur = abilityOf(dex).slot;
     return [0, 1, 2].filter(i => l[i] && i !== cur && (i < 2 || hidden) && !(i === 1 && l[1] === l[0]));
@@ -100,17 +100,17 @@ G.Mons = (() => {
 
   // ---------------- MT ----------------
 
-  /** Movimientos que ha aprendido con MT. */
+  /** Moves learned with TMs. */
   function taught(dex) {
     const s = save(), l = s && s.ptm && s.ptm[dex];
     return Array.isArray(l) ? l.filter(id => G.Moves.BY_ID[id]) : [];
   }
-  /** ¿Ya lo sabe sin MT (es de sus tipos)? */
+  /** Does it already know the move without a TM (is it one of its types)? */
   const natural = (dex, id) => G.Moves.poolFor(G.DEX_BY[dex], true).includes(id);
-  /** MT que puede aprender (las que no sabe ya). */
+  /** TMs it can learn (excluding those it already knows). */
   function learnable(dex) { return G.TM_OF(dex).filter(id => G.Moves.BY_ID[id] && !natural(dex, id) && !taught(dex).includes(id)); }
   const canLearn = (dex, id) => learnable(dex).includes(id);
-  /** Enseña una MT de la Mochila (se gasta). → true si se ha aprendido. */
+  /** Teaches a TM from the Backpack (consumes it). → true if learned. */
   function teach(dex, id) {
     const s = save();
     if (!s || !canLearn(dex, id) || !G.Shop.takeTm(id)) return false;

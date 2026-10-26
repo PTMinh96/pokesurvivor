@@ -1,9 +1,9 @@
-/* ============ sw.js — para poder instalar el juego como app ============
- * - Código del juego (html, js, css): primero la red, así cada actualización
- *   llega al momento; si no hay conexión, la última copia guardada.
- * - Sprites, iconos y fuente: no cambian nunca, se sirven de la caché
- *   (se van guardando según se usan: no se descarga todo de golpe).
- * - Firebase y demás servicios de fuera no se tocan.
+/* ============ sw.js — install the game as an app ============
+ * - Game code (html, js, css): try the network first so updates arrive
+ *   immediately; if offline, use the most recently saved copy.
+ * - Sprites, icons, and font: never change; serve them from cache
+ *   (save them as needed instead of downloading everything at once).
+ * - Do not intercept Firebase or other external services.
  */
 const CODE = 'ps-code-v1', ART = 'ps-art-v1';
 
@@ -37,8 +37,8 @@ self.addEventListener('fetch', e => {
     if (res.ok) { const copy = res.clone(); caches.open(CODE).then(c => c.put(req, copy)); }
     return res;
   }).catch(async () => {
-    // Sin red: la copia guardada. La página de inicio sólo sirve de respaldo
-    // al abrir la web (nunca en lugar de un script o una imagen).
+    // Offline: use the saved copy. The homepage is only a fallback when opening
+    // the site, never a substitute for a script or image.
     const hit = await caches.match(req);
     if (hit) return hit;
     if (req.mode === 'navigate') return (await caches.match('./index.html')) || Response.error();

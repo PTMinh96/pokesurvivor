@@ -1,10 +1,10 @@
-/* ============ natures.js — GENERADO, no editar a mano ============
- * Las 25 naturalezas: +10 % a un stat (up) y −10 % a otro (down); 5 son neutras.
- * Stats: pa Ataque · sa Ataque Especial · df Defensa · sd Defensa Especial · spd Velocidad.
- * Sacado del PR #236 de TheAdro7 (datos de PokeAPI) el 20-10-2026.
- * Nombres: [es, en, fr, it, zh-Hans, zh-Hant] (pt-BR usa el inglés, como los
- * movimientos); van aquí y no en el diccionario porque "Potencia", "Imán" o
- * "Rara" ya significan otra cosa allí. Ver G.Mons.name().
+/* ============ natures.js — GENERATED, do not edit by hand ============
+ * The 25 natures: +10% to one stat (up) and −10% to another (down); 5 are neutral.
+ * Stats: pa Attack · sa Special Attack · df Defense · sd Special Defense · spd Speed.
+ * From TheAdro7's PR #236 (PokeAPI data), 2026-10-20.
+ * Names: [es, en, fr, it, zh-Hans, zh-Hant] (pt-BR uses English, as with moves);
+ * kept here rather than in the dictionary because "Potencia", "Imán", or
+ * "Rara" have other meanings there. See G.Mons.name().
  */
 G.NATURES = [
   {"id":"hardy","n":["Fuerte","Hardy","Hardi","Ardita","勤奋","勤奮"],"up":"","down":""},

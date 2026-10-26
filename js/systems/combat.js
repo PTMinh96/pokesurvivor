@@ -1,26 +1,25 @@
-/* ============ combat.js — ejecución de movimientos y colisiones ============
- * Sólo se ejecuta el movimiento ACTIVO del jugador. Cada `kind` tiene aquí su
- * implementación. Todos los ataques dañan también los objetos destructibles
- * del escenario (rocas, cofres, hierba alta).
+/* ============ combat.js — move execution and collisions ============
+ * Only the player's ACTIVE move is executed. Each `kind` is implemented here.
+ * All attacks also damage destructible world objects (rocks, chests, tall grass).
  *
- * Todo ocurre en el plano del suelo: (x, y) son pies / sombra.
+ * Everything happens on the ground plane: (x, y) are feet / shadow.
  *
- * Cooperativo: cada ordenador ejecuta los ataques de SU jugador. Los de los
- * compañeros llegan por la red y se repiten como "fantasma" (ghostCast): se
- * ven igual, pero no hacen daño aquí (ya lo hizo su dueño).
+ * Co-op: each computer executes the attacks of ITS player. Teammate attacks
+ * arrive over the network and are replayed as "ghosts" (ghostCast): they look
+ * the same, but do no damage here (their owner already applied it).
  *
- * Lo que se queda en el mapa un rato (minas, meteoros que caen, torretas,
- * charcos del rastro) vive en `fields` y se actualiza/dibuja aquí.
+ * Effects that stay on the map (mines, falling meteors, turrets, trail puddles)
+ * live in `fields` and are updated/rendered here.
  */
 G.Combat = (() => {
   let ghost = false;
   let fields = [];
 
-  // ---------------- ejecutar el movimiento activo ----------------
+  // ---------------- execute the active move ----------------
 
   function tick(dt, pl, now) {
     if (pl.dead) return;
-    // Vínculos: todos los movimientos del hueco activo, cada uno con su recarga.
+    // Links: all moves in the active slot, each with its own cooldown.
     for (const m of pl.activeGroup()) tickMove(dt, pl, m, now);
   }
 
@@ -29,17 +28,17 @@ G.Combat = (() => {
 
     m.t -= dt;
     if (m.t > 0) return;
-    // Los ataques que necesitan blanco esperan a tenerlo (no gastes animación al aire).
+    // Attacks that need a target wait for one (do not waste an animation on empty space).
     if (needsTarget(m, pl) && !(pl.target && G.U.dist(pl.x, pl.y, pl.target.x, pl.target.y) <= reach(m))) {
       m.t = 0.05;
       return;
     }
-    // (Bromista: los potenciadores se recargan antes, ver data/ability-fx.js.)
+    // Prankster: buffs recharge sooner; see data/ability-fx.js.
     m.t = Math.max(0.05, m.cd * pl.cdMul * (m.kind === 'buff' && pl.abil && pl.abil.statusCd || 1));
     pl.cast(m);
     if (G.Coop.active) G.Coop.cast(pl, m);
-    // Vínculo: su icono destella en el HUD al lanzarse (uno que explota pegado al
-    // enemigo, como Ascuas tras Ataque Rápido, casi no se ve).
+    // Link: flash its HUD icon on launch (one that explodes next to an enemy,
+    // like Ember after Quick Attack, is otherwise hard to see).
     m.castAt = performance.now();
 
     run(pl, m);
@@ -74,8 +73,8 @@ G.Combat = (() => {
 
   const TARGETED = ['melee', 'beam', 'projectile', 'boomerang', 'chain', 'meteor', 'dash', 'cone',
                     'homing', 'bounce', 'charge', 'spin', 'quake', 'vortex', 'shove', 'stun'];
-  // Con "Apuntar a mano" éstos se lanzan hacia donde apuntas aunque no haya
-  // nadie (los decide el jugador); la cadena y los meteoros siguen esperando blanco.
+  // With "Manual aim", these launch where the player points even if no target
+  // is present; chains and meteors still wait for a target.
   const FREE_AIM = ['melee', 'beam', 'projectile', 'boomerang', 'dash', 'cone', 'homing', 'bounce', 'charge', 'spin', 'quake', 'shove'];
   function needsTarget(m, pl) { return TARGETED.includes(m.kind) && !(pl && pl.manualAim && FREE_AIM.includes(m.kind)); }
   function reach(m) {
@@ -97,7 +96,7 @@ G.Combat = (() => {
              bounce: m.bounce | 0, drain: m.drain || 0 };
   }
 
-  /** Tabla de tipos × clima para un ataque de tipo `type` contra `e`. */
+  /** Type × weather table for an attack of type `type` against `e`. */
   function typeK(type, e) { return G.Types.mult(type, e.types) * G.Weather.mult(type); }
 
   function fireProjectiles(pl, m) {
@@ -162,7 +161,7 @@ G.Combat = (() => {
     const w = m.width;
     const ca = Math.cos(pl.aim), sa = Math.sin(pl.aim);
 
-    // El rayo se corta en la primera pared.
+    // The beam stops at the first wall.
     let len = m.radius;
     for (let d = 8; d < m.radius; d += 8) {
       if (G.World.isWall(pl.x + ca * d, pl.y + sa * d)) { len = d; break; }
@@ -194,7 +193,7 @@ G.Combat = (() => {
       for (let i = 0; i < 5; i++) {
         const a = Math.random() * 6.2832, r = m.radius * G.U.rand(0.45, 1);
         const x = pl.x + Math.cos(a) * r, y = pl.y + Math.sin(a) * r * 0.8 - G.LIFT * 0.5;
-        // Hierba Lazo tira hacia ti; veneno y sombras suben; el resto gira.
+        // Grass Knot pulls toward the player; poison and shadows rise; others orbit.
         const v = vis.inward ? [-Math.cos(a) * r * 2.2, -Math.sin(a) * r * 1.8]
                 : vis.rise ? [G.U.rand(-10, 10), -55]
                 : [-Math.sin(a) * 70, Math.cos(a) * 55];
@@ -223,13 +222,13 @@ G.Combat = (() => {
     }
   }
 
-  // ---------------- familias nuevas (2026-10-10) ----------------
+  // ---------------- new families (2026-10-10) ----------------
 
-  /** Bumerán: sale hacia el enemigo, se para y vuelve a ti golpeando a la ida y a la vuelta. */
+  /** Boomerang: travels toward the enemy, pauses, then returns, hitting on both passes. */
   function boomerang(pl, m) {
     const col = G.U.TYPE_COLOR[m.type], vis = G.VFX.forMove(m);
     const n = Math.max(1, m.count | 0), spread = m.spread || 0.5;
-    const out = m.radius / m.speed;                       // segundos de ida
+    const out = m.radius / m.speed;                       // Outbound travel time in seconds.
     for (let i = 0; i < n; i++) {
       const a = pl.aim + (n === 1 ? 0 : (i / (n - 1) - 0.5) * spread * Math.min(n, 3));
       G.Projectiles.spawn(Object.assign({
@@ -240,7 +239,7 @@ G.Combat = (() => {
     }
   }
 
-  /** Cadena: golpea a un enemigo y salta a los siguientes más cercanos (cada salto, algo menos). */
+  /** Chain: hit an enemy and jump to the nearest targets (with slightly less damage per jump). */
   function chain(pl, m) {
     const col = G.U.TYPE_COLOR[m.type], vis = G.VFX.forMove(m);
     let cur = pl.target && !pl.target.dead && pl.target.hurt ? pl.target : G.Projectiles.nearest(G.EnemyMgr.all(), pl.x, pl.y, reach(m));
@@ -253,8 +252,8 @@ G.Combat = (() => {
       const tx = cur.x, ty = cur.y - cur.bodyH * 0.5;
       G.FX.beam(fx, fy, Math.atan2(ty - fy, tx - fx), Math.hypot(tx - fx, ty - fy), 10, col, vis);
       if (!ghost) {
-        // Infortunio: más daño a quien ya sufre un estado.
-        // (Una copia del anfitrión no lleva los estados: vienen en net.st.)
+        // Hex: deals more damage to targets with a status condition.
+        // (A host copy does not carry statuses; those come from net.st.)
         const hex = m.hex && (cur.burn > 0 || cur.poison > 0 || cur.slow > 0 || (cur.net && cur.net.st & 11)) ? m.hex : 1;
         hit(pl, cur, m.dmg * pl.atkFor(m) * k * hex, col, tx - fx, ty - fy, 0, m);
       }
@@ -271,7 +270,7 @@ G.Combat = (() => {
     if (!ghost) G.Camera.kick(0.05);
   }
 
-  /** Minas: se quedan en el suelo y estallan cuando un enemigo las pisa. */
+  /** Mines: stay on the ground and explode when an enemy steps on them. */
   function mines(pl, m) {
     const col = G.U.TYPE_COLOR[m.type], vis = G.VFX.forMove(m);
     const n = Math.max(1, m.count | 0);
@@ -280,12 +279,12 @@ G.Combat = (() => {
       fields.push({ kind: 'mine', owner: pl, ghost, m, col, vis, x: pl.x + Math.cos(a) * d, y: pl.y + Math.sin(a) * d * 0.8,
                     t: 0, arm: 0.35, life: m.dur || 7, r: m.radius, dmg: m.dmg * pl.atkFor(m) });
     }
-    // Como mucho unas pocas por jugador: las más viejas se van.
+    // Keep only a few per player; remove the oldest ones.
     const mine = fields.filter(f => f.kind === 'mine' && f.owner === pl);
     for (const f of mine.slice(0, Math.max(0, mine.length - (4 + n * 2)))) f.gone = true;
   }
 
-  /** Meteoros: caen del cielo sobre enemigos cercanos (la sombra avisa dónde). */
+  /** Meteors: fall from the sky onto nearby enemies (the shadow shows where). */
   function meteors(pl, m) {
     const col = G.U.TYPE_COLOR[m.type], vis = G.VFX.forMove(m);
     const n = Math.max(1, m.count | 0);
@@ -299,7 +298,7 @@ G.Combat = (() => {
     }
   }
 
-  /** Torreta: deja algo en el suelo que dispara solo un rato. */
+  /** Turret: place an object on the ground that fires for a short time. */
   function turret(pl, m) {
     const col = G.U.TYPE_COLOR[m.type], vis = G.VFX.forMove(m);
     const a = pl.aim + Math.PI + G.U.rand(-0.6, 0.6);
@@ -310,7 +309,7 @@ G.Combat = (() => {
     G.FX.ring(pl.x, pl.y, 4, 30, col, 0.3, 2);
   }
 
-  /** Embestida: cruzas como un rayo hacia el enemigo y golpeas a todo lo del camino. */
+  /** Dash: rush toward the enemy like lightning, hitting everything in the way. */
   function dash(pl, m) {
     const col = G.U.TYPE_COLOR[m.type], vis = G.VFX.forMove(m);
     const ca = Math.cos(pl.aim), sa = Math.sin(pl.aim);
@@ -320,7 +319,7 @@ G.Combat = (() => {
       if (!G.World.isFree(sx + ca * d, sy + sa * d, pl.r * 0.8, true)) break;
       len = d;
     }
-    // Estela: varias copias del golpe a lo largo del recorrido.
+    // Trail: several copies of the hit effect along its path.
     for (let d = 0; d <= len; d += 22) G.FX.sp(vis.proj || 'streak', vis.pal, sx + ca * d, sy + sa * d - G.LIFT * 0.6, { life: 0.22, angle: pl.aim });
     G.FX.slash(sx + ca * len, sy + sa * len - G.LIFT * 0.5, pl.aim, 34, 2.2, col, vis);
     if (ghost) return;
@@ -338,10 +337,10 @@ G.Combat = (() => {
     G.Camera.kick(0.12);
   }
 
-  /** Rastro: vas dejando charcos que dañan a lo que pasa por encima. */
+  /** Trail: leave puddles that damage anything passing over them. */
   function trailPatch(pl, m) {
     const col = G.U.TYPE_COLOR[m.type], vis = G.VFX.forMove(m);
-    // Parado no deja uno nuevo encima del anterior (sólo de vez en cuando).
+    // While stationary, do not stack a new one over the previous one (only occasionally).
     const last = pl.lastPatch;
     if (last && G.U.dist2(last.x, last.y, pl.x, pl.y) < (m.radius * 0.9) ** 2 && last.t < 1) return;
     const f = { kind: 'patch', owner: pl, ghost, m, col, vis, x: pl.x, y: pl.y, t: 0, life: m.dur || 3, r: m.radius,
@@ -352,7 +351,7 @@ G.Combat = (() => {
     for (const o of mine.slice(0, Math.max(0, mine.length - 18))) o.gone = true;
   }
 
-  /** Abanico corto: muchos disparos rápidos que no llegan lejos (aliento, chorro...). */
+  /** Short spread: many fast projectiles with limited range (breath, spray...). */
   function cone(pl, m) {
     const col = G.U.TYPE_COLOR[m.type], vis = G.VFX.forMove(m);
     const n = Math.max(2, m.count | 0), arc = m.arc || 0.9;
@@ -368,31 +367,31 @@ G.Combat = (() => {
     G.FX.spark(pl.x + Math.cos(pl.aim) * pl.r, pl.y - G.LIFT + Math.sin(pl.aim) * pl.r, col, Math.cos(pl.aim), Math.sin(pl.aim), 5);
   }
 
-  // ---------------- familias nuevas (2026-10-19) ----------------
+  // ---------------- new families (2026-10-19) ----------------
 
-  const QSTEP = 34;             // distancia entre ondas de un terremoto
+  const QSTEP = 34;             // Distance between earthquake waves.
 
-  /** El blanco de un ataque que va a un sitio (remolino, zona): el de siempre si llega; si no, el más cercano. */
+  /** Target for an aimed attack (vortex, zone): the usual target if reachable, otherwise the nearest. */
   function spotFor(pl, m) {
     const t = pl.target;
     if (t && !t.dead && t.hurt && G.U.dist(pl.x, pl.y, t.x, t.y) <= reach(m)) return t;
     return G.Projectiles.nearest(G.EnemyMgr.all(), pl.x, pl.y, reach(m));
   }
 
-  /** Carga: brilla un momento y sale un rayo enorme (el de beam, con su grosor). */
+  /** Charge: glows briefly, then fires a huge beam (the beam shape, with its width). */
   function chargeUp(pl, m) {
     const col = G.U.TYPE_COLOR[m.type], vis = G.VFX.forMove(m), at = m.charge || 0.75;
     fields.push({ kind: 'charge', owner: pl, ghost, m, col, vis, x: pl.x, y: pl.y, t: 0, at });
     G.FX.ring(pl.x, pl.y - G.LIFT * 0.5, pl.r * 3.2, pl.r * 0.8, col, at, 2);
   }
 
-  /** Giro: golpea todo alrededor `count` veces seguidas (lo hace updateFields). */
+  /** Spin: hit everything around you `count` times in a row (handled by updateFields). */
   function spin(pl, m) {
     const col = G.U.TYPE_COLOR[m.type], vis = G.VFX.forMove(m);
     fields.push({ kind: 'spin', owner: pl, ghost, m, col, vis, x: pl.x, y: pl.y, t: 0, n: Math.max(1, m.count | 0), next: 0, a: pl.aim });
   }
 
-  /** Terremoto: una onda avanza en línea delante de ti, explosión tras explosión. */
+  /** Earthquake: a wave advances in a line ahead of you, exploding as it goes. */
   function quake(pl, m) {
     const col = G.U.TYPE_COLOR[m.type], vis = G.VFX.forMove(m);
     fields.push({ kind: 'quake', owner: pl, ghost, m, col, vis, x: pl.x, y: pl.y, t: 0, ca: Math.cos(pl.aim), sa: Math.sin(pl.aim),
@@ -400,19 +399,19 @@ G.Combat = (() => {
     if (!ghost) G.Camera.kick(0.1);
   }
 
-  /** Remolino: sale donde está el enemigo, los atrae al centro y les va dañando. */
+  /** Vortex: appears at the enemy, pulls targets to the center, and damages them over time. */
   function vortex(pl, m) {
     const col = G.U.TYPE_COLOR[m.type], vis = G.VFX.forMove(m), tg = spotFor(pl, m);
     const x = tg ? tg.x : pl.x + Math.cos(pl.aim) * 120, y = tg ? tg.y : pl.y + Math.sin(pl.aim) * 100;
     fields.push({ kind: 'vortex', owner: pl, ghost, m, col, vis, x, y, t: 0, life: m.dur || 2.6, r: m.radius,
                   tick: 0.15, dmg: m.dmg * pl.atkFor(m), pull: m.pull || 140 });
     G.FX.ring(x, y, m.radius, 6, col, 0.4, 3);
-    // Como mucho dos a la vez por jugador.
+    // At most two per player at a time.
     const mine = fields.filter(f => f.kind === 'vortex' && f.owner === pl && !f.gone);
     for (const f of mine.slice(0, Math.max(0, mine.length - 2))) f.gone = true;
   }
 
-  /** Empujón: onda alrededor que daña y aparta a los enemigos (no a los jefes). */
+  /** Push: a surrounding wave damages and knocks enemies back (but not bosses). */
   function shove(pl, m) {
     const col = G.U.TYPE_COLOR[m.type], vis = G.VFX.forMove(m);
     G.FX.ring(pl.x, pl.y, pl.r, m.radius, col, 0.35, 4);
@@ -427,14 +426,14 @@ G.Combat = (() => {
     for (const p of G.World.propsInCircle(pl.x, pl.y, m.radius)) G.World.damageProp(p, m.dmg * pl.atkFor(m), col);
   }
 
-  /** Aturdir: una zona avisa en el suelo y al momento daña y deja quietos a los que pilla. */
+  /** Stun: telegraph a ground zone, then damage and immobilize anything caught in it. */
   function stunZone(pl, m) {
     const col = G.U.TYPE_COLOR[m.type], vis = G.VFX.forMove(m), tg = spotFor(pl, m);
     if (!tg) return;
     fields.push({ kind: 'stunzone', owner: pl, ghost, m, col, vis, x: tg.x, y: tg.y, t: 0, delay: 0.45, r: m.radius, dmg: m.dmg * pl.atkFor(m) });
   }
 
-  /** Rebote: el proyectil sale hacia el enemigo más cercano que aún no ha tocado. → true si rebota. */
+  /** Bounce: send the projectile toward the nearest enemy it has not hit yet. → true if it bounced. */
   function rebound(p, from) {
     if (!(p.bounce > 0)) return false;
     let best = null, bd = 220 * 220;
@@ -447,17 +446,17 @@ G.Combat = (() => {
     p.bounce--;
     const sp = Math.hypot(p.vx, p.vy) || 300, [nx, ny] = G.U.norm(best.x - from.x, best.y - from.y);
     p.vx = nx * sp; p.vy = ny * sp; p.x = from.x; p.y = from.y;
-    p.t = Math.max(0, p.t - 0.5);                   // un poco más de vida para llegar
+    p.t = Math.max(0, p.t - 0.5);                   // A little more lifetime to reach the target.
     if (Math.random() < 0.6) G.FX.spark(from.x, from.y - G.LIFT, p.color, nx, ny, 3);
     return true;
   }
 
-  /** Cada fotograma de los campos nuevos (los llama updateFields). → true si hay que quitarlo. */
+  /** Each frame for new fields (called by updateFields). → true if it should be removed. */
   function tickNewField(f, dt) {
     const pl = f.owner, m = f.m;
     if (f.kind === 'charge') {
       f.x = pl.x; f.y = pl.y;
-      // La energía se junta en ti mientras carga.
+      // Energy gathers around the player while it charges.
       if (Math.random() < dt * 30 && G.Camera.sees(f.x, f.y, 40)) {
         const a = Math.random() * 6.2832, r = G.U.rand(30, 60);
         G.FX.sp(f.vis.proj, f.vis.pal, f.x + Math.cos(a) * r, f.y + Math.sin(a) * r * 0.8 - G.LIFT,
@@ -499,9 +498,9 @@ G.Combat = (() => {
       return f.i >= f.n;
     }
     if (f.kind === 'vortex') {
-      // Atrae quien tiene los enemigos de verdad: el anfitrión, también con el
-      // remolino (fantasma) de un invitado. En el invitado son copias y no se tocan.
-      // Antes el fantasma no atraía y en grupo el remolino de un invitado no hacía nada.
+      // The host, who owns the real enemies, pulls them in, including for a
+      // guest's vortex (ghost). The guest only has copies, so do not affect them.
+      // Previously, the ghost did not attract enemies and a guest's vortex did nothing in co-op.
       for (const e of G.EnemyMgr.queryCircle(f.x, f.y, f.r * 1.4)) {
         if (e.dead || e.remote) continue;
         const dx = f.x - e.x, dy = f.y - e.y, d = Math.hypot(dx, dy);
@@ -536,7 +535,7 @@ G.Combat = (() => {
     return false;
   }
 
-  /** Daño de un campo (mina, meteoro, charco) a todo lo que hay en su círculo. */
+  /** Damage dealt by a field (mine, meteor, puddle) to everything inside its circle. */
   function blast(f, r, k = 1) {
     if (f.ghost) return;
     const pl = f.owner, m = f.m;
@@ -596,7 +595,7 @@ G.Combat = (() => {
     }
   }
 
-  /** Lo de los campos que va en el suelo (debajo de los Pokémon). */
+  /** Ground effects (under Pokémon). */
   function drawGroundFields(ctx) {
     const now = performance.now() / 1000;
     for (const f of fields) {
@@ -653,7 +652,7 @@ G.Combat = (() => {
     }
   }
 
-  /** Lo de los campos que va por encima (meteoros cayendo, torretas). */
+  /** Overhead effects (falling meteors, turrets). */
   function drawAirFields(ctx) {
     const now = performance.now() / 1000;
     for (const f of fields) {
@@ -675,11 +674,11 @@ G.Combat = (() => {
   function orbit(pl, m, dt, now, isGhost = false) {
     const col = G.U.TYPE_COLOR[m.type];
     const want = Math.max(1, m.count | 0);
-    // Cada movimiento de órbita tiene sus orbes (puede haber dos en un vínculo).
+    // Each orbit move has its own orbs (a bond can contain two moves).
     const mine = p => p.orb && p.owner === pl && p.mid === m.id;
     const orbs = G.Projectiles.all().filter(mine);
-    // Si cambia el número de orbes (al mejorar el movimiento), se reparten
-    // todos por igual a partir de donde va el primero, sin saltos.
+    // If the number of orbs changes (after upgrading the move), redistribute
+    // them evenly from the first one's position, without jumps.
     const relayout = orbs.length !== want;
     const base = orbs.length ? orbs[0].oa : now * m.speed;
     if (orbs.length > want) for (const p of orbs.slice(want)) G.Projectiles.remove(p);
@@ -703,12 +702,12 @@ G.Combat = (() => {
       if (relayout) p.oa = base + (i / live.length) * 6.2832;
     });
 
-    // Animación de concentración de vez en cuando, para que se note vivo.
+    // Add an occasional focus animation to make it feel alive.
     pl.orbCastT = (pl.orbCastT || 0) - dt;
     if (pl.orbCastT <= 0) { pl.orbCastT = 1.6; pl.cast({ kind: 'orbit', cd: 1.6 }); }
   }
 
-  /** Repite el ataque de un compañero sólo para verlo (sin daño). */
+  /** Repeat a teammate's attack for visuals only (no damage). */
   function ghostCast(pl, id, lvl, aim, evolved) {
     const def = G.Moves.BY_ID[id];
     if (!def || def.kind === 'orbit') return;
@@ -722,22 +721,22 @@ G.Combat = (() => {
     } finally { ghost = false; }
   }
 
-  /** Orbes de un compañero que tiene activo un movimiento de órbita (sólo visual). */
+  /** Orbs belonging to a teammate with an active orbit move (visual only). */
   function ghostOrbit(pl, dt, now) {
     const m = pl.activeMove();
     if (m && m.kind === 'orbit' && !pl.dead) orbit(pl, m, dt, now, true);
     else if (G.Projectiles.all().some(p => p.orb && p.owner === pl)) G.Projectiles.clearOrbs(pl);
   }
 
-  // Golpe crítico (Mejoras → Golpe Crítico): x1,5 de daño, número naranja y grande.
+  // Critical hit (Upgrades → Critical Hit): ×1.5 damage, large orange number.
   const CRIT_MUL = 1.5;
   const isCrit = pl => !ghost && pl.critChance > 0 && Math.random() < pl.critChance;
 
-  // Habilidad de quien pega (data/ability-fx.js): × al daño, crítico, estados y
-  // lo que hace al golpear. (Los compañeros no la llevan aquí: pegan en su ordenador.)
+  // Attacker's ability (data/ability-fx.js): damage multiplier, criticals,
+  // status effects, and on-hit effect. (Teammates use their own device.)
   const abilOut = (pl, m, e) => (pl.abil && pl.abil.out && m ? pl.abil.out(pl, m, e) : 1);
   const critMul = pl => (pl.abil && pl.abil.critMul) || CRIT_MUL;
-  /** × a quemaduras, venenos, frenazos y empujones: Potencia Bruta los quita, Dicha los dobla. */
+  /** Multiplier for burns, poison, slows, and knockback: Sheer Force removes them; Serene Grace doubles them. */
   const statusK = pl => (!pl.abil ? 1 : pl.abil.sheer ? 0 : pl.abil.serene ? 2 : 1);
   function afterHit(pl, e, m) {
     const a = pl.abil;
@@ -746,7 +745,7 @@ G.Combat = (() => {
     if (a.touchPoison && m && (m.kind === 'melee' || m.kind === 'dash')) e.applyPoison(1);
   }
 
-  /** Arceus (Sentencia) sólo recibe una parte (ver Judgment.dmgK). */
+  /** Arceus (Judgment) only takes a fraction (see Judgment.dmgK). */
   const arcK = e => (e.arceus ? G.Judgment.dmgK() : 1);
 
   function hit(pl, e, dmg, col, dx, dy, knock, m) {
@@ -756,7 +755,7 @@ G.Combat = (() => {
     e.hurt(dmg, col, dx, dy, sk ? knock : 0, crit ? 'crit' : G.Types.label(G.Types.mult(m.type, e.types)));
     if (!ghost) pl.onDealt(dmg);
     pl.dmgDealt += dmg;
-    m.dealt = (m.dealt || 0) + dmg;               // por ataque, para el resumen de la pausa
+    m.dealt = (m.dealt || 0) + dmg;               // Per attack, for the pause summary.
     if (m.burn && sk) e.applyBurn(m.burn * sk);
     if (m.poison && sk) e.applyPoison(m.poison * sk);
     if (m.slow && sk) e.applySlow(Math.min(0.8, m.slow * sk));
@@ -765,7 +764,7 @@ G.Combat = (() => {
 
   // ---------------- colisiones ----------------
 
-  /** Distancia² del punto (cx, cy) al segmento (ax, ay)-(bx, by). */
+  /** Squared distance from point (cx, cy) to segment (ax, ay)-(bx, by). */
   function segDist2(ax, ay, bx, by, cx, cy) {
     const dx = bx - ax, dy = by - ay, l2 = dx * dx + dy * dy;
     let t = l2 ? ((cx - ax) * dx + (cy - ay) * dy) / l2 : 0;
@@ -780,7 +779,7 @@ G.Combat = (() => {
     for (let i = projectiles.length - 1; i >= 0; i--) {
       const p = projectiles[i];
 
-      // --- disparos enemigos: paredes y objetos sólidos dan cobertura ---
+      // --- enemy projectiles: walls and solid objects provide cover ---
       if (!p.friendly) {
         if (G.World.projectileBlock(p.x, p.y, p.r)) {
           G.FX.burst(p.x, p.y - G.LIFT, p.color, 5, 70);
@@ -795,8 +794,8 @@ G.Combat = (() => {
         continue;
       }
 
-      // --- disparos de jugadores ---
-      // Orbes de un compañero: sólo se ven.
+      // --- player projectiles ---
+      // Teammate orbs are visual only.
       if (p.orb && p.ghost) continue;
       if (!p.orb) {
         const block = G.World.projectileBlock(p.x, p.y, p.r);
@@ -807,7 +806,7 @@ G.Combat = (() => {
         }
       }
 
-      // Objetos del escenario (rocas, cofres, hierba).
+      // Scenery objects (rocks, chests, grass).
       let consumed = false;
       for (const prop of G.World.propsInCircle(p.x, p.y, p.r)) {
         if (p.orb) {
@@ -820,7 +819,7 @@ G.Combat = (() => {
         if (p.phits.has(prop.id)) continue;
         p.phits.add(prop.id);
         if (!p.ghost) G.World.damageProp(prop, p.dmg, p.color);
-        // La hierba no frena; lo sólido sí gasta perforación.
+        // Grass does not stop a projectile; solid props consume pierce.
         if (prop.solid) {
           if (p.pierce > 0) p.pierce--;
           else { consumed = true; break; }
@@ -832,10 +831,10 @@ G.Combat = (() => {
         continue;
       }
 
-      // Enemigos. Colisión BARRIDA: se comprueba todo el tramo recorrido en este
-      // fotograma, no sólo el punto final. Un Impactrueno avanza 8 unidades por
-      // fotograma: sin esto atravesaba a los enemigos pegados al jugador, que
-      // eran inmunes a todos los movimientos de proyectil.
+      // Enemies. Swept collision checks the entire path traveled this frame,
+      // not just the endpoint. Thunder Punch moves 8 units per frame; without
+      // this, it passed through enemies next to the player, which were immune
+      // to all projectile moves.
       const sx = p.orb || p.px == null ? p.x : p.px, sy = p.orb || p.py == null ? p.y : p.py;
       const half = Math.hypot(p.x - sx, p.y - sy) / 2;
       for (const e of G.EnemyMgr.queryCircle((sx + p.x) / 2, (sy + p.y) / 2, half + p.r)) {
@@ -844,14 +843,14 @@ G.Combat = (() => {
           const last = p.hitLog.get(e.id) || -99;
           if (now - last < p.rehit) continue;
           p.hitLog.set(e.id, now);
-          // Las órbitas duran toda la partida: se olvidan los golpes viejos.
+          // Orbits last for the entire run, so discard old hits.
           if (p.hitLog.size > 300) for (const [k, t] of p.hitLog) if (now - t > p.rehit) p.hitLog.delete(k);
         } else {
           if (p.hits.has(e.id)) continue;
           p.hits.add(e.id);
         }
 
-        // Disparo fantasma de un compañero: choca y se ve, pero no daña.
+        // Teammate's visual-only projectile: it collides and is visible, but deals no damage.
         if (p.ghost) {
           G.FX.sp('impact', p.vis ? p.vis.pal : 'normal', e.x, e.y - e.bodyH * 0.5, { life: 0.12, scale: 1 });
           if (rebound(p, e)) break;
@@ -872,7 +871,7 @@ G.Combat = (() => {
         if (p.burn && sk) e.applyBurn(p.burn * sk);
         if (p.poison && sk) e.applyPoison(p.poison * sk);
         if (p.slow && sk) e.applySlow(Math.min(0.8, p.slow * sk));
-        if (p.drain) pl.heal(p.drain);                    // Beso Drenaje
+        if (p.drain) pl.heal(p.drain);                    // Drain Kiss
         afterHit(pl, e, p.src);
 
         if (!p.orb && rebound(p, e)) break;
@@ -887,7 +886,7 @@ G.Combat = (() => {
       }
     }
 
-    // --- contacto enemigo <-> jugador ---
+    // --- enemy <-> player contact ---
     if (pl.dead) return;
     for (const e of G.EnemyMgr.queryCircle(pl.x, pl.y, pl.r + 40)) {
       if (G.U.dist2(e.x, e.y, pl.x, pl.y) > (e.r + pl.r) * (e.r + pl.r)) continue;
@@ -896,7 +895,7 @@ G.Combat = (() => {
       e.strike(pl);
       pl.hurt(e.dmg, e.atkType, false, e.cat);
       if (pl.hasItem('rockyhelmet')) e.hurt(15 + pl.level * 4, '#9aa6b5', e.x - pl.x, e.y - pl.y, 80);
-      if (pl.abil && pl.abil.contact && !pl.dead && !e.dead) pl.abil.contact(pl, e);     // Elec. Estática, Cuerpo Llama...
+      if (pl.abil && pl.abil.contact && !pl.dead && !e.dead) pl.abil.contact(pl, e);     // Static, Flame Body...
       const [nx, ny] = G.U.norm(e.x - pl.x, e.y - pl.y);
       e.kx += nx * 150; e.ky += ny * 150;
     }

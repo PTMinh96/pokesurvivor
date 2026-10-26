@@ -1,13 +1,13 @@
-/* ============ boot.js — lo primero que corre (antes estaba dentro del HTML) ============
- * Fuera del HTML para que la política de seguridad (CSP, en dev.html) pueda
- * prohibir todo el código metido en la página: así, aunque algún día se
- * colara texto con código en algo que se pinta, el navegador no lo ejecuta.
- *   - PS_PAGES: hay guía y Pokédex (no con --sin-seo, ver tools/build.js).
- *   - El idioma de la pantalla de carga, antes de que cargue el juego.
+/* ============ boot.js — the first script to run (previously in the HTML) ============
+ * Kept outside the HTML so the Content Security Policy (CSP, in dev.html) can
+ * forbid all inline code: even if text containing code were ever inserted into
+ * rendered content, the browser would not execute it.
+ *   - PS_PAGES: guide and Pokédex are available (unless --sin-seo; see tools/build.js).
+ *   - The loading screen language, before the game loads.
  */
 window.PS_PAGES = !!document.querySelector('meta[name="ps-pages"]');
 (function () {
-  // El idioma lo elige locales.js (en el <head>).
+  // locales.js selects the language in the <head>.
   var copy = {
     es: ['Juego de supervivencia con Pokémon, gratis en el navegador y en el móvil.', 'Cargando…'],
     en: ['A Pokémon survival game, free in your browser and on mobile.', 'Loading…'],
@@ -21,4 +21,3 @@ window.PS_PAGES = !!document.querySelector('meta[name="ps-pages"]');
   var p = document.querySelectorAll('#boot p');
   p[0].textContent = copy[0]; p[1].textContent = copy[1];
 })();
-

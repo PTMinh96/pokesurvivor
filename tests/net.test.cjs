@@ -147,7 +147,7 @@ test('real Coop.tick frames pass through the codec without changing gameplay fie
     assert.equal(sent.length, 1);
     assert.deepEqual(C.decode(C.encode(sent[0])), sent[0]);
     if (host) { assert.deepEqual(sent[0].e, [[123, 50, -10, 126, 1, 3, 1]]); assert.ok('ho' in sent[0]); }
-    else { assert.equal(sent[0].p.length, 17); assert.equal(sent[0].p[15], ''); assert.equal(sent[0].p[16], 1); }   // 16.º: a quién mira estando caído; 17.º: zoom (Luminosfera)
+    else { assert.equal(sent[0].p.length, 17); assert.equal(sent[0].p[15], ''); assert.equal(sent[0].p[16], 1); }   // 16th: target while downed; 17th: zoom (Luminous Orb)
   }
 });
 
@@ -318,25 +318,25 @@ test('co-op orbs: the host applies a guest orb only if the guest really has it, 
   const guest = G.Coop.puppets()[0];
   const use = (id, x = 0) => msgFn('guest', { k: 'f', ev: [['ou', id, x, 0, 1]] });
 
-  use('slumber');                                   // no la tiene: no pasa nada
+  use('slumber');                                   // They don't have it; nothing happens.
   assert.deepEqual(slept, []);
-  assert.ok(G.Orbs.add(guest, 'slumber'));          // la coge (el anfitrión lleva la cuenta)
+  assert.ok(G.Orbs.add(guest, 'slumber'));          // They pick it up (the host tracks it).
   use('slumber');
-  assert.deepEqual(slept, [[1, 4], [2, 1]]);         // los de su pantalla; el jefe, 1 s; el lejano, nada
-  use('slumber');                                   // ya la ha gastado
+  assert.deepEqual(slept, [[1, 4], [2, 1]]);         // Enemies on their screen; the boss gets 1 s; the distant one is unaffected.
+  use('slumber');                                   // Already used.
   assert.equal(slept.length, 2);
 
   G.Orbs.add(guest, 'quick');
-  use('quick', 5000);                               // lejos del anfitrión: a él no le llega
+  use('quick', 5000);                               // Too far from the host; it does not reach them.
   assert.equal(local.spdMul, 1);
   G.Orbs.add(guest, 'quick');
-  use('quick', 100);                                // a menos de media pantalla: también para el anfitrión
+  use('quick', 100);                                // Within half a screen; it affects the host too.
   assert.equal(local.spdMul, 1.4);
 
   for (let i = 0; i < 3; i++) G.Orbs.add(guest, 'slow');
-  assert.ok(!G.Orbs.canTake(guest, 'slow'));         // 3 de cada como mucho
+  assert.ok(!G.Orbs.canTake(guest, 'slow'));         // At most 3 of each.
   for (const id of ['focus', 'luminous']) G.Orbs.add(guest, id);
-  assert.ok(G.Orbs.canTake(guest, 'blowback'));      // (las dos Rapidosferas ya se gastaron: queda 1 hueco)
+  assert.ok(G.Orbs.canTake(guest, 'blowback'));      // Both Quick Orbs were used, leaving 1 slot.
   G.Orbs.add(guest, 'quick');
-  assert.ok(!G.Orbs.canTake(guest, 'blowback'));     // y 4 huecos
+  assert.ok(!G.Orbs.canTake(guest, 'blowback'));     // All 4 slots are full.
 });

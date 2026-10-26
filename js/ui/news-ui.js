@@ -1,6 +1,6 @@
-/* ============ news-ui.js — "Novedades" ============
- * Botón en la barra de arriba que abre la lista de cambios del juego
- * (js/data/changelog.js). Lleva un punto mientras haya algo que no has visto.
+/* ============ news-ui.js — "News" ============
+ * A button in the top bar that opens the game's changelog
+ * (js/data/changelog.js). It shows a dot while there is something you have not seen.
  */
 G.NewsUI = (() => {
   const $ = G.UI.$;
@@ -28,7 +28,7 @@ G.NewsUI = (() => {
     // version, never a sentence assembled from partially translated fragments.
     const text = pair => G.I18n.lang === 'es' ? pair[0]
       : G.I18n.lang === 'en' || !G.I18n.has(pair[0]) ? pair[1] : G.T(pair[0]);
-    // Cada texto ya va en su idioma: translate="no" para que no lo toque i18n.
+    // Each text is already in its own language: translate="no" keeps i18n from changing it.
     const PARTS = [['new', ['Nuevo', 'New']], ['chg', ['Cambios', 'Changes']], ['fix', ['Arreglos', 'Fixes']]];
     $('news-body').innerHTML = G.CHANGELOG.map(v =>
       `<div class="news-day" translate="no"><h3>${esc(v.title ? text(v.title) : '')}<small>${fmt(v.d)}</small></h3>` +
@@ -37,7 +37,7 @@ G.NewsUI = (() => {
       '</div>').join('');
     $('news-body').scrollTop = 0;
     $('scr-news').classList.remove('hidden');
-    try { localStorage.setItem(KEY, latest()); } catch (e) { /* nada */ }
+    try { localStorage.setItem(KEY, latest()); } catch (e) { /* ignored */ }
     refresh();
   }
   function close() { $('scr-news').classList.add('hidden'); }

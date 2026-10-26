@@ -22,7 +22,7 @@
   html[lang="en"] li[data-l="en"], html[lang="en"] p[data-l="en"], html[lang="en"] h1[data-l="en"] { display: block; }
 </style>
 <script>
-  // Mismo idioma que el juego (o el del navegador).
+  // Same language as the game (or the browser's language).
   (function () {
     var s = null; try { s = localStorage.getItem('ps.lang'); } catch (e) {}
     var n = ((navigator.languages && navigator.languages[0]) || navigator.language || 'es').toLowerCase();

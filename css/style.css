@@ -1,8 +1,8 @@
-/* ============ PokéSurvivor — interfaz estilo Mundo Misterioso ============
- * Cajas azules con doble borde blanco, como los menús de PMD, y fuente pixel
- * local (Pixelify Sans, OFL).
+/* ============ PokéSurvivor — Mystery Dungeon-style interface ============
+ * Blue boxes with double white borders, like PMD menus, and a local pixel
+ * font (Pixelify Sans, OFL).
  */
-/* Pixelify Sans con los números redibujados para que no se confundan (tools/make_font.py). */
+/* Pixelify Sans with redrawn numerals for better distinction (tools/make_font.py). */
 @font-face {
   font-family: 'Pixelify';
   src: url('../assets/fonts/PixelifyPS-400.ttf') format('truetype');
@@ -45,14 +45,14 @@ body {
   -webkit-font-smoothing: none;
 }
 canvas { image-rendering: pixelated; image-rendering: crisp-edges; }
-/* position: fixed + inset: 0 en vez de 100vw / 100vh: en iPhone (sobre todo
-   abierto desde la pantalla de inicio) los vh no cuadraban con la ventana y el
-   juego se veía estirado. */
+/* position: fixed + inset: 0 instead of 100vw / 100vh: on iPhone (especially
+   when opened from the home screen) vh did not match the window and the game
+   appeared stretched. */
 #game { display: block; position: fixed; inset: 0; width: 100%; height: 100%; touch-action: none; }
 button { font: inherit; color: inherit; }
 input { font: inherit; }
 
-/* ---------- capas de pantalla ---------- */
+/* ---------- screen layers ---------- */
 .scr {
   position: fixed; inset: 0; z-index: 20;
   display: flex; align-items: center; justify-content: center;
@@ -60,7 +60,7 @@ input { font: inherit; }
   animation: fade .2s ease-out;
 }
 .scr.hidden { display: none; }
-/* Pantallas que se abren con la barra superior a la vista: empiezan debajo de ella. */
+/* Screens opened with the top bar visible start below it. */
 @media (min-height: 521px) {
   #scr-goals, #scr-dex, #scr-upgrades, #scr-gacha, #scr-friends, #scr-rank, #scr-lobby, #scr-profile { padding-top: 66px; }
 }
@@ -68,7 +68,7 @@ input { font: inherit; }
 @keyframes fade { from { opacity: 0; } to { opacity: 1; } }
 @keyframes pop { from { transform: scale(.94); opacity: 0; } to { transform: none; opacity: 1; } }
 
-/* ---------- caja PMD ---------- */
+/* ---------- PMD box ---------- */
 .box {
   position: relative;
   background: linear-gradient(180deg, var(--box1), var(--box2));
@@ -88,7 +88,7 @@ input { font: inherit; }
 .gold { color: var(--gold); }
 .center { text-align: center; }
 
-/* ---------- botones ---------- */
+/* ---------- buttons ---------- */
 .btn {
   appearance: none; cursor: pointer;
   padding: 10px 20px;
@@ -115,7 +115,7 @@ input { font: inherit; }
 .row.between { justify-content: space-between; }
 .grow { flex: 1; }
 
-/* Lista de menú con cursor (flecha pixel art), como en PMD */
+/* Menu list with a pixel-art cursor, like PMD. */
 .menu-list { display: flex; flex-direction: column; gap: 4px; }
 .menu-item {
   appearance: none; background: none; border: 0; cursor: pointer;
@@ -137,7 +137,7 @@ input { font: inherit; }
 .menu-item small { grid-column: 2; }
 .mi-ico { grid-row: span 2; display: flex; }
 
-/* ---------- formularios ---------- */
+/* ---------- forms ---------- */
 .tabs { display: flex; gap: 6px; margin-bottom: 14px; }
 .tab {
   flex: 1; padding: 8px; cursor: pointer; border-radius: 8px;
@@ -156,13 +156,13 @@ label { display: block; font-size: 14px; color: var(--muted); margin: 8px 0 4px;
 .err { color: #ffb0b8; min-height: 20px; font-size: 14px; margin: 8px 0 0; }
 .note { color: var(--muted); font-size: 13px; margin-top: 14px; }
 
-/* ---------- pantalla de inicio ---------- */
+/* ---------- start screen ---------- */
 .logo { text-align: center; margin-bottom: 18px; }
 .logo .t1 { font-size: 46px; font-weight: 700; line-height: 1; color: var(--gold);
   text-shadow: 3px 3px 0 #a55f00, 6px 6px 0 var(--shadow); letter-spacing: 1px; }
 .logo .t2 { font-size: 18px; color: #fff; margin-top: 6px; letter-spacing: 3px; text-transform: uppercase; }
 
-/* ---------- test de personalidad ---------- */
+/* ---------- personality test ---------- */
 .test-box { width: min(620px, 100%); }
 .progress { height: 8px; background: rgba(0,0,0,.35); border-radius: 8px; overflow: hidden; margin-bottom: 18px; }
 .progress i { display: block; height: 100%; background: var(--gold); transition: width .25s; }
@@ -185,7 +185,7 @@ label { display: block; font-size: 14px; color: var(--muted); margin: 8px 0 4px;
 .result .trait { font-size: 30px; color: var(--gold); margin: 4px 0; }
 .stage {
   display: block; margin: 8px auto 6px;
-  /* Recuadro estilo PMD: fondo oscuro y borde del color del tipo (--stage-c). */
+  /* PMD-style panel: dark background and a border in the type color (--stage-c). */
   background:
     radial-gradient(ellipse at 50% 88%, rgba(120,170,255,.22), transparent 60%),
     linear-gradient(180deg, rgba(20,36,78,.88), rgba(8,14,34,.92));
@@ -195,7 +195,7 @@ label { display: block; font-size: 14px; color: var(--muted); margin: 8px 0 4px;
 }
 .stage.shiny { box-shadow: 0 0 0 3px #0b1838, 0 0 22px rgba(154,230,255,.55), inset 0 0 0 2px rgba(255,255,255,.08); }
 
-/* ---------- rejilla de Pokémon ---------- */
+/* ---------- Pokémon grid ---------- */
 .grid {
   display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
   gap: 8px; max-height: 56vh; overflow-y: auto; padding: 4px;
@@ -223,12 +223,12 @@ label { display: block; font-size: 14px; color: var(--muted); margin: 8px 0 4px;
 .stat { display: grid; grid-template-columns: 90px 1fr 34px; gap: 8px; align-items: center; font-size: 14px; margin: 5px 0; }
 .stat .bar { height: 8px; background: rgba(0,0,0,.35); border-radius: 6px; overflow: hidden; }
 .stat .bar i { display: block; height: 100%; background: var(--gold); }
-/* Naturaleza (20-10-2026): el stat que sube en verde y el que baja en rojo. */
+/* Nature (2026-10-20): increased stat in green, decreased stat in red. */
 .stat.nat-up > span:first-child, .stat.nat-up > span:last-child { color: #7fe8a0; }
 .stat.nat-up .bar i { background: #5fe08a; }
 .stat.nat-down > span:first-child, .stat.nat-down > span:last-child { color: #ff9aa5; }
 .stat.nat-down .bar i { background: #ff7a86; }
-/* Naturaleza, habilidad y MT en la ficha de la colección. */
+/* Nature, ability, and TM in the collection entry. */
 .mon-extra { margin: 10px 0 4px; padding: 8px 10px; border-radius: 10px; background: rgba(0,0,0,.18); font-size: 14px; }
 .mon-extra .mx-row { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; margin: 4px 0; }
 .mon-extra .mx-row > span:first-child { color: var(--muted); min-width: 84px; }
@@ -249,7 +249,7 @@ label { display: block; font-size: 14px; color: var(--muted); margin: 8px 0 4px;
 .dex-sort { align-items: center; margin-top: -4px; }
 .dex-more { grid-column: 1 / -1; height: 1px; }
 .fit-low { display: block; color: #ffb37a; font-size: 12px; margin-top: 2px; }
-/* Pausa con el resumen de la partida (run-ui.js, pauseSummary). */
+/* Pause screen with run summary (run-ui.js, pauseSummary). */
 .pause-box { width: min(720px, 100%); max-height: calc(100dvh - 24px); overflow-y: auto; }
 .pause-sum { text-align: left; margin: 4px 0 10px; }
 .pause-sum h3 { color: var(--gold); font-size: 16px; margin: 10px 0 6px; }
@@ -270,14 +270,14 @@ label { display: block; font-size: 14px; color: var(--muted); margin: 8px 0 4px;
 }
 .chip.on { border-color: var(--gold); color: var(--gold); }
 
-/* ---------- menú principal ---------- */
+/* ---------- main menu ---------- */
 #scr-menu { justify-content: space-between; align-items: stretch; padding: 0; }
 .menu-left {
   flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center;
   padding: 30px; min-width: 0;
 }
 .menu-left .logo .t1 { font-size: clamp(36px, 6vw, 64px); }
-/* Frase amarilla torcida en la esquina del título, como las de Minecraft. */
+/* Slanted yellow phrase in the title corner, like in Minecraft. */
 .menu-left .logo .t1 { position: relative; }
 .splash {
   position: absolute; right: 0; top: 82%; width: max-content; max-width: 14em;
@@ -295,14 +295,14 @@ label { display: block; font-size: 14px; color: var(--muted); margin: 8px 0 4px;
 .partner-card .lv { color: var(--muted); font-size: 14px; text-shadow: 2px 2px 0 var(--shadow); }
 .menu-right {
   width: min(380px, 100%); display: flex; flex-direction: column;
-  /* Arriba deja sitio a la barra superior; si no cabe todo, se desplaza
-     (los márgenes auto lo centran sin que se salga por arriba). */
+  /* Leave room for the top bar; if everything does not fit, scroll
+     (auto margins center the content without letting it overflow above). */
   padding: 70px 24px 18px; gap: 14px; overflow-y: auto;
   background: linear-gradient(90deg, transparent, rgba(5,10,25,.65) 30%);
 }
 .menu-right > :first-child { margin-top: auto; }
 .menu-right > :last-child { margin-bottom: auto; }
-/* Portátiles con poca altura: menú más compacto y, si hace falta, en dos columnas. */
+/* Short laptop screens: more compact menu, in two columns if needed. */
 @media (max-height: 780px) and (min-height: 521px) {
   .menu-right { padding-top: 62px; gap: 10px; }
   .menu-right .box { padding: 10px 14px; }
@@ -338,7 +338,7 @@ label { display: block; font-size: 14px; color: var(--muted); margin: 8px 0 4px;
   text-shadow: 1px 1px 0 #000;
 }
 
-/* ---------- mejoras ---------- */
+/* ---------- upgrades ---------- */
 .upg { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 10px; }
 .upg-item { display: grid; grid-template-columns: 40px 1fr auto; gap: 10px; align-items: center; }
 .upg-item .ic { font-size: 26px; text-align: center; }
@@ -358,7 +358,7 @@ label { display: block; font-size: 14px; color: var(--muted); margin: 8px 0 4px;
 }
 .banner h3 { font-size: 28px; color: var(--gold); text-shadow: 3px 3px 0 #2a0f55; }
 .banner .feat {
-  /* Debajo del texto, nunca encima: los legendarios a ×2 son grandes. */
+  /* Below the text, never above it: legendaries at ×2 are large. */
   display: flex; align-items: flex-end; justify-content: center; gap: 6px;
   margin: 8px -10px -18px; height: 190px; overflow: hidden;
 }
@@ -369,16 +369,16 @@ label { display: block; font-size: 14px; color: var(--muted); margin: 8px 0 4px;
 #pull-fx {
   position: fixed; inset: 0; z-index: 40; display: flex; flex-direction: column;
   align-items: center; gap: 18px; padding: 14px 10px;
-  /* Si las 10 cartas no caben (móvil en horizontal) se puede desplazar, y
-     "Continuar" se queda siempre a la vista abajo (antes quedaba fuera y no
-     había forma de cerrar sin recargar la página). */
+  /* If all 10 cards do not fit (mobile landscape), allow scrolling and keep
+     "Continue" visible at the bottom (previously it could be off-screen, with
+     no way to close without reloading the page). */
   overflow-y: auto; overscroll-behavior: contain;
   background: radial-gradient(circle at 50% 45%, #1b2d63, #03060f 70%);
 }
-/* Centrado vertical que no corta por arriba cuando no cabe. */
+/* Vertical centering that does not clip the top when content does not fit. */
 #pull-fx::before, #pull-fx::after { content: ''; margin: auto; }
 #pull-close, #pull-skip { position: sticky; bottom: 8px; z-index: 2; flex-shrink: 0; box-shadow: 0 4px 18px rgba(0,0,0,.6); }
-/* La ×100: cartas más pequeñas y un resumen arriba. */
+/* ×100 pulls: smaller cards and a summary at the top. */
 .pull-results.many { gap: 6px; max-width: 1100px; }
 .pull-results.many .pcard { width: 104px; padding: 5px 3px; border-radius: 10px; border-width: 2px; box-shadow: 0 0 10px var(--rc, #fff); }
 .pull-results.many .pcard canvas { width: 88px; height: auto; }
@@ -417,7 +417,7 @@ label { display: block; font-size: 14px; color: var(--muted); margin: 8px 0 4px;
   60% { box-shadow: 0 0 80px 40px var(--glow); transform: scale(1.15); }
   100% { box-shadow: 0 0 200px 120px transparent; transform: scale(0); opacity: 0; }
 }
-/* Mensaje de apoyo al acabar una partida (run-ui.js). */
+/* Support prompt shown after a run (run-ui.js). */
 .support-ask { position: relative; margin-top: 4px; padding: 10px 34px 12px 12px; border-radius: 10px; text-align: center;
   background: rgba(255,210,63,.08); border: 2px solid rgba(255,210,63,.45); }
 .support-ask p { margin: 0 0 8px; font-size: 13px; color: var(--ink); line-height: 1.35; }
@@ -441,15 +441,15 @@ label { display: block; font-size: 14px; color: var(--muted); margin: 8px 0 4px;
 .pcard .new { color: var(--gold); font-weight: 700; }
 .pcard .pmon { font-size: 11px; color: var(--muted); line-height: 1.2; }
 
-/* ---------- Tienda Kecleon: el puesto (20-10-2026) ----------
- * El puesto entero se dibuja en pixel art en #shop-scene (Scene, shop-ui.js);
- * aquí sólo el lienzo, el cartel (para que se traduzca), el bocadillo, el
- * objeto que vuela a la Mochila y la aparición del contenido. */
+/* ---------- Kecleon shop: the stall (2026-10-20) ----------
+ * The whole stall is drawn in pixel art in #shop-scene (Scene, shop-ui.js);
+ * this styles only the canvas, sign (so it can be translated), speech bubble,
+ * item flying to the Backpack, and content entrance. */
 #scr-shop .shop-box { overflow-x: hidden; }
 .shop-stall { position: relative; margin: -22px -24px 14px; height: 294px; border-radius: 9px 9px 0 0; overflow: hidden; background: #6fb8f0; }
 .shop-scene { position: absolute; inset: 0; width: 100%; height: 100%; image-rendering: pixelated; cursor: default; }
 .shop-stall.opening .shop-scene { cursor: pointer; }
-/* Cartel colgado del toldo; cae balanceándose y se encienden sus bombillas. */
+/* Sign hanging from the awning; it swings down and its bulbs light up. */
 .shop-sign { position: absolute; z-index: 2; left: 50%; top: 6px; padding: 3px 16px; font-size: 18px; color: #3a1f08; text-shadow: none; white-space: nowrap;
   background: #e2b26a; border: 3px solid #5a3412; border-radius: 4px; box-shadow: 0 3px 0 #5a3412; transform: translateX(-50%); transform-origin: 50% -14px;
   opacity: 0; }
@@ -467,7 +467,7 @@ label { display: block; font-size: 14px; color: var(--muted); margin: 8px 0 4px;
   0% { background-image: radial-gradient(circle, #fff4b0 0 1.8px, transparent 2.2px); }
   50% { background-image: radial-gradient(circle, #ff8a3d 0 1.8px, transparent 2.2px); }
 }
-/* El bocadillo sigue al Kecleon morado (lo coloca shop-ui.js) y se va solo. */
+/* The speech bubble follows the purple Kecleon (positioned by shop-ui.js) and disappears on its own. */
 .shop-bubble { position: absolute; z-index: 3; left: 0; top: 0; max-width: 60%; padding: 6px 10px; white-space: nowrap;
   font-size: 13px; color: #1b1528; text-shadow: none; background: #f4f8ff; border: 3px solid #1b1528; border-radius: 10px;
   transition: opacity .3s, transform .3s; transform-origin: 100% 60%; }
@@ -475,14 +475,14 @@ label { display: block; font-size: 14px; color: var(--muted); margin: 8px 0 4px;
 .shop-bubble.hide { opacity: 0; transform: scale(.6); }
 .shop-bubble.pop { animation: shopBubble .35s ease-out both; }
 @keyframes shopBubble { from { transform: scale(0); } 70% { transform: scale(1.08); } to { transform: none; } }
-/* El objeto comprado vuela a su fila de la lista, que bota al recibirlo. */
+/* The purchased item flies to its list row, which bounces when it arrives. */
 .shop-fly { position: fixed; left: 0; top: 0; z-index: 1000; pointer-events: none; filter: drop-shadow(0 3px 4px rgba(0,0,0,.5)); }
 .shop-fly img { width: 32px; height: 32px; }
 #shop-body .ic.bump { animation: shopBump .4s ease-out; }
 @keyframes shopBump { 30% { transform: scale(1.25); } 60% { transform: scale(.92); } }
 @keyframes shopFade { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
 .shop-stall.opening ~ .shop-inner { animation: shopFade .5s 1.8s ease-out both; }
-@media (max-height: 520px) {                 /* (ahí la caja tiene 10px 14px de relleno) */
+@media (max-height: 520px) {                 /* (the box has 10px 14px of padding there) */
   .shop-stall { margin: -10px -14px 10px; height: 200px; }
   .shop-sign { font-size: 14px; top: 3px; }
 }
@@ -494,7 +494,7 @@ label { display: block; font-size: 14px; color: var(--muted); margin: 8px 0 4px;
 .pcard.r5 { animation: pop .3s ease-out both, legend 1.4s ease-in-out infinite alternate; }
 @keyframes legend { to { box-shadow: 0 0 40px var(--rc), 0 0 80px var(--rc); } }
 
-/* ---------- cartas de nivel ---------- */
+/* ---------- level-up cards ---------- */
 .cards { display: flex; flex-direction: column; gap: 10px; width: min(560px, 100%); }
 .card {
   display: flex; align-items: center; gap: 14px; text-align: left; cursor: pointer;
@@ -508,7 +508,7 @@ label { display: block; font-size: 14px; color: var(--muted); margin: 8px 0 4px;
 .card .ds { color: var(--muted); font-size: 14px; }
 .card .key { font-size: 13px; color: var(--muted); border: 2px solid rgba(244,248,255,.3); border-radius: 6px; padding: 2px 8px; }
 .tag-chip { font-size: 11px; padding: 2px 7px; border-radius: 5px; color: #10131a; text-shadow: none; font-weight: 700; }
-/* Físico / Especial en las cartas de nivel: aparte del tipo, oscura y con borde. */
+/* Physical / Special labels on level-up cards: dark and bordered, separate from type. */
 .tag-chip.cat { background: rgba(10,20,48,.55); color: #f4f8ff; border: 1.5px solid rgba(170,195,255,.5); padding: 1px 7px; }
 
 .stats { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 10px 0 18px; }
@@ -539,7 +539,7 @@ kbd {
   .logo .t1 { font-size: 34px; }
 }
 
-/* ============ iconos pixel art ============ */
+/* ============ pixel-art icons ============ */
 img.pix { image-rendering: pixelated; image-rendering: crisp-edges; vertical-align: middle; }
 img.pix.off { filter: grayscale(1); opacity: .4; }
 .stars-row { display: inline-flex; gap: 1px; vertical-align: middle; }
@@ -549,7 +549,7 @@ img.pix.off { filter: grayscale(1); opacity: .4; }
 .card .ico img { display: block; }
 .upg-item .ic { display: flex; justify-content: center; }
 
-/* ============ pestañas de generación ============ */
+/* ============ generation tabs ============ */
 .gen-tabs { display: flex; gap: 5px; overflow-x: auto; padding: 4px 2px 8px; margin-top: 6px; }
 .gen-tab {
   appearance: none; cursor: pointer; flex: 0 0 auto;
@@ -577,7 +577,7 @@ img.pix.off { filter: grayscale(1); opacity: .4; }
 .caught-row > div { text-align: center; }
 .caught-row small { display: block; font-size: 12px; color: #c9f3ff; }
 
-/* ============ sonido ============ */
+/* ============ audio ============ */
 .sound-panel { position: fixed; top: 62px; right: 16px; z-index: 30; width: 270px; padding: 14px 16px; }
 .sound-inline { margin: 6px auto 16px; max-width: 320px; }
 .snd-row { display: grid; grid-template-columns: 20px 64px 1fr; gap: 8px; align-items: center; margin-bottom: 10px; font-size: 14px; }
@@ -588,7 +588,7 @@ input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 16px;
 input[type=range]::-moz-range-thumb { width: 14px; height: 14px; border-radius: 4px; background: var(--gold); border: 2px solid #fff7d6; }
 #btn-sound { padding: 5px 9px; display: flex; }
 
-/* ============ nube, aviso legal ============ */
+/* ============ cloud, legal notice ============ */
 .btn.google { background: linear-gradient(180deg, #ffffff, #dfe6f2); color: #1f2a44; text-shadow: none; }
 .sync { display: inline-block; width: 9px; height: 9px; margin-left: 8px; border-radius: 2px;
   box-shadow: 0 0 0 2px #0b1838; vertical-align: 1px; }
@@ -603,11 +603,11 @@ input[type=range]::-moz-range-thumb { width: 14px; height: 14px; border-radius: 
 .legal h3 { margin: 14px 0 4px; color: var(--gold); font-size: 17px; }
 .legal p { margin: 0 0 8px; font-size: 14px; line-height: 1.45; }
 .legal a { color: #9fd4ff; }
-#scr-legal { z-index: 65; }   /* por delante de Ajustes y Apoyar (60) */
+#scr-legal { z-index: 65; }   /* above Settings and Support (60) */
 .boot { position: fixed; inset: 0; z-index: 70; display: flex; align-items: center; justify-content: center;
   background: #050914; color: var(--muted); font-size: 18px; }
 
-/* ---------- amigos, sala, invitaciones y ranking ---------- */
+/* ---------- friends, lobby, invitations, and leaderboard ---------- */
 .fr-list { display: flex; flex-direction: column; gap: 6px; max-height: 52vh; overflow-y: auto; padding-right: 4px; }
 .fr-row {
   display: flex; align-items: center; gap: 10px; padding: 8px 12px; border-radius: 8px;
@@ -664,7 +664,7 @@ input[type=range]::-moz-range-thumb { width: 14px; height: 14px; border-radius: 
 .rk-row.mod-row.rep { grid-template-columns: 54px auto 1fr auto auto; }
 .mod-warn { color: #ff8a96 !important; }
 .mod-acts { display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
-/* Dos mitades (23-10-2026): daño a Arceus a la izquierda y tiempo a la derecha (en el móvil, una debajo de otra). */
+/* Two halves (2026-10-23): Arceus damage on the left and time on the right (stacked on mobile). */
 #scr-rank .box.wide { width: min(1240px, 100%); }
 .rk-split { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
 .rk-col { min-width: 0; display: flex; flex-direction: column; }
@@ -674,7 +674,7 @@ input[type=range]::-moz-range-thumb { width: 14px; height: 14px; border-radius: 
 .rk-me { margin-top: 10px; padding: 10px 12px; border-radius: 8px; background: rgba(0,0,0,.25); font-size: 15px; min-height: 20px; }
 
 .cards.done .card { pointer-events: none; opacity: .45; }
-/* Recién aparecidas: un momento sin poder elegirlas (ver guard() en run-ui.js). */
+/* Newly appeared cards: briefly unavailable for selection (see guard() in run-ui.js). */
 .cards.guard .card { opacity: .5; filter: saturate(.6); }
 .cards .card { transition: transform .08s, background .12s, border-color .12s, opacity .2s, filter .2s; }
 .cards.done .card.picked { opacity: 1; border-color: var(--gold); }
@@ -687,17 +687,17 @@ input[type=range]::-moz-range-thumb { width: 14px; height: 14px; border-radius: 
   .rk-split .rk-list { max-height: 38vh; }
 }
 
-/* ---------- tickets y mejoras por Pokémon ---------- */
+/* ---------- tickets and per-Pokémon upgrades ---------- */
 .tickets-line img, #tickets-pill img, #cost-10 img, #cost-10b img, #cost-100 img, #cost-100b img { vertical-align: middle; }
 .upg-head { display: flex; gap: 14px; align-items: center; margin: 6px 0 12px; }
 .upg-head .stage { width: 120px; height: 96px; flex: 0 0 120px; }
 select.field { font-family: var(--font); }
 
-/* ---------- tragaperras del gacha ---------- */
+/* ---------- gacha slot machine ---------- */
 #slot { width: min(528px, 92vw, 66vh); height: auto; image-rendering: pixelated; cursor: pointer;
   filter: drop-shadow(0 0 30px rgba(255,90,90,.35)); animation: pop .25s ease-out both; }
 
-/* ---------- misiones, logros, perfil y objetos ---------- */
+/* ---------- missions, achievements, profile, and items ---------- */
 .goals-body { max-height: 62vh; overflow-y: auto; padding-right: 6px; }
 .goals-h { margin: 6px 0 4px; }
 .goals-h h3 { margin: 0; }
@@ -754,7 +754,7 @@ a.plink:hover { color: var(--gold); }
 .ach-pop small { color: var(--muted); }
 .card.evo { border-color: var(--gold); background: linear-gradient(90deg, rgba(255,210,63,.18), rgba(255,210,63,.04)); }
 .card.evo .nm { color: var(--gold); }
-/* Vínculo (premio de los legendarios): rosa */
+/* Link (legendary reward): pink. */
 .bond-title { color: #ff8ad8; }
 .card.bond { border-color: #ff8ad8; background: linear-gradient(90deg, rgba(255,138,216,.18), rgba(255,138,216,.04)); }
 .card.bond .nm { color: #ff8ad8; }
@@ -766,14 +766,14 @@ a.plink:hover { color: var(--gold); }
 @media (max-width: 760px) { .mission { grid-template-columns: 1fr; } .prof-marks { grid-template-columns: repeat(2, 1fr); } }
 
 
-/* ================= móvil y táctil ================= */
+/* ================= mobile and touch ================= */
 html, body { overscroll-behavior: none; -webkit-tap-highlight-color: transparent; -webkit-touch-callout: none; }
 body { touch-action: manipulation; }
-/* iPhone: sin esto, mantener el dedo en el joystick sacaba "Copiar / Seleccionar
-   todo" (Safari sólo hace caso a la versión -webkit- y no lo hereda bien). */
+/* iPhone: without this, holding a finger on the joystick opened "Copy / Select
+   All" (Safari only respects the -webkit- version and does not inherit it well). */
 body, body * { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
 input, textarea, [contenteditable] { -webkit-user-select: text; user-select: text; -webkit-touch-callout: default; }
-/* Con táctil no tienen sentido las pistas de teclas. */
+/* Keyboard hints are not useful on touch devices. */
 body.touch kbd, body.touch .card .key, body.touch .kbd-hint { display: none !important; }
 #rotate {
   position: fixed; inset: 0; z-index: 200;
@@ -785,9 +785,9 @@ body.touch kbd, body.touch .card .key, body.touch .kbd-hint { display: none !imp
 #rotate-ico { animation: rot-hint 1.6s steps(4) infinite; display: inline-block; }
 @keyframes rot-hint { 0%, 30% { transform: rotate(0deg); } 60%, 100% { transform: rotate(90deg); } }
 
-/* ---------- ajustes ---------- */
+/* ---------- settings ---------- */
 #scr-settings { z-index: 60; }
-/* Colocar los botones (layout-ui.js): por delante de Ajustes */
+/* Positioning buttons (layout-ui.js): above Settings. */
 #scr-layout { z-index: 66; display: block; background: radial-gradient(circle at 50% 40%, #24452c, #0d1a12); touch-action: none; }
 #scr-layout.hidden { display: none; }
 .lay-thing { position: absolute; z-index: 2; touch-action: none; cursor: grab; user-select: none; -webkit-user-select: none; }
@@ -825,7 +825,7 @@ body.touch kbd, body.touch .card .key, body.touch .kbd-hint { display: none !imp
 .keys { display: grid; grid-template-columns: auto 1fr; gap: 6px 14px; align-items: center; font-size: 14px; }
 .keys span { color: var(--muted); }
 .padkey { display: inline-block; padding: 0 7px; border: 2px solid rgba(244,248,255,.4); border-radius: 9px; font-size: 13px; color: var(--text, #f4f8ff) !important; text-shadow: none; }
-/* Lo seleccionado con el mando (gamepad.js). */
+/* Selection made with a controller (gamepad.js). */
 .pad-focus { outline: 3px solid #ffd23f !important; outline-offset: 3px; box-shadow: 0 0 0 6px rgba(255,210,63,.25) !important; }
 .credits { margin: 4px 0 12px; padding-left: 18px; color: var(--muted); font-size: 14px; line-height: 1.6; }
 .credits b { color: var(--ink); }
@@ -837,12 +837,12 @@ body.touch .touch-hint { display: block; }
 #pause-sound + .row, #scr-pause .row { flex-wrap: wrap; }
 a.btn { text-decoration: none; display: inline-block; color: var(--ink); }
 
-/* ================= pantallas bajas (móvil en horizontal) =================
- * Todo más compacto: la barra superior deja sitio, el menú va en dos
- * columnas y la línea de créditos se esconde (está en Ajustes → Acerca de). */
+/* ================= short screens (mobile landscape) =================
+ * Make everything more compact: leave room for the top bar, use two menu
+ * columns, and hide the credits line (it is in Settings → About). */
 @media (max-height: 520px) {
   .scr { padding: 50px 10px 6px; }
-  /* Sin barra superior encima: no hace falta dejarle hueco. */
+  /* No top bar on these screens, so no extra space is needed. */
   #scr-login, #scr-test, #scr-result, #scr-starters, #scr-nick, #scr-levelup, #scr-pause,
   #scr-over, #scr-item, #scr-settings, #scr-legal, #scr-profile { padding: 6px 10px; }
   .split { grid-template-columns: 1fr; }
@@ -884,7 +884,7 @@ a.btn { text-decoration: none; display: inline-block; color: var(--ink); }
   .mi-ico img { width: 20px; height: 20px; }
   .box.settings { max-height: calc(100dvh - 12px); }
 }
-/* Móviles muy bajos (iPhone SE y similares): sin subtítulos en el menú, para que quepa entero. */
+/* Very short phones (iPhone SE and similar): hide menu subtitles so everything fits. */
 @media (max-height: 400px) {
   .menu-right { padding-top: 48px; }
   .menu-item small { display: none; }
@@ -894,14 +894,14 @@ a.btn { text-decoration: none; display: inline-block; color: var(--ink); }
   #menu-partner { height: min(30vh, 110px); }
 }
 
-/* ---------- pantalla de carga (lo primero que se ve y lo que lee Google) ---------- */
+/* ---------- loading screen (first thing shown and read by Google) ---------- */
 .boot-in { text-align: center; padding: 20px; max-width: 640px; }
 .boot-in h1 { margin: 0 0 8px; font-size: clamp(38px, 8vw, 64px); color: var(--gold); text-shadow: 3px 3px 0 #a55f00, 6px 6px 0 var(--shadow); font-weight: 700; }
 .boot-in p { margin: 6px 0; color: var(--muted); }
 .boot-in a { color: #9fd4ff; }
 .boot-ld { color: #fff; margin-top: 18px !important; }
 .boot.noscript { z-index: 90; }
-/* "Pulsa para empezar": encima de todo, se ve el mundo de fondo. */
+/* "Tap to start": overlaid on top, with the world visible in the background. */
 .tapstart { position: fixed; inset: 0; z-index: 80; display: flex; align-items: center; justify-content: center; cursor: pointer;
   background: radial-gradient(ellipse at center, rgba(5,9,20,.35), rgba(5,9,20,.8)); animation: fade .4s; }
 .tapstart .boot-in p { color: #dfe7ff; text-shadow: 2px 2px 0 #000; }
@@ -912,10 +912,10 @@ a.btn { text-decoration: none; display: inline-block; color: var(--ink); }
 .login-links { margin-top: 10px; font-size: 13px; text-align: center; }
 .login-links a { color: #9fd4ff; }
 
-/* ---------- apoyar el proyecto ---------- */
+/* ---------- support the project ---------- */
 #scr-support { z-index: 60; }
 .box.support { width: min(560px, 100%); }
-/* Mejoras: botones y veto */
+/* Upgrades: buttons and veto. */
 .upg-btns { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; justify-content: flex-end; }
 .ban-picker { grid-column: 1 / -1; }
 .bind-panel { grid-column: 1 / -1; }
@@ -927,7 +927,7 @@ a.btn { text-decoration: none; display: inline-block; color: var(--ink); }
 .ban-moves { display: flex; flex-wrap: wrap; gap: 6px; }
 .ban-moves .chip { display: inline-flex; align-items: center; gap: 5px; }
 .ban-moves .chip.ban { background: rgba(255,95,109,.25); border-color: #ff5f6d; color: #ffd3d8; text-decoration: line-through; }
-/* Novedades */
+/* News. */
 .news-btn { position: relative; }
 .news-btn .dot { display: none; position: absolute; top: 3px; right: 3px; width: 8px; height: 8px; background: #ff5f6d; box-shadow: 0 0 0 2px var(--shadow); }
 .news-btn.new .dot { display: block; }
@@ -943,13 +943,13 @@ a.btn { text-decoration: none; display: inline-block; color: var(--ink); }
 .news-day ul { margin: 0; padding-left: 20px; }
 .news-day li { margin: 4px 0; line-height: 1.35; font-size: 15px; }
 @media (max-width: 760px) { .news-btn span { display: none; } }
-/* YouTube (en directo: rojo y con un punto que late). */
+/* YouTube (live: red, with a pulsing dot). */
 .yt-btn.live { background: #e0202a; border-color: #ff8a8a; color: #fff; }
 .yt-btn .rec { display: none; width: 8px; height: 8px; border-radius: 50%; background: #fff; margin-right: 2px; animation: yt-rec 1.2s ease-in-out infinite; }
 .yt-btn.live .rec { display: inline-block; }
 @keyframes yt-rec { 50% { opacity: .25; } }
 @media (max-width: 760px) { .yt-btn:not(.live) span { display: none; } }
-/* Botón Guardar (barra de arriba). */
+/* Save button (top bar). */
 .save-btn { display: inline-flex; align-items: center; gap: 5px; font-weight: 700; }
 #savenote-body p { line-height: 1.4; }
 .sup-tab { width: 100%; border-collapse: collapse; margin: 6px 0 10px; font-size: 15px; }
@@ -958,10 +958,10 @@ a.btn { text-decoration: none; display: inline-block; color: var(--ink); }
 .sup-tab tr.tot td { font-weight: 700; color: var(--gold); border-bottom: 0; }
 #btn-support span { margin-left: 2px; }
 @media (max-height: 520px) { #btn-support span { display: none; } }
-/* ============ Pokémon en móvil horizontal ============
- * La lista a la izquierda y la ficha (con "Elegir de compañero") a la derecha,
- * siempre a la vista: antes la ficha quedaba debajo de la lista y había que
- * bajar hasta el borde para encontrar el botón. */
+/* ============ Pokémon on mobile landscape ============
+ * Keep the list on the left and the entry (with "Choose as companion") on the
+ * right, both visible. Previously, the entry was below the list and the player
+ * had to scroll all the way down to find the button. */
 @media (max-height: 520px) {
   #scr-dex .box { height: 100%; display: flex; flex-direction: column; padding: 8px 10px; }
   #scr-dex .gen-tabs { margin-top: 2px; padding-bottom: 4px; flex: 0 0 auto; }
@@ -971,7 +971,7 @@ a.btn { text-decoration: none; display: inline-block; color: var(--ink); }
   #scr-dex .gen-tabs::-webkit-scrollbar, #scr-dex .filters::-webkit-scrollbar { display: none; }
   #scr-dex .filters { flex-wrap: nowrap; overflow-x: auto; margin-bottom: 4px; flex: 0 0 auto; }
   #scr-dex .dex-tools { margin-bottom: 4px; gap: 6px; }
-  /* Ajustes: las pestañas en una fila que se desliza de lado. */
+  /* Settings: tabs in a horizontally scrollable row. */
   #set-tabs { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; }
   #set-tabs::-webkit-scrollbar { display: none; }
   #set-tabs .gen-tab { flex: 0 0 auto; }
@@ -986,7 +986,7 @@ a.btn { text-decoration: none; display: inline-block; color: var(--ink); }
   #dex-detail .stat { grid-template-columns: 62px 1fr 34px; gap: 4px; font-size: 12px; margin: 2px 0; }
   #dex-detail p { margin: 4px 0 !important; font-size: 12px !important; }
   #dex-detail .move-icons { margin-bottom: 4px; }
-  /* El botón de elegir, pegado abajo de la ficha: se ve aunque la ficha no quepa. */
+  /* Pin the choose button to the bottom of the entry so it remains visible when the entry does not fit. */
   #dex-detail .btn { position: sticky; bottom: 0; order: 9; margin-top: auto; padding: 8px 6px; font-size: 15px;
     box-shadow: 0 -6px 10px rgba(5,10,25,.6); }
 }

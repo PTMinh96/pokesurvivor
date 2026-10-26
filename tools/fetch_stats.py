@@ -1,17 +1,17 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Añade a js/data/pokedex.js el Ataque, Ataque Especial, Defensa y Defensa
-Especial de cada Pokémon que ya está (sin cambiar nada más ni la lista).
+Add Attack, Special Attack, Defense, and Special Defense for each existing
+Pokémon to js/data/pokedex.js without changing anything else or altering the list.
 
     python tools/fetch_stats.py
 
-  pa / sa   multiplicador de daño de sus ataques físicos / especiales (la
-            misma fórmula que 'atk', que sigue siendo el mayor de los dos)
-  df / sd   Defensa y Defensa Especial base, tal cual (ver G.Stats)
+  pa / sa   physical / special attack damage multiplier (same formula as
+            'atk', which remains the higher of the two)
+  df / sd   base Defense and Special Defense as-is (see G.Stats)
 
-(tools/fetch_pokedex.py ya los trae también; esto es para no rehacer la
-Pokédex entera, que cambiaría qué Pokémon hay.)
+(tools/fetch_pokedex.py also fetches these stats; this script avoids rebuilding
+the full Pokédex, which could change which Pokémon are included.)
 """
 import json
 import os
@@ -67,7 +67,7 @@ def main():
         o = json.loads(m.group(1))
         for k in ('pa', 'sa', 'df', 'sd'):
             o.pop(k, None)
-        # Detrás de 'atk', para que se lea junto.
+        # After 'atk' so the stats are read together.
         out = {}
         for k, v in o.items():
             out[k] = v
@@ -76,9 +76,9 @@ def main():
         return '  ' + json.dumps(out, ensure_ascii=False, separators=(',', ':')) + m.group(2)
 
     src = re.sub(r'^  (\{"dex":.*\})(,?)$', fix, src, flags=re.M)
-    src = src.replace(' * hp/spd/atk son stats de juego derivados de los stats base.',
-                      ' * hp/spd/atk son stats de juego derivados de los stats base.\n'
-                      ' * pa/sa: daño de sus ataques físicos/especiales (atk = el mayor) · df/sd: Defensa y Defensa Especial base.', 1) \
+    src = src.replace(' * hp/spd/atk are game stats derived from base stats.',
+                      ' * hp/spd/atk are game stats derived from base stats.\n'
+                      ' * pa/sa: physical/special attack damage (atk = the higher value) · df/sd: base Defense and Special Defense.', 1) \
         if ' * pa/sa' not in src else src
     open(DEX, 'w', encoding='utf-8', newline='\n').write(src)
     print('ok:', len(got), 'Pokémon con pa/sa/df/sd')

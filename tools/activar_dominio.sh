@@ -1,17 +1,17 @@
 #!/usr/bin/env bash
-# Paso final del dominio pokesurvivor.com (ver docs/DOMINIO.md).
-#   DRY=1 bash tools/activar_dominio.sh   ensayo: prepara todo, enseña qué se subiría y lo deja como estaba
-#   bash tools/activar_dominio.sh         prepara y hace el commit (el push y GitHub Pages, aparte)
+# Final step for the pokesurvivor.com domain (see docs/DOMINIO.md).
+#   DRY=1 bash tools/activar_dominio.sh   test: prepare everything, show what would be pushed, then restore the original state
+#   bash tools/activar_dominio.sh         prepare and commit (push and GitHub Pages are separate)
 set -euo pipefail
 cd "$(dirname "$0")/.."
 DOMAIN=pokesurvivor.com
 
-# 1. El juego con los bloques SEO, los datos y las páginas en los dos idiomas.
+# 1. Build the game with SEO markup, data, and pages in both languages.
 node tools/build.js
 node tools/export_data.js
 python tools/make_seo_pages.py
 
-# 2. Dominio propio para GitHub Pages.
+# 2. Custom domain for GitHub Pages.
 echo "$DOMAIN" > CNAME
 
 FILES=(CNAME .gitignore index.html js/app.min.js 404.html robots.txt sitemap.xml assets/og-image.jpg
@@ -24,7 +24,7 @@ git diff --cached --name-only | grep -c . | xargs echo "archivos:"
 
 deshacer() { git reset -q; rm -f CNAME; node tools/build.js --sin-seo; }
 
-# Nunca datos privados (este script no cuenta: contiene las palabras que busca).
+# Never include private data (the script itself is excluded: it contains the search terms).
 if git diff --cached -- . ':(exclude)tools/activar_dominio.sh' | grep -qiE "jonathanclase78|assesingamerxd|CONTACTOS_CREADORES"; then
   echo "ERROR: hay datos privados en lo que se va a subir"; deshacer; exit 1
 fi

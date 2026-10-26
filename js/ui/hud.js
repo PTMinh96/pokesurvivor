@@ -1,10 +1,10 @@
-/* ============ hud.js — interfaz dentro del canvas ============
- * Se dibuja en coordenadas de PANTALLA (sin la transformación de cámara).
+/* ============ hud.js — interface inside the canvas ============
+ * Drawn in SCREEN coordinates (without the camera transform).
  */
 G.HUD = (() => {
   const F = (w, s) => `${w} ${s}px Pixelify,"Segoe UI",system-ui,sans-serif`;
 
-  /** Cartel encima de una esfera: su nombre y, con el ratón encima, también lo que hace. */
+  /** Label above an orb: its name and, on hover, what it does. */
   function orbTip(ctx, id, cx, by, full, w) {
     const o = G.Orbs.BY[id], name = G.T(o.name);
     const lines = [];
@@ -62,7 +62,7 @@ G.HUD = (() => {
     G.Touch.clearButtons();
     const touch = G.Touch.active;
 
-    // ---------- barra de experiencia (borde superior) ----------
+    // ---------- experience bar (top edge) ----------
     const xpF = pl.xp / pl.xpNext;
     ctx.fillStyle = 'rgba(0,0,0,.5)';
     ctx.fillRect(0, 0, w, 7);
@@ -71,9 +71,9 @@ G.HUD = (() => {
     ctx.fillStyle = g;
     ctx.fillRect(0, 0, w * G.U.clamp(xpF, 0, 1), 7);
 
-    // ---------- vida + nivel ----------
+    // ---------- health + level ----------
     const sa = G.Touch.safeArea();
-    const px = 16 + sa.left, py = 20 + sa.top;     // lejos de la muesca del iPhone
+    const px = 16 + sa.left, py = 20 + sa.top;     // Away from the iPhone notch.
     ctx.font = F(800, 13);
     ctx.fillStyle = '#eaf2ff';
     ctx.textAlign = 'left';
@@ -107,7 +107,7 @@ G.HUD = (() => {
       bx += tw + 5;
     }
 
-    // ---------- reloj / bioma / kills ----------
+    // ---------- clock / biome / kills ----------
     ctx.textAlign = 'center';
     ctx.font = F(800, 26);
     ctx.fillStyle = 'rgba(255,255,255,.95)';
@@ -116,7 +116,7 @@ G.HUD = (() => {
     ctx.fillStyle = '#8fa3c4';
     ctx.fillText(G.World.biomeName().toUpperCase() + '  ·  ' + pl.kills + ' DERROTADOS  ·  ' + pl.coins + ' MONEDAS', w / 2, 58);
 
-    // ---------- clima (arriba a la derecha) ----------
+    // ---------- weather (top right) ----------
     const wx = G.Weather.current;
     if (wx) {
       ctx.font = F(800, 11);
@@ -131,7 +131,7 @@ G.HUD = (() => {
       ctx.fillText(txt, x0 + 32, y0 + 17);
     }
 
-    // ---------- barra del jefe ----------
+    // ---------- boss bar ----------
     const boss = G.EnemyMgr.all().find(e => e.boss && !e.dead);
     if (boss) {
       const bw = Math.min(420, w - 80);
@@ -141,8 +141,8 @@ G.HUD = (() => {
       ctx.fillText(boss.name.toUpperCase(), w / 2, 80);
     }
 
-    // ---------- aviso ----------
-    // ---------- shinies fuera de pantalla: destello en el borde ----------
+    // ---------- notification ----------
+    // ---------- off-screen shinies: glint at the edge ----------
     const cam = G.Camera, pulse = 0.6 + Math.sin(performance.now() / 160) * 0.4;
     for (const e of G.EnemyMgr.shinies()) {
       const sx = (e.x - cam.left()) * cam.scale, sy = (e.y - cam.top()) * cam.scale;
@@ -164,7 +164,7 @@ G.HUD = (() => {
       ctx.restore();
     }
 
-    // Poder de altar activo.
+    // Active altar power.
     if (pl.power) {
       const pw = pl.power, txt = pw.def.name.toUpperCase() + ' ' + Math.ceil(pw.t) + 's';
       ctx.font = F(800, 9);
@@ -179,8 +179,8 @@ G.HUD = (() => {
 
     if (G.Coop.active) drawCoop(ctx, w, h, pl, px, py + (bx > px ? 56 : 40));
 
-    // Grieta: flecha grande que late en el borde si no se ve, y si se ve, una
-    // flecha que bota encima; en la arena, cuenta atrás.
+    // Rift: large pulsing edge arrow when off-screen, or a bouncing arrow above
+    // it when visible; show a countdown in the arena.
     const rift = G.Rift.rift;
     if (rift) {
       const sx = (rift.x - cam.left()) * cam.scale, sy = (rift.y - 40 - cam.top()) * cam.scale;
@@ -192,7 +192,7 @@ G.HUD = (() => {
         const M = 52, ex = G.U.clamp(sx, M, w - M), ey = G.U.clamp(sy, M + 70, h - M - 80);
         const a = Math.atan2(sy - ey, sx - ex), ca = Math.cos(a), sa = Math.sin(a);
         ctx.translate(ex, ey);
-        // Halo que late.
+        // Pulsing halo.
         ctx.globalAlpha = 0.18 + beat * 0.22;
         ctx.fillStyle = '#b48aff';
         ctx.beginPath(); ctx.arc(0, 0, 30 + beat * 8, 0, 6.2832); ctx.fill();
@@ -214,7 +214,7 @@ G.HUD = (() => {
         ctx.fillStyle = '#e2d0ff';
         ctx.fillText(label, lx, ly);
       } else {
-        // Encima de la grieta: flecha hacia abajo que bota.
+        // Bouncing down arrow above the rift.
         const by = sy - 46 - Math.abs(Math.sin(now * 4)) * 10;
         ctx.translate(sx, by);
         ctx.beginPath(); ctx.moveTo(-15, -12); ctx.lineTo(15, -12); ctx.lineTo(0, 8); ctx.closePath();
@@ -234,10 +234,10 @@ G.HUD = (() => {
       ctx.fillText('GRIETA · ' + G.U.mmss(G.Rift.timeLeft), w / 2, boss ? 98 : 76);
     }
 
-    // Eventos: cuenta atrás, flecha al Pokémon perdido / a la marca y a los duendes.
+    // Events: countdown, arrow to the lost Pokémon / marker, and treasure sprites.
     G.Events.drawHud(ctx, w, h, pl, F);
 
-    // Aviso propio al abrirse una grieta (no lo tapan los otros avisos).
+    // Dedicated warning when a rift opens (not covered by other notifications).
     if (rift && rift.t < 4.5) {
       const a = Math.min(1, rift.t * 4, (4.5 - rift.t) * 2), pop = 1 + Math.max(0, 0.25 - rift.t) * 1.6;
       const y0 = h * 0.2;
@@ -261,8 +261,8 @@ G.HUD = (() => {
       const a = Math.min(1, ban.t * 1.6);
       ctx.save();
       ctx.globalAlpha = a;
-      // Siempre centrado (antes heredaba la alineación de lo último dibujado, p.
-      // ej. la flecha de un duende del tesoro, y salía descolocado).
+      // Always centered (previously inherited the alignment of the last thing
+      // drawn, e.g. a treasure sprite arrow, and appeared offset).
       ctx.textAlign = 'center';
       ctx.font = F(800, 22);
       ctx.fillStyle = '#ffcb3d';
@@ -272,16 +272,16 @@ G.HUD = (() => {
       ctx.restore();
     }
 
-    // ---------- ranura de movimientos ----------
+    // ---------- move slot ----------
     const S = 54, GAP = 9;
     const n = Math.max(1, pl.slots.length);
     const totalW = n * S + (n - 1) * GAP;
     let sx = (w - totalW) / 2;
-    // Por encima de la barra de inicio del iPhone (allí los toques a veces no llegan).
+    // Above the iPhone home bar (touches there sometimes fail to register).
     let sy = h - S - 18 - (touch ? Math.min(28, G.Touch.safeArea().bottom) : 0);
-    // En móvil, donde la haya puesto el jugador: el bloque objeto + todos los
-    // huecos (aunque aún no estén llenos), por su centro, como en el editor
-    // (layout-ui.js); los ataques nuevos van saliendo hacia la derecha.
+    // On mobile, at the player's chosen position: the item block and all slots
+    // (even empty ones), centered as in the editor (layout-ui.js); new attacks
+    // appear to the right.
     const pb = touch && G.Touch.spot('bar');
     if (pb) {
       const nAll = Math.max(n, pl.maxMoves), bw = S + 18 + nAll * S + (nAll - 1) * GAP;
@@ -298,23 +298,23 @@ G.HUD = (() => {
       const on = i === pl.active;
       const x = sx + i * (S + GAP);
       const y = on ? sy - 6 : sy;
-      // Tocar (o hacer clic en) un icono activa ese movimiento.
+      // Touching (or clicking) an icon activates that move.
       if (m) G.Touch.addButton(x, y, S, S, () => { if (G.Game.state === 'playing' && pl.active !== i) { pl.setActive(i); G.Audio.sfx('click'); } }, GAP / 2 + 3);
       const col = m ? G.U.TYPE_COLOR[m.type] : '#4a5468';
 
-      // fondo
+      // Background.
       roundRect(ctx, x, y, S, S, 12);
       ctx.fillStyle = on ? 'rgba(20,30,50,.95)' : 'rgba(10,16,28,.8)';
       ctx.fill();
       ctx.lineWidth = on ? 2.5 : fused || (m && m.evolved) ? 2 : 1.2;
-      // Vínculo: borde rosa. Evolucionado: dorado.
+      // Bond: pink border. Evolved: gold.
       ctx.strokeStyle = fused ? BOND : m && m.evolved ? '#ffd23f' : on ? col : 'rgba(140,170,210,.22)';
       ctx.stroke();
 
       if (!m) continue;
 
       if (fused) {
-        // Vínculo: los movimientos en una cuadrícula de 2×2, cada uno con su recarga.
+        // Bond: moves in a 2×2 grid, each with its own cooldown.
         const C = 22, P = (S - C * 2) / 3;
         g.forEach((gm, k) => {
           const cx = x + P + (k % 2) * (C + P), cy = y + P + Math.floor(k / 2) * (C + P);
@@ -322,12 +322,12 @@ G.HUD = (() => {
           const f = cdOf(gm);
           if (f > 0) { ctx.fillStyle = 'rgba(0,0,0,.55)'; ctx.fillRect(cx, cy, C, C * f); }
           if (gm.evolved) { ctx.strokeStyle = '#ffd23f'; ctx.lineWidth = 1; ctx.strokeRect(cx + 0.5, cy + 0.5, C - 1, C - 1); }
-          // Destello al lanzarse.
+          // Flash on launch.
           const fl = 1 - (performance.now() - (gm.castAt || 0)) / 180;
           if (fl > 0) { ctx.fillStyle = 'rgba(255,255,255,' + (fl * 0.55).toFixed(2) + ')'; ctx.fillRect(cx, cy, C, C); }
         });
       } else {
-        // recarga: se vacía de abajo a arriba
+        // Cooldown: empties from bottom to top.
         const cdFrac = cdOf(m);
         if (cdFrac > 0) {
           ctx.save();
@@ -337,10 +337,10 @@ G.HUD = (() => {
           ctx.restore();
         }
 
-        // emblema del tipo + insignia de la familia
+        // Type emblem + family badge.
         G.Icons.draw(ctx, 'move:' + m.id, x + (S - 32) / 2, y + (S - 32) / 2 - 2, 32);
 
-        // nivel del movimiento (puntitos)
+        // Move level (dots).
         const dots = m.def.maxLvl;
         const dw = 4, dgap = 2;
         const tw = dots * dw + (dots - 1) * dgap;
@@ -350,13 +350,13 @@ G.HUD = (() => {
         }
       }
 
-      // tecla
+      // Key.
       ctx.font = F(800, 9);
       ctx.fillStyle = fused ? BOND : on ? col : 'rgba(180,200,230,.6)';
       ctx.textAlign = 'left';
       ctx.fillText(String(i + 1), x + 3, y + 10);
 
-      // nombre encima del activo (con un vínculo: "Ascuas +2")
+      // Name above the active move (with a bond: "Ember +2").
       if (on) {
         ctx.font = F(700, 10);
         ctx.textAlign = 'center';
@@ -365,7 +365,7 @@ G.HUD = (() => {
       }
     }
 
-    // ---------- vínculo guardado (aún no hay dos movimientos sueltos) ----------
+    // ---------- stored bond (there are not yet two separate moves) ----------
     if (pl.bonds > 0) {
       const bx = sx + totalW + 12, by = sy + S / 2 - 12;
       G.Icons.draw(ctx, 'bond', bx, by, 24);
@@ -377,7 +377,7 @@ G.HUD = (() => {
       }
     }
 
-    // ---------- objeto equipado (a la izquierda de los movimientos) ----------
+    // ---------- equipped item (to the left of the moves) ----------
     {
       const ix = sx - S - 18, iy = sy;
       roundRect(ctx, ix, iy, S, S, 12);
@@ -395,7 +395,7 @@ G.HUD = (() => {
       }
     }
 
-    // ---------- esferas (encima de los ataques; teclas 5-8) y sus mejoras activas ----------
+    // ---------- orbs (above the attacks; keys 5-8) and their active upgrades ----------
     const orbs = pl.orbs || [], ob = pl.orbBuff || {};
     const buffs = Object.keys(ob).filter(id => ob[id] > 0);
     if (orbs.some(Boolean) || buffs.length) {
@@ -407,7 +407,7 @@ G.HUD = (() => {
         roundRect(ctx, x, oy, OS, OS, 9);
         ctx.fillStyle = o ? 'rgba(20,24,44,.88)' : 'rgba(10,16,28,.45)';
         ctx.fill();
-        const pick = o && !!G.Pad.name && i === G.Orbs.sel;      // con mando: la que usa X
+        const pick = o && !!G.Pad.name && i === G.Orbs.sel;      // With a controller: the one selected with X.
         ctx.lineWidth = pick ? 2.5 : 1.2;
         ctx.strokeStyle = pick ? '#ffd23f' : o ? G.Orbs.BY[o.id].col : 'rgba(140,170,210,.18)';
         ctx.stroke();
@@ -423,7 +423,7 @@ G.HUD = (() => {
         if (!touch) { ctx.textAlign = 'left'; ctx.fillStyle = 'rgba(180,200,230,.7)'; ctx.fillText(String(i + 5), x + 3, oy + 10); }
         if (o.n > 1) { ctx.textAlign = 'right'; ctx.fillStyle = '#f4f8ff'; ctx.fillText('×' + o.n, x + OS - 3, oy + OS - 4); }
       }
-      // Qué hace cada una: ratón encima (PC), la elegida con mando, o la que acabas de coger (3 s).
+      // What each does: hovered (PC), selected with a controller, or just picked up (3 s).
       const mo = G.Input.mouse(), fresh = pl.orbNew && performance.now() - pl.orbNew.at < 3000 ? pl.orbNew.i : -1;
       let tip = -1, full = false;
       if (!touch) for (let i = 0; i < G.Orbs.SLOTS; i++) {
@@ -441,7 +441,7 @@ G.HUD = (() => {
       }
       if (tip >= 0) orbTip(ctx, orbs[tip].id, ox + tip * (OS + OG) + OS / 2, oy - 8, full, w);
 
-      // Mejoras activas: icono y segundos que quedan.
+      // Active upgrades: icon and remaining seconds.
       buffs.forEach((id, k) => {
         const bx = ox + ow + 10 + k * 30, by = oy + 4;
         G.Icons.draw(ctx, 'orb:' + id, bx, by, 24);
@@ -451,7 +451,7 @@ G.HUD = (() => {
       });
     }
 
-    // ---------- botón de pausa (táctil) ----------
+    // ---------- pause button (touch) ----------
     if (touch) {
       const sa = G.Touch.safeArea();
       const pp = G.Touch.spot('pause');
@@ -465,7 +465,7 @@ G.HUD = (() => {
       G.Touch.addButton(bx, by, bs, bs, () => G.Game.togglePause(), 8);
     }
 
-    // pista de controles
+    // Control hint.
     if (st.time < 14) {
       ctx.font = F(600, 10);
       ctx.textAlign = 'center';
@@ -480,10 +480,10 @@ G.HUD = (() => {
   // ---------------- cooperativo ----------------
 
   /**
-   * - Vida de cada compañero debajo de la tuya.
-   * - Flecha en el borde de la pantalla hacia los que no se ven, con su nombre
-   *   y a cuántos metros están (roja y parpadeando si está caído).
-   * - Si has caído tú: aviso y barra de "te están levantando".
+   * - Each teammate's health below yours.
+   * - Edge arrow pointing to off-screen teammates, with their name and distance
+   *   (red and blinking if they are down).
+   * - If you are down: a notice and a "being revived" bar.
    */
   function drawCoop(ctx, w, h, pl, px, top) {
     const cam = G.Camera;
@@ -506,7 +506,7 @@ G.HUD = (() => {
       y += 15;
     }
 
-    // Flechas hacia los compañeros fuera de la vista.
+    // Arrows pointing to off-screen teammates.
     for (const m of G.Coop.mates) {
       if (!m.connected) continue;
       const o = m.pl;
@@ -519,7 +519,7 @@ G.HUD = (() => {
       const col = o.dead ? (Math.sin(t * 8) > 0 ? '#ff5f6d' : '#ffd0d5') : m.color;
       ctx.save();
       ctx.translate(ex, ey);
-      // Flecha
+      // Arrow
       ctx.fillStyle = 'rgba(0,0,0,.55)';
       ctx.beginPath(); ctx.arc(0, 0, 17, 0, 6.2832); ctx.fill();
       ctx.fillStyle = col;
@@ -528,12 +528,12 @@ G.HUD = (() => {
       ctx.lineTo(Math.cos(a + 2.4) * 14, Math.sin(a + 2.4) * 14);
       ctx.lineTo(Math.cos(a - 2.4) * 14, Math.sin(a - 2.4) * 14);
       ctx.closePath(); ctx.fill();
-      // Inicial del compañero dentro del círculo
+      // Teammate's initial inside the circle.
       ctx.font = F(800, 14);
       ctx.textAlign = 'center';
       ctx.fillStyle = '#fff';
       G.I18n.rawCanvas(ctx, 'fillText', m.name.charAt(0).toUpperCase(), 0, 5);
-      // Nombre y distancia: al lado contrario de la flecha, para que no se salga
+      // Name and distance opposite the arrow so they stay on-screen.
       const lx = -Math.cos(a) * 30, ly = -Math.sin(a) * 26 + 4;
       ctx.font = F(800, 12);
       const label = o.dead ? G.I18n.f('¡{x} necesita ayuda! · {x} m', m.name, metres) : m.name + ' · ' + metres + ' m';
@@ -545,7 +545,7 @@ G.HUD = (() => {
       ctx.restore();
     }
 
-    // Tú, caído.
+    // You, down.
     if (pl.dead) {
       ctx.save();
       ctx.textAlign = 'center';
@@ -557,7 +557,7 @@ G.HUD = (() => {
       ctx.fillText(msg, w / 2, h * 0.62);
       const f = (pl.reviveT || 0) / G.Player.REVIVE_TIME;
       if (f > 0) bar(ctx, w / 2 - 110, h * 0.62 + 12, 220, 10, f, '#5fe08a');
-      // Mirar a un compañero vivo mientras tanto (botón, Q / E o LB / RB).
+      // Look at a living teammate in the meantime (button, Q / E, or LB / RB).
       const w0 = G.Game.watching;
       if (w0 || G.Coop.puppets().some(p => !p.dead)) {
         const m = w0 && G.Coop.mates.find(x => x.pl === w0);

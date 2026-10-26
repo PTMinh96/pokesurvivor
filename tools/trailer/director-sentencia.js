@@ -1,31 +1,31 @@
-/* ============ director-sentencia.js — tráiler de la Sentencia de Arceus (23-10-2026) ============
- *   node tools/trailer/record.mjs --director director-sentencia.js --out carpeta
- *   node tools/trailer/encode.mjs carpeta salida.mp4
- * Mismas herramientas y misma música (score.js) que director.js; los cortes caen en sus compases.
- * Sólo lo que sale en esta actualización (lo del 22 y el 23-10-2026):
+/* ============ director-sentencia.js — Arceus Judgment trailer (2026-10-23) ============
+ *   node tools/trailer/record.mjs --director director-sentencia.js --out <frames-dir>
+ *   node tools/trailer/encode.mjs <frames-dir> <output.mp4>
+ * Same tools and music (score.js) as director.js; cuts land on its bars.
+ * Only features in this update (from 2026-10-22 and 2026-10-23):
  *
- *   0      Apertura y logo
- *   3-8    Gacha ×100, botón Saltar y Amuleto Iris (la ×100 completa Kanto); la Mochila
- *   8-11   Esferas de Mundo Misterioso (Pikachu usando cuatro)
- *   11-15  Movimientos evolucionados con «+»: Puño Meteoro + (cartel y Metagross jugando)
- *   15-24  La Sentencia: Tablas, la ruleta de las 17, pegarle a Arceus, legendarios que caen y el minuto 35
- *   24-28  El ranking partido (con apodos inventados)
- *   28-32  ¿Hasta dónde llegarás? y el resumen de todo lo nuevo
- *   32-38  Desfile de legendarios y logo final
+ *   0      Opening and logo
+ *   3-8    ×100 gacha, Skip button, and Rainbow Charm (×100 completes Kanto); the Backpack
+ *   8-11   Mystery Dungeon Orbs (Pikachu using four)
+ *   11-15  Evolved moves with "+": Meteor Mash + (caption and Metagross in action)
+ *   15-24  Judgment: Plates, the 17-Plate roulette, hitting Arceus, defeated legendaries, and minute 35
+ *   24-28  Split leaderboard (with fictional nicknames)
+ *   28-32  How far will you go? A recap of everything new
+ *   32-38  Legendary parade and final logo
  */
-// El tráiler, en español (antes de que cargue el juego).
-try { localStorage.setItem('ps.lang', 'es'); } catch (e) { /* nada */ }
+// The trailer is in Spanish (before the game loads).
+try { localStorage.setItem('ps.lang', 'es'); } catch (e) { /* ignored */ }
 (() => {
   const W = 1280, H = 720, RB = 240 / 164;
   const B = b => 0.1 + b * RB;
   const DUR = B(38) + 0.3;
 
   let st = 'carga', T = 0, ov = null, c = null, realMusic = null, axisFn = null;
-  // Cámara sobre la página (zoom a una parte de la interfaz): { x, y, w } en px
-  // de la página (alto = w·9/16). La grabadora recorta ahí la captura y los
-  // rótulos se dibujan encima de ese recorte. null = la pantalla entera.
+  // Camera over the page (zoom into part of the interface): { x, y, w } in page
+  // pixels (height = w·9/16). The recorder crops the capture there and captions
+  // are drawn over the crop. null = the entire screen.
   let cam = null;
-  const layers = [];          // rótulos activos: { from, to, draw(t) }
+  const layers = [];          // active captions: { from, to, draw(t) }
   const layer = (from, to, draw) => layers.push({ from, to, draw });
   const camera = (from, to, fn) => layers.push({ from, to, cam: fn });
   const cues = [];
@@ -76,7 +76,7 @@ try { localStorage.setItem('ps.lang', 'es'); } catch (e) { /* nada */ }
   }
   const measure = (s, size, w = 700) => { c.save(); c.font = FONT(size, w); const m = c.measureText(s).width; c.restore(); return m; };
 
-  /** Entrada de golpe: de grande a su tamaño con rebote. */
+  /** Hit entrance: shrink from large to normal size with a bounce. */
   const slam = (t, t0, d = 0.22) => (t < t0 ? 0 : t - t0 >= d ? 1 : lerp(2.6, 1, eback((t - t0) / d)));
 
   function flash(t, t0, dur = 0.35, col = '255,255,255', max = 0.85) {
@@ -135,7 +135,7 @@ try { localStorage.setItem('ps.lang', 'es'); } catch (e) { /* nada */ }
     c.restore();
   }
 
-  /** Cortinilla de Poké Ball: cubre toda la pantalla en t0 + dur/2 (ahí se cambia de escena). */
+  /** Poké Ball wipe: covers the whole screen at t0 + dur/2 (the scene changes then). */
   function wipe(t0, dur = 0.8) {
     layer(t0, t0 + dur, t => {
       const p = (t - t0) / dur, R = 920;
@@ -168,7 +168,7 @@ try { localStorage.setItem('ps.lang', 'es'); } catch (e) { /* nada */ }
     c.closePath();
   }
 
-  /** Pegatina "¡NUEVO!" que late con la música. */
+  /** "NEW!" sticker that pulses with the music. */
   function badge(t, x, y, label = '¡NUEVO!', col = '#ff3b47', t0 = 0) {
     const s = slam(t, t0, 0.25);
     if (!s) return;
@@ -188,7 +188,7 @@ try { localStorage.setItem('ps.lang', 'es'); } catch (e) { /* nada */ }
   }
 
   /**
-   * Rótulo de abajo a la izquierda (entra deslizando, sale por la izquierda).
+   * Lower-left caption (slides in and exits to the left).
    * o: { title, sub, color, icon, y, isNew, size }
    */
   function lowerThird(t, t0, t1, o) {
@@ -210,7 +210,7 @@ try { localStorage.setItem('ps.lang', 'es'); } catch (e) { /* nada */ }
     c.fillStyle = o.color || '#ffd23f';
     c.fillRect(0, 0, 14, h);
     c.beginPath(); c.moveTo(w - 4, 0); c.lineTo(w + 10, 0); c.lineTo(w - 20, h); c.lineTo(w - 34, h); c.fill();
-    // brillo que pasa
+    // Passing highlight.
     const sh = ((t - t0) * 0.9) % 2.2;
     if (sh < 1) {
       c.save();
@@ -234,7 +234,7 @@ try { localStorage.setItem('ps.lang', 'es'); } catch (e) { /* nada */ }
     if (o.isNew) badge(t, x + w - 50, y - 6, '¡NUEVO!', '#ff3b47', t0 + 0.25);
   }
 
-  /** Pixel art de un Pokémon con su Animator (para las escenas montadas). */
+  /** Pokémon pixel art with its Animator (for staged scenes). */
   const anims = {};
   function mon(key, dex, scale, shiny = false) {
     return anims[key] || (anims[key] = new G.Sprites.Animator(dex, scale, shiny));
@@ -247,7 +247,7 @@ try { localStorage.setItem('ps.lang', 'es'); } catch (e) { /* nada */ }
     c.restore();
   }
 
-  /** Encuadre 16:9 que contiene el rectángulo (con margen), dentro de la pantalla. */
+  /** 16:9 frame containing the rectangle (with margin), within the screen. */
   function frame(r, pad = 24, minW = 520) {
     let w = Math.max(r.width + pad * 2, (r.height + pad * 2) * 16 / 9, minW);
     w = Math.min(W, w);
@@ -255,7 +255,7 @@ try { localStorage.setItem('ps.lang', 'es'); } catch (e) { /* nada */ }
     const x = cl(r.left + r.width / 2 - w / 2, 0, W - w), y = cl(r.top + r.height / 2 - h / 2, 0, H - h);
     return { x, y, w };
   }
-  /** De la pantalla entera (k=0) al encuadre del elemento (k=1). */
+  /** Transition from the full screen (k=0) to the element framing (k=1). */
   function camOn(sel, k, pad, minW) {
     const el = typeof sel === 'string' ? document.querySelector(sel) : sel;
     if (!el || k <= 0) { cam = null; return; }
@@ -263,20 +263,20 @@ try { localStorage.setItem('ps.lang', 'es'); } catch (e) { /* nada */ }
     cam = k >= 1 ? f : { x: lerp(0, f.x, k), y: lerp(0, f.y, k), w: lerp(W, f.w, k) };
   }
 
-  /** Rectángulo de la página a coordenadas de los rótulos (con la cámara). */
+  /** Convert a page rectangle to caption coordinates (with the camera). */
   function view(r) {
     const v = cam || { x: 0, y: 0, w: W }, k = W / v.w;
     return { x: (r.left - v.x) * k, y: (r.top - v.y) * k, w: r.width * k, h: r.height * k };
   }
 
-  // ---------------- control del juego ----------------
+  // ---------------- game control ----------------
   function zoom(f) {
     G.Camera.VIEW_W = 768 / f;
     G.Camera.MIN_VIEW_H = 420 / f;
     G.Camera.resize(W, H, G.Camera.dpr);
   }
 
-  /** Partida nueva ya en marcha: el Pokémon, sus ataques (al máximo y evolucionados) y enemigos alrededor. */
+  /** Fresh run already in progress: Pokémon, its moves (maxed and evolved), and surrounding enemies. */
   async function run(dex, moves, o = {}) {
     const s = G.DB.save;
     s.partner = dex;
@@ -285,7 +285,7 @@ try { localStorage.setItem('ps.lang', 'es'); } catch (e) { /* nada */ }
     G.Game.debugSpeed(1);
     G.Game.startRun();
     const pl = G.Game.player;
-    // Sin daño (hurt vacío) y sin invulnerabilidad: con invuln el sprite parpadea.
+    // No damage (empty hurt handler) and no invulnerability: invuln makes the sprite blink.
     Object.defineProperty(pl, 'invuln', { get: () => 0, set() {}, configurable: true });
     pl.gainXp = () => 0;
     pl.hurt = () => {};
@@ -295,7 +295,7 @@ try { localStorage.setItem('ps.lang', 'es'); } catch (e) { /* nada */ }
     for (const id of moves) {
       pl.addMove(id);
       const m = pl.moves.find(x => x.id === id);
-      while (G.Moves.levelUp(m)) { /* al máximo */ }
+      while (G.Moves.levelUp(m)) { /* max level */ }
       if (o.evolve !== false) G.Moves.evolve(m);
     }
     if (o.fuse) pl.fuse(pl.moves.slice(0, o.fuse));
@@ -304,8 +304,8 @@ try { localStorage.setItem('ps.lang', 'es'); } catch (e) { /* nada */ }
     G.Game.debugTime(t);
     G.World.setBiome(Math.floor(t / 240), true);
     zoom(o.zoom || 1);
-    // Partida limpia: unos pocos enemigos en corro que no caen nunca (sin
-    // experiencia ni monedas por el suelo), lentos y sin hacer daño, y no sale nadie más.
+    // Clean run: a few enemies in a circle that never fall (no experience or
+    // coins dropped), slowed and harmless, with no additional spawns.
     G.Spawner.update = () => {};
     const bag = G.Enemies.bagAt(60).filter(d => d.behavior === 'chase' || d.behavior === 'tank');
     const sc = G.Enemies.scale(60), n = o.foes == null ? 7 : o.foes, R = o.ring || 125;
@@ -319,7 +319,7 @@ try { localStorage.setItem('ps.lang', 'es'); } catch (e) { /* nada */ }
     }
     axisFn = o.axis || (() => [0, 0]);
     await __preroll((o.pre == null ? 0.5 : o.pre) * 1000);
-    for (const m of pl.moves) m.t = Math.min(m.t, 0.05);     // que se lance nada más empezar el corte
+    for (const m of pl.moves) m.t = Math.min(m.t, 0.05);     // make it launch as soon as the cut begins
     G.Spawner.say('', 0);
     if (o.after) o.after(pl);
     return pl;
@@ -332,7 +332,7 @@ try { localStorage.setItem('ps.lang', 'es'); } catch (e) { /* nada */ }
     zoom(1);
   }
 
-  /** Escribe en el buscador de la colección letra a letra y abre el primero. */
+  /** Type into the collection search field one character at a time and open the first result. */
   function typeSearch(t0, word, step = 0.06) {
     at(t0, () => { const q = $('dex-q'); q.value = ''; });
     for (let i = 1; i <= word.length; i++) {
@@ -352,13 +352,13 @@ try { localStorage.setItem('ps.lang', 'es'); } catch (e) { /* nada */ }
   }
 
 
-  // ---------------- la Sentencia ----------------
+  // ---------------- Judgment ----------------
   const LEGS = [144, 145, 146, 243, 244, 245, 249, 250, 377, 378, 379, 380, 381, 382, 383, 480, 481, 482, 483, 484, 485, 487, 488, 638, 639, 640, 641, 642, 643, 644, 645, 716, 717, 718, 791, 792, 800, 888, 889];
   const PLATE = { fire: 'Tabla Llama', water: 'Tabla Linfa', electric: 'Tabla Trueno', grass: 'Tabla Pradal', ice: 'Tabla Helada',
     fighting: 'Tabla Fuerte', poison: 'Tabla Tóxica', ground: 'Tabla Terrax', flying: 'Tabla Cielo', psychic: 'Tabla Mental',
     bug: 'Tabla Bicho', rock: 'Tabla Pétrea', ghost: 'Tabla Terror', dragon: 'Tabla Draco', dark: 'Tabla Oscura', steel: 'Tabla Acero', fairy: 'Tabla Duende' };
 
-  /** Partida limpia ya en la pelea contra Arceus, con su Tabla (sin la animación de entrada). */
+  /** Clean run already fighting Arceus, with its Plate (without the entrance animation). */
   async function judge(dex, moves, o = {}) {
     G.Judgment.debugNoBosses(!!o.noBosses);
     const pl = await run(dex, moves, Object.assign({ zoom: 1.15 }, o, { foes: 0, pre: 0, time: 1700 }));
@@ -369,14 +369,14 @@ try { localStorage.setItem('ps.lang', 'es'); } catch (e) { /* nada */ }
     G.Judgment.onEvent(['jk']);
     await __preroll((o.pre == null ? 1.15 : o.pre) * 1000);
     const arc = G.EnemyMgr.all().find(e => e.arceus);
-    // A su lado y un poco por encima de sus pies: su dibujo es alto y sube desde ahí.
+    // Beside and slightly above its feet: the sprite is tall and extends upward from there.
     if (arc && o.near !== false) { pl.x = arc.x + (o.gap || 210); pl.y = arc.y - 70; G.Camera.x = pl.x - 90; G.Camera.y = pl.y; }
     if (o.axis) axisFn = o.axis;
     for (const m of pl.moves) m.t = Math.min(m.t, 0.05);
     return pl;
   }
 
-  /** Marco que late alrededor de algo de la pantalla (x, y, ancho y alto en px de la página). */
+  /** Pulsing frame around a screen element (x, y, width, and height in page pixels). */
   function glowBox(t, x, y, w, h, col = '255,214,70') {
     const p = 0.5 + 0.5 * Math.sin(t * 9);
     c.save();
@@ -388,14 +388,14 @@ try { localStorage.setItem('ps.lang', 'es'); } catch (e) { /* nada */ }
     c.restore();
   }
 
-  /** Rótulo grande arriba, en el centro (para las escenas de juego). */
+  /** Large caption at the top center (for gameplay scenes). */
   function topTitle(t, t0, s, sub, colors) {
     if (t < t0) return;
     text(s, W / 2, 92, 54, { scale: slam(t, t0), colors });
     if (sub) text(sub, W / 2, 146, 26, { scale: slam(t, t0 + 0.1), fill: '#fff', depth: 2, deep: '#222', weight: 400 });
   }
 
-  // Ranking de ejemplo (apodos inventados) para enseñar la pantalla partida.
+  // Sample leaderboard (fictional nicknames) to demonstrate the split screen.
   const NAMES = ['Kairo', 'LunaPixel', 'Draco_77', 'Mika', 'TeoTeo', 'Nébula', 'Sora', 'Pancho', 'Iris_GO', 'Zeta', 'Bruma', 'Kiko'];
   const MONS = [448, 445, 150, 658, 25, 6, 376, 94, 130, 248, 282, 887];
   const fakeRows = key => NAMES.map((n, i) => ({ id: 'x' + i, t: 2460 - i * 23 - (key === 'd' ? (i * 37) % 50 : 0), d: 248000 - i * 15300 - (i * 977) % 4000,
@@ -437,8 +437,8 @@ try { localStorage.setItem('ps.lang', 'es'); } catch (e) { /* nada */ }
     at(B(2), () => sfx('reveal', { rarity: 5 }));
     wipe(B(2.75), 0.84);
 
-    // ---------- 1. Gacha ×100, Saltar y Amuleto Iris ----------
-    // A Kanto le falta un Pokémon: la ×100 lo trae y con él, su Amuleto Iris.
+    // ---------- 1. Gacha ×100, Skip, and Shiny Charm ----------
+    // Kanto is missing one Pokémon: the ×100 pull gets it and its Rainbow Charm.
     let missing = 0;
     at(B(3) - 0.05, () => {
       toUI();
@@ -474,7 +474,7 @@ try { localStorage.setItem('ps.lang', 'es'); } catch (e) { /* nada */ }
       lowerThird(t, B(5.5) + 0.15, B(6.75) - 0.05, { title: 'AMULETO IRIS', sub: 'Completa la Pokédex de una región: sus shiny, el doble', color: '#c47bff', icon: 'iris', isNew: true, y: 40 });
     });
     at(B(5.5) + 0.2, () => sfx('shinyGet'));
-    // La Mochila, con los 9 Amuletos Iris.
+    // The Backpack, with all 9 Rainbow Charms.
     const irisBox = () => {
       const h = [...document.querySelectorAll('#bag-body h3')].find(x => /Iris/.test(x.textContent));
       return h ? [h, h.nextElementSibling && h.nextElementSibling.nextElementSibling || h.nextElementSibling] : null;
@@ -497,7 +497,7 @@ try { localStorage.setItem('ps.lang', 'es'); } catch (e) { /* nada */ }
       lowerThird(t, B(6.75) + 0.1, B(8) - 0.04, { title: 'UNO POR REGIÓN', sub: 'Los 9 en la Mochila, con lo que te falta para cada uno', color: '#c47bff', icon: 'bag', y: H - 150 });
     });
 
-    // ---------- 2. Esferas de Mundo Misterioso ----------
+    // ---------- 2. Mystery Dungeon orbs ----------
     const ORB = [['slumber', B(8) + 0.5], ['blowback', B(9.25)], ['luminous', B(10)], ['quick', B(10.5)]];
     at(B(8), async () => {
       $('game').style.filter = '';
@@ -516,14 +516,14 @@ try { localStorage.setItem('ps.lang', 'es'); } catch (e) { /* nada */ }
         text(G.T(o.name), W / 2, 110, 50, { scale: slam(t, t0), colors: ['#ffffff', o.col], deep: '#1d1030' });
         text(G.T(o.desc), W / 2, 162, 22, { scale: slam(t, t0 + 0.08), fill: '#fff', depth: 0, stroke: 4, outline: '#0a0c1c', weight: 400 });
       });
-      // Las 4 casillas de esferas (encima de los ataques), recién usadas.
+      // The 4 orb slots (above the moves), just used.
       if (t > B(8) + 0.3) {
         const s = G.Game.player && G.Game.player.orbs;
         if (s) glowBox(t, W / 2 - 92, H - 150, 184, 40, '179,155,255');
       }
     });
 
-    // ---------- 3. Movimientos evolucionados con «+» ----------
+    // ---------- 3. Evolved moves with "+" ----------
     wipe(B(10.75), 0.84);
     at(B(11) - 0.05, () => { toUI(); $('game').style.filter = 'blur(4px) brightness(.35)'; });
     layer(B(11), B(13), t => {
@@ -557,7 +557,7 @@ try { localStorage.setItem('ps.lang', 'es'); } catch (e) { /* nada */ }
       lowerThird(t, B(13) + 0.2, B(15) - 0.05, { title: 'Puño Meteoro +', sub: 'El mismo movimiento, evolucionado', color: TYPE('steel'), icon: 'move:meteor-mash' });
     });
 
-    // ---------- 4. La Sentencia de Arceus ----------
+    // ---------- 4. Arceus's Judgment ----------
     at(B(15), () => { toUI(); $('game').style.filter = 'blur(4px) brightness(.3)'; sfx('reveal', { rarity: 5 }); });
     layer(B(15), B(16), t => {
       const g = c.createRadialGradient(W / 2, H / 2, 60, W / 2, H / 2, 820);
@@ -571,7 +571,7 @@ try { localStorage.setItem('ps.lang', 'es'); } catch (e) { /* nada */ }
       flash(t, B(15), 0.3);
     });
 
-    // 4a. Tablas: Arceus de tipo Fuego y el aviso del juego
+    // 4a. Plates: Fire-type Arceus and the in-game notice
     at(B(16), async () => { $('game').style.filter = ''; await judge(658, ['water-gun', 'hydro-pump'], { plate: 'fire', noBosses: true, atk: 3 }); });
     layer(B(16), B(18), t => {
       flash(t, B(16), 0.3);
@@ -579,7 +579,7 @@ try { localStorage.setItem('ps.lang', 'es'); } catch (e) { /* nada */ }
       lowerThird(t, B(16) + 0.3, B(18) - 0.05, { title: 'TABLAS', sub: 'Arceus lleva una al azar en cada partida: cambia de tipo', color: TYPE('fire'), isNew: true });
     });
 
-    // 4b. La ruleta de las 17 Tablas
+    // 4b. The 17-Plate roulette
     at(B(18), () => { toUI(); $('game').style.filter = 'blur(4px) brightness(.3)'; });
     const PT = Object.keys(PLATE), PSTEP = RB * 0.72 / PT.length;
     layer(B(18), B(19), t => {
@@ -608,7 +608,7 @@ try { localStorage.setItem('ps.lang', 'es'); } catch (e) { /* nada */ }
     for (let k = 0; k < PT.length; k += 2) at(B(18) + k * PSTEP, () => sfx('hover'));
     at(B(18) + RB * 0.72, () => sfx('levelup'));
 
-    // 4c. Ahora se le puede pegar: el contador de daño sube
+    // 4c. It can now be hit: the damage counter increases.
     at(B(19), async () => { $('game').style.filter = ''; await judge(445, ['dragon-claw', 'outrage'], { plate: 'dragon', noBosses: true, atk: 25, zoom: 1.25 }); });
     layer(B(19), B(21), t => {
       flash(t, B(19), 0.25);
@@ -616,7 +616,7 @@ try { localStorage.setItem('ps.lang', 'es'); } catch (e) { /* nada */ }
       lowerThird(t, B(19) + 0.1, B(21) - 0.05, { title: '¡AHORA SE LE PUEDE PEGAR!', sub: 'Es invencible, pero cada golpe cuenta para el ranking', color: '#ff6a3d', isNew: true, size: 40 });
     });
 
-    // 4d. Legendarios que sí caen
+    // 4d. Legendary Pokémon that can be defeated
     at(B(21), async () => { await judge(150, ['psychic', 'shadow-ball', 'aura-sphere'], { plate: 'ghost', atk: 14, pre: 2.2, zoom: 1.1 }); });
     layer(B(21), B(22), t => {
       flash(t, B(21), 0.2, '255,255,255', 0.5);
@@ -624,7 +624,7 @@ try { localStorage.setItem('ps.lang', 'es'); } catch (e) { /* nada */ }
       lowerThird(t, B(21) + 0.05, B(22) - 0.02, { title: 'LEGENDARIOS QUE CAEN', sub: 'Cada uno, un 25 % más fuerte que el anterior (antes, el doble)', color: TYPE('psychic'), size: 40 });
     });
 
-    // 4e. Minuto 35: Arceus rompe los objetos
+    // 4e. Minute 35: Arceus breaks the items
     at(B(22), async () => { await judge(448, ['aura-sphere'], { plate: 'steel', noBosses: true, item: 'focussash', time: 2099.45, atk: 3 }); });
     layer(B(22), B(24), t => {
       flash(t, B(22), 0.2, '255,255,255', 0.5);
@@ -639,8 +639,8 @@ try { localStorage.setItem('ps.lang', 'es'); } catch (e) { /* nada */ }
       $('game').style.filter = 'blur(3px) brightness(.5)';
       G.SocialUI.needOnline = () => true;
       G.Social.started = true;
-      try { Object.defineProperty(G.Social, 'me', { get: () => ({ name: 'Kairo' }), configurable: true }); } catch (e) { /* nada */ }
-      try { Object.defineProperty(G.Social, 'uid', { get: () => 'x0', configurable: true }); } catch (e) { /* nada */ }
+      try { Object.defineProperty(G.Social, 'me', { get: () => ({ name: 'Kairo' }), configurable: true }); } catch (e) { /* ignored */ }
+      try { Object.defineProperty(G.Social, 'uid', { get: () => 'x0', configurable: true }); } catch (e) { /* ignored */ }
       G.Ranking.top = async () => fakeRows('t');
       G.Ranking.topDmg = async () => ({ rows: fakeRows('d'), me: { pos: 1, d: fakeRows('d')[0].d } });
       G.Ranking.myRank = async () => ({ pos: 1, t: fakeRows('t')[0].t, row: fakeRows('t')[0] });
@@ -668,7 +668,7 @@ try { localStorage.setItem('ps.lang', 'es'); } catch (e) { /* nada */ }
       flash(t, B(26), 0.2, '255,255,255', 0.4);
     });
 
-    // ---------- 6. ¿Hasta dónde llegarás? y el resumen ----------
+    //     ---------- 6. How far will you go? A recap ----------
     at(B(28), () => { toUI(); $('game').style.filter = 'blur(4px) brightness(.3)'; sfx('confirm'); });
     layer(B(28), B(30), t => {
       const lt = t - B(28);
@@ -706,7 +706,7 @@ try { localStorage.setItem('ps.lang', 'es'); } catch (e) { /* nada */ }
     });
     for (let k = 0; k < RECAP.length; k++) at(B(30) + 0.15 + k * RSTEP, () => sfx('select'));
 
-    // ---------- 7. Desfile de legendarios y final ----------
+    // ---------- 7. Legendary parade and finale ----------
     const ROWS = 5, PER = 11;
     function parade(t, t0, dim) {
       const g = c.createLinearGradient(0, 0, 0, H);
@@ -808,8 +808,8 @@ try { localStorage.setItem('ps.lang', 'es'); } catch (e) { /* nada */ }
     for (const m of G.DEX) G.DB.grant(m.dex, 'gacha');
     sv.partner = sv.starter = 448;
     sv.coins = 99999;
-    sv.stats.judged = 5;                        // la animación de la Sentencia ya se ha visto: se puede saltar
-    G.Settings.set('dmgNumbers', false);        // sin números de daño: se ve mejor qué hace cada ataque
+    sv.stats.judged = 5;                        // The Judgment animation has already been shown, so it can be skipped.
+    G.Settings.set('dmgNumbers', false);        // No damage numbers: makes each attack easier to see.
     G.Flow.goMenu();
     G.UI.hideAll();
     const css = document.createElement('style');

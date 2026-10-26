@@ -1,17 +1,17 @@
-/* ============ vfx.js — sprites pixel art de los ataques ============
- * Formas (llama, gota, burbuja, hoja, rayo...) generadas por código a
- * resolución de arte, igual que los tiles, y coloreadas con la paleta del tipo.
- * Así una misma burbuja sale azul de agua o morada de veneno, y todo comparte
- * píxel y contorno oscuro con los sprites de Mundo Misterioso.
+/* ============ vfx.js — pixel-art attack sprites ============
+ * Shapes (flame, drop, bubble, leaf, lightning...) generated in code at
+ * art resolution, like the tiles, and colored with the type palette.
+ * This lets the same bubble appear blue for water or purple for poison, while
+ * sharing the same pixels and dark outline as the Mystery Dungeon sprites.
  *
  *   G.VFX.draw(ctx, shape, pal, x, y, { angle, scale, frame, alpha })
- *   G.VFX.forMove(m)  -> cómo se ve ese movimiento (proyectil, rayo, golpe...)
- *   G.VFX.forType(t)  -> forma por defecto de un tipo (disparos enemigos)
+ *   G.VFX.forMove(m)  -> how a move looks (projectile, beam, slash...)
+ *   G.VFX.forType(t)  -> default shape for a type (enemy projectiles)
  */
 G.VFX = (() => {
   const PX = G.Sprites.PX;
 
-  // Paletas por tipo: contorno, oscuro, medio, claro, brillo.
+  // Palettes by type: outline, dark, medium, light, highlight.
   const PAL = {
     fire:     ['#6b1200', '#b8300a', '#ff6a1f', '#ffb22e', '#fff2a0'],
     water:    ['#0f2f78', '#1f56c4', '#3d8bff', '#8ccaff', '#eaf7ff'],
@@ -36,9 +36,9 @@ G.VFX = (() => {
   const IDX = { o: 0, d: 1, m: 2, l: 3, w: 4 };
   const H = (a, b, c) => G.U.hash(a, b, c);
 
-  // ---------------- lienzo de píxeles ----------------
-  // Las formas escriben letras (o d m l w, o L = claro semitransparente);
-  // luego se colorean con la paleta.
+  // ---------------- pixel canvas ----------------
+  // Shapes write letters (o d m l w, or L = translucent light); the palette
+  // is applied afterwards.
 
   function grid(w, h) {
     const g = Array.from({ length: h }, () => Array(w).fill(null));
@@ -47,7 +47,7 @@ G.VFX = (() => {
       set(x, y, c) { x = Math.round(x); y = Math.round(y); if (x >= 0 && y >= 0 && x < w && y < h) g[y][x] = c; },
       get(x, y) { return x >= 0 && y >= 0 && x < w && y < h ? g[y][x] : null; },
       fill(fn) { for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) { const c = fn(x, y); if (c) g[y][x] = c; } },
-      // Contorno de 1 px alrededor de lo opaco, como en los sprites de PMD.
+      // 1 px outline around opaque pixels, as in PMD sprites.
       outline() {
         const marks = [];
         for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
@@ -71,13 +71,13 @@ G.VFX = (() => {
     };
   }
 
-  // ---------------- formas ----------------
-  // Todas miran hacia la DERECHA (se rotan al dibujar si son direccionales).
+  // ---------------- shapes ----------------
+  // All face RIGHT (directional shapes are rotated when drawn).
 
   const SHAPES = {
     fire: { w: 15, h: 11, frames: 3, dir: true, gen(P, f) {
       const cx = 10.5, cy = 5;
-      for (let x = 1; x <= 9; x++) {                               // cola que parpadea
+      for (let x = 1; x <= 9; x++) {                               // Flickering tail.
         const t = (x - 1) / 8;
         const th = 0.5 + t * 2.6 + (H(x, f, 3) - 0.5) * 1.3;
         const yc = cy + Math.sin(x * 1.4 + f * 2.1) * 0.8 * (1 - t);
@@ -149,7 +149,7 @@ G.VFX = (() => {
         return lit > 0.4 ? 'l' : lit > -0.35 ? 'm' : 'd';
       });
       P.set(4, 3, 'w'); P.set(3, 3, 'w');
-      P.set(6, 9, 'm'); if (f) P.set(6, 10, 'm');                   // gota que cuelga
+      P.set(6, 9, 'm'); if (f) P.set(6, 10, 'm');                   // Hanging droplet.
       P.outline();
     } },
     needle: { w: 13, h: 5, dir: true, gen(P) {
@@ -241,7 +241,7 @@ G.VFX = (() => {
     } },
     shadow: { w: 13, h: 13, frames: 3, gen(P, f) {
       P.fill((x, y) => { const d = Math.hypot(x - 6, y - 6); return d < 1.6 ? 'l' : d < 3 ? 'm' : d < 4.4 ? 'd' : null; });
-      for (let k = 0; k < 6; k++) {                                 // jirones de sombra
+      for (let k = 0; k < 6; k++) {                                 // Shadow fragments.
         const a = k * 1.05 + f * 0.7, r = 4.8 + H(k, f, 4) * 1.4;
         P.set(6 + Math.cos(a) * r, 6 + Math.sin(a) * r, 'm');
       }
@@ -255,7 +255,7 @@ G.VFX = (() => {
     } }
   };
 
-  // ---------------- caché y dibujo ----------------
+  // ---------------- cache and rendering ----------------
 
   const cache = new Map();
 
@@ -286,7 +286,7 @@ G.VFX = (() => {
     return cv;
   }
 
-  /** Dibuja centrado en (x, y). opts: angle, scale (1 = píxel de juego), frame, alpha. */
+  /** Draw centered at (x, y). opts: angle, scale (1 = game pixel), frame, alpha. */
   function draw(ctx, shape, pal, x, y, o = {}) {
     const S = SHAPES[shape] || SHAPES.ball;
     const cv = sprite(shape, pal, o.frame || 0);
@@ -297,7 +297,7 @@ G.VFX = (() => {
     ctx.translate(Math.round(x), Math.round(y));
     let a = o.angle || 0;
     if (a) {
-      a = Math.round(a / (Math.PI / 8)) * (Math.PI / 8);          // 16 direcciones: menos parpadeo
+      a = Math.round(a / (Math.PI / 8)) * (Math.PI / 8);          // 16 directions: less flicker.
       ctx.rotate(a);
     }
     ctx.drawImage(cv, -S.w * k / 2, -S.h * k / 2, S.w * k, S.h * k);
@@ -308,12 +308,12 @@ G.VFX = (() => {
   function spins(shape) { return !!(SHAPES[shape] && SHAPES[shape].spin); }
   function frames(shape) { return (SHAPES[shape] && SHAPES[shape].frames) || 1; }
 
-  // ---------------- cómo se ve cada movimiento ----------------
-  //   proj: forma del proyectil (también novas y orbes)
-  //   beam: forma que viaja por el rayo ('lightning' = zigzag)
-  //   melee: extra del golpe (impact, jaws, claw, vine, feather)
-  //   aura / buff: partícula que acompaña
-  //   pal: paleta si no es la del tipo · trail: partículas de estela
+  // ---------------- move appearance ----------------
+  //   proj: projectile shape (also novas and orbs)
+  //   beam: shape traveling along the beam ('lightning' = zigzag)
+  //   melee: extra hit effect (impact, jaws, claw, vine, feather)
+  //   aura / buff: accompanying particle
+  //   pal: palette override · trail: trailing particles
 
   const MOVE = {
     'quick-attack':  { proj: 'streak' },
@@ -380,7 +380,7 @@ G.VFX = (() => {
     'flame-wheel':   { proj: 'fire', aura: 'fire' },
     'bubble-beam':   { proj: 'bubble' },
     'hex':           { beam: 'shadow', proj: 'shadow' },
-    // nuevos del 19-10-2026 (mismas formas, cada uno con las suyas)
+    // New moves from 2026-10-19 (same shapes, each with its own settings).
     'hyper-beam':    { beam: 'star', proj: 'star' },
     'rapid-spin':    { melee: 'impact' },
     'flame-charge':  { proj: 'fire', trail: 'ember' },

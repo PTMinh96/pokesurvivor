@@ -1,35 +1,35 @@
-/* ============ shop-ui.js — Tienda Kecleon y Mochila ============
- * (20-10-2026, del PR #236 de TheAdro7, adaptado.)
- *   Tienda   Menta, Cápsulas y las 8 MT del día (data/shop.js); arriba, el puesto
- *            de los dos Kecleon (Scene)
- *   Mochila  desde el menú principal (openBag)
- * Lo de la Mochila se usa desde la ficha de cada Pokémon en la colección.
+/* ============ shop-ui.js — Kecleon Shop and Backpack ============
+ * (Adapted from TheAdro7's PR #236, 2026-10-20.)
+ *   Shop       Mint, Capsules, and the 8 daily TMs (data/shop.js); the two
+ *              Kecleon's stall is above (Scene)
+ *   Backpack   opened from the main menu (openBag)
+ * Backpack items are used from each Pokémon's collection entry.
  */
 G.ShopUI = (() => {
   const $ = G.UI.$;
   const KECLEON = 352;
 
   // =====================================================================
-  //   El puesto, en pixel art (como en Mundo Misterioso), en un lienzo:
-  //   paisaje (cielo, nubes, colinas con árboles, camino y hojas que caen),
-  //   toldo de rayas, postes, pared de tablas, estanterías con género,
-  //   farolillos, mostrador con su paño y, delante, la persiana de tablas.
-  //   Se dibuja a 1/P de resolución (lo/fr) y se amplía sin suavizar; los
-  //   Kecleon van entre las dos capas (detrás del mostrador).
+  //   The stall is rendered in pixel art (like Mystery Dungeon) on a canvas:
+  //   landscape (sky, clouds, tree-covered hills, path, and falling leaves),
+  //   striped awning, posts, plank wall, fabric-covered shelves, lanterns,
+  //   cloth-covered counter, and a plank shutter in front.
+  //   Draw at 1/P resolution (low-res) and scale without smoothing; Kecleon
+  //   sprites are between the two layers (behind the counter).
   //
-  //   Entrada (se salta con un toque; sin ella con "Menos sacudidas"):
-  //     la persiana tiembla dos veces y se enrolla soltando polvo, el género
-  //     aparece en las estanterías, se encienden los farolillos, los Kecleon
-  //     salen de su camuflaje (Cambio Color) ondulando, giran sobre sí mismos,
-  //     saltan con confeti, cae el cartel balanceándose y el morado saluda.
-  //   Después: pasean, se miran, saltan, giran, a veces se camuflan un
-  //   momento; si pasas por algo, el más cercano lo señala; al comprar, el
-  //   objeto sale de la estantería y vuela a la Mochila (y lo reponen).
+  //   Entrance animation (skipped with a tap; disabled by "Reduced Motion"):
+  //     the shutter shakes twice and rolls up with dust, fabric appears on the
+  //     shelves, lanterns light up, Kecleon emerge from Color Change with a
+  //     ripple, spin, jump with confetti, the sign swings down, and the purple
+  //     one waves.
+  //   Afterwards they wander, look at each other, jump, spin, and sometimes
+  //   camouflage briefly; the nearest one points to hovered items; purchased
+  //   items fly from the shelf to the Backpack (and are restocked).
   // =====================================================================
   const Scene = (() => {
-    const P = 3;                                  // píxeles de pantalla por píxel del dibujo
-    const PURPLE = [70, 175, 288];                // el hermano: lo verde del sprite, a morado
-    const GRAV = 380, WALK = 55, KS = 168;        // gravedad y paso (píxeles del dibujo), lienzo de cada Kecleon
+    const P = 3;                                  // screen pixels per art pixel
+    const PURPLE = [70, 175, 288];                // The brother: recolor the sprite's green to purple.
+    const GRAV = 380, WALK = 55, KS = 168;        // gravity and walking speed (art pixels), Kecleon canvas size
     let cv = null, ctx = null, back = null, bg = null, front = null, fg = null, kc = null, kcx = null;
     let raf = 0, last = 0, W = 0, H = 0, LW = 0, LH = 0, T = 0, seed = 1;
     let L = {}, ks = [], parts = [], clouds = [], trees = [], pebbles = [], slots = [], timers = [];
@@ -43,7 +43,7 @@ G.ShopUI = (() => {
 
     function layout() {
       const groundY = LH - 9, SW = Math.min(LW - 8, 178), x0 = Math.floor((LW - SW) / 2);
-      // (Con sitio, el toldo baja y queda cielo arriba: ahí va la barra de monedas.)
+      // (When there is room, lower the awning to leave space above for the coin bar.)
       L = { groundY, SW, x0, x1: x0 + SW, roofY: LH >= 90 ? 16 : 4, roofH: 15 };
       L.openTop = L.roofY + L.roofH + 3;
       L.counterTop = groundY - 17;
@@ -56,7 +56,7 @@ G.ShopUI = (() => {
       L.shelves.forEach((y, r) => {
         for (let i = 0; i < n; i++) slots.push({ x: sx0 + 2 + i * 14 + Math.floor((sx1 - sx0 - 2 - n * 14) / 2), y: y - 12, icon: SHELF[(i + r * 5) % SHELF.length], pop: -1, gone: 0 });
       });
-      // Paisaje fijo (con semilla): árboles del fondo, piedrecitas del camino y nubes.
+      // Fixed seeded landscape: background trees, path pebbles, and clouds.
       seed = 4242; trees = []; pebbles = []; clouds = [];
       for (let x = -6; x < LW + 6; x += 7 + Math.floor(rnd() * 6)) trees.push({ x, r: 4 + Math.floor(rnd() * 3), h: Math.floor(rnd() * 4) });
       for (let i = 0; i < LW / 5; i++) pebbles.push({ x: Math.floor(rnd() * LW), y: groundY + 2 + Math.floor(rnd() * 6) });
@@ -86,7 +86,7 @@ G.ShopUI = (() => {
     const zone = k => (k.purple ? [L.x1 - L.SW * 0.3, L.x1 - 10] : [L.x0 + 10, L.x0 + L.SW * 0.3]);
     const home = k => (k.purple ? L.x1 - L.SW * 0.13 : L.x0 + L.SW * 0.13);
     const other = k => ks[k.purple ? 0 : 1];
-    /** Mira hacia x (2 derecha, 6 izquierda) o al frente, un poco hacia el otro. */
+    /** Face x (2 right, 6 left), or face forward slightly toward the other Kecleon. */
     function face(k, x) { k.a.dir = x == null ? (k.purple ? 7 : 1) : x > k.x ? 2 : 6; }
     function walkTo(k, x, then) {
       const [a, b] = zone(k);
@@ -96,7 +96,7 @@ G.ShopUI = (() => {
     function hop(k, v) { if (k.hop === 0) k.vy = -v; }
     function spin(k, s = 0.5) { k.spin = s; }
 
-    // ---------------- partículas (en píxeles del dibujo) ----------------
+    // ---------------- particles (in art pixels) ----------------
 
     function confetti(x, y, n) {
       if (calm()) return;
@@ -118,7 +118,7 @@ G.ShopUI = (() => {
       parts.push({ k: 'leaf', x: Math.random() * LW, y: -3, vx: 4 + Math.random() * 6, vy: 6 + Math.random() * 5, t: 0, life: 12, ph: Math.random() * 6, c: G.U.pick(['#7fd06a', '#f0c64a', '#e08a3a']) });
     }
 
-    // ---------------- arranque, salto de la entrada, parada ----------------
+    // ---------------- startup, entrance skip, shutdown ----------------
 
     function start(withIntro) {
       cv = $('shop-scene'); ctx = cv.getContext('2d');
@@ -135,7 +135,7 @@ G.ShopUI = (() => {
       intro = withIntro;
       if (!withIntro) { finish(); }
       else {
-        // Todo cerrado.
+        // Everything closed.
         shutter = 1; shutterV = 0; shake = 0; lit = [false, false]; shown = 0;
         for (const k of ks) { k.cam = 0; k.camTo = 0; }
         at(250, () => G.Audio.sfx('descend'));
@@ -143,7 +143,7 @@ G.ShopUI = (() => {
         at(1200, () => { shake = 1; G.Audio.sfx('shake'); });
         at(1550, () => { shutterV = -1.6; G.Audio.sfx('chest'); });
         at(2150, () => {
-          // El género, uno a uno.
+          // The gender reveal, one by one.
           slots.forEach((s, i) => at(i * 55, () => { shown = i + 1; s.pop = T; if (i % 3 === 0) G.Audio.sfx('coin'); }));
         });
         at(2450, () => { lit[0] = true; G.Audio.sfx('select'); });
@@ -159,13 +159,13 @@ G.ShopUI = (() => {
         });
         at(4700, () => { $('shop-sign').classList.add('lit'); intro = false; greet(); });
       }
-      // El primer fotograma ya, para que no se vea la caja vacía ni un instante.
+      // Render the first frame immediately so the canvas is never blank.
       cancelAnimationFrame(raf);
       last = performance.now();
       frame(last);
     }
 
-    /** Todo ya montado (sin entrada, o al saltarla). */
+    /** Everything is set up (no entrance, or after skipping it). */
     function finish() {
       timers.forEach(clearTimeout); timers = [];
       intro = false; shutter = 0; shutterV = 0; shake = 0; lit = [true, true];
@@ -178,7 +178,7 @@ G.ShopUI = (() => {
 
     function stop() { cancelAnimationFrame(raf); raf = 0; timers.forEach(clearTimeout); timers = []; }
 
-    // ---------------- lo que hacen solos ----------------
+    // ---------------- idle animations ----------------
 
     function think(k) {
       const r = Math.random(), [a, b] = zone(k);
@@ -192,7 +192,7 @@ G.ShopUI = (() => {
       k.think = 1.6 + Math.random() * 2.8;
     }
 
-    /** Alguien señala lo que miras (x en px de la pantalla). */
+    /** A Kecleon points at the item you hover (x in screen pixels). */
     function point(screenX) {
       if (!cv || intro) return;
       const r = cv.getBoundingClientRect(), x = (screenX - r.left) / P;
@@ -202,8 +202,8 @@ G.ShopUI = (() => {
     }
 
     /**
-     * ¡Compra! Saltan los dos y el objeto sale de la estantería (luego lo
-     * reponen). → dónde está ese objeto en la pantalla (para que vuele de ahí).
+     * Purchase! Both jump and the item leaves the shelf (then it
+     * restocked). → that item's screen position (the starting point for its animation).
      */
     function cheer(icon) {
       for (const k of ks) { hop(k, 85); spin(k, 0.45); k.a.play('Attack'); k.think = 2.2; k.camTo = 1; }
@@ -222,7 +222,7 @@ G.ShopUI = (() => {
     function frame(now) {
       raf = 0;
       if (!G.UI.isOpen('scr-shop') || !cv) return;
-      const dt = Math.min(0.2, (now - last) / 1000); last = now; T += dt;   // (con el aparato lento, a saltos pero a su ritmo)
+      const dt = Math.min(0.2, (now - last) / 1000); last = now; T += dt;   // (On a slow device, updates are choppy but keep pace.)
       resize();
       if (shutterV) { shutter = G.U.clamp(shutter + shutterV * dt, 0, 1); if (shutter === 0 && shutterV < 0) { shutterV = 0; dust(L.x0 + 3, L.x1 - 4, L.openTop + 1); } }
       if (shutterV < 0 && !calm()) for (let i = 0; i < 2; i++) parts.push({ k: 'dust', x: L.x0 + 4 + Math.random() * (L.SW - 8), y: L.openTop + (L.counterTop - L.openTop) * shutter, vx: (Math.random() - 0.5) * 10, vy: -3 - Math.random() * 6, t: 0, life: 0.5 + Math.random() * 0.4, r: 1 });
@@ -268,7 +268,7 @@ G.ShopUI = (() => {
       raf = requestAnimationFrame(frame);
     }
 
-    // ---------------- dibujo: fondo ----------------
+    // ---------------- rendering: background ----------------
 
     const R = (g, x, y, w, h, c) => { g.fillStyle = c; g.fillRect(Math.round(x), Math.round(y), w, h); };
     function disc(g, cx, cy, r, c) {
@@ -286,7 +286,7 @@ G.ShopUI = (() => {
         R(g, 0, y, LW, 1, `rgb(${top.map((v, i) => Math.round(v + (bot[i] - v) * t)).join(',')})`);
       }
       disc(g, Math.round(LW * 0.86), 10, 5, '#fff4b0'); disc(g, Math.round(LW * 0.86), 10, 4, '#ffe066');
-      // Nubes.
+      // Clouds.
       for (const c of clouds) {
         const x = Math.round(c.x), y = c.y;
         R(g, x + 2, y, c.w - 4, 1, '#ffffff'); R(g, x, y + 1, c.w, 3, '#ffffff'); R(g, x + 1, y + 4, c.w - 2, 1, '#dcefff');
@@ -300,22 +300,22 @@ G.ShopUI = (() => {
         R(g, t.x - 1, cy, 2, 8, '#5a3a24');
         disc(g, t.x, cy - 2, t.r, '#2f7a45'); disc(g, t.x - 1, cy - 3, t.r - 2, '#3f9a55'); R(g, t.x - 2, cy - t.r - 1, 2, 1, '#6fc47a');
       }
-      // Hierba y camino.
+      // Grass and path.
       R(g, 0, groundY - 2, LW, 2, '#4f9a4a');
       R(g, 0, groundY, LW, LH - groundY, '#c9a46a');
       R(g, 0, groundY, LW, 1, '#8f6a3a');
       for (const p of pebbles) R(g, p.x, p.y, 1, 1, '#9e7a48');
       for (let x = 3; x < LW; x += 9) R(g, x, groundY - 3, 1, 1, '#7fd06a');
-      // Sombra del puesto en el suelo.
+      // Stall shadow on the ground.
       g.globalAlpha = 0.25; R(g, L.x0 - 2, groundY, L.SW + 4, 3, '#000'); g.globalAlpha = 1;
-      // Pared de tablas del puesto.
+      // Stall's plank wall.
       const wx0 = L.x0 + 3, wx1 = L.x1 - 3, wy0 = L.openTop - 1;
       R(g, wx0, wy0, wx1 - wx0, L.counterTop - wy0 + 2, '#4a2e1c');
       for (let y = wy0 + 3; y < L.counterTop; y += 4) {
         R(g, wx0, y, wx1 - wx0, 1, '#3a2214');
         for (let x = wx0 + ((y / 4) % 2 ? 6 : 12); x < wx1; x += 17) R(g, x, y - 3, 1, 3, '#3a2214');
       }
-      // Cortinilla roja arriba.
+      // Red awning above.
       R(g, wx0, wy0, wx1 - wx0, 2, '#b8283a');
       for (let x = wx0; x < wx1; x += 4) R(g, x + 1, wy0 + 2, 2, 1, '#b8283a');
       // Estanterías y género.
@@ -325,21 +325,21 @@ G.ShopUI = (() => {
       }
       slots.forEach((s, i) => {
         if (i >= shown || s.gone) return;
-        // Al aparecer: cae y bota un poco.
+        // On appearance: drops and bounces a little.
         let dy = 0;
         if (s.pop >= 0) { const t = T - s.pop; dy = t < 0.35 ? -Math.round((1 - t / 0.35) * 8 * Math.abs(Math.cos(t * 9))) : 0; if (t > 0.6) s.pop = -1; }
         G.Icons.draw(g, s.icon, s.x, s.y + dy, 12);
       });
     }
 
-    // ---------------- dibujo: delante de los Kecleon ----------------
+    // ---------------- rendering: in front of the Kecleon ----------------
 
     function drawFront() {
       const g = fg, { x0, x1, roofY, roofH, groundY, counterTop } = L;
       g.clearRect(0, 0, LW, LH);
       // Postes.
       for (const px of [x0, x1 - 3]) { R(g, px, roofY + roofH, 3, groundY - roofY - roofH, '#7a4c22'); R(g, px, roofY + roofH, 1, groundY - roofY - roofH, '#a8733f'); }
-      // Persiana de tablas (cerrada al empezar; tiembla y se enrolla).
+      // Plank shutter (closed at first; it shakes and rolls up).
       if (shutter > 0) {
         const sx0 = x0 + 3, sx1 = x1 - 3, top = L.openTop - 1, hgt = Math.round((counterTop - top + 1) * shutter);
         const jx = shake ? Math.round(Math.sin(T * 60) * shake * 1.5) : 0;
@@ -355,9 +355,9 @@ G.ShopUI = (() => {
       for (let x = x0 + 4; x < x1; x += 8) R(g, x, counterTop + 3, 1, groundY - counterTop - 3, '#8a5528');
       R(g, x0 - 2, counterTop, L.SW + 4, 2, '#e0a868'); R(g, x0 - 2, counterTop + 2, L.SW + 4, 1, '#5a3412');
       R(g, x0 - 2, groundY - 1, L.SW + 4, 1, '#5a3412');
-      // (Delante, en el centro, cuelga el cartel: .shop-sign, lo coloca placeBubble.)
+      // (The sign hangs at the front center: .shop-sign, positioned by placeBubble.)
       for (const cx of [x0 + 6, x1 - 18]) G.Icons.draw(g, 'coin', cx, counterTop + 4, 12);
-      // Toldo de rayas con el borde ondulado.
+      // Striped awning with a wavy edge.
       const rx0 = x0 - 4, rx1 = x1 + 4;
       for (let x = rx0; x < rx1; x++) {
         const green = Math.floor((x - rx0) / 8) % 2 === 0;
@@ -394,11 +394,11 @@ G.ShopUI = (() => {
       });
     }
 
-    // ---------------- dibujo: Kecleon (con camuflaje y el morado) ----------------
+    // ---------------- rendering: Kecleon (camouflaged and purple) ----------------
 
     function drawKecleon(k) {
       const x = Math.round(k.x * P), y = Math.round((L.feet - k.hop) * P);
-      // Sombra en el suelo del puesto (se encoge al saltar).
+      // Stall shadow on the ground (shrinks as it jumps).
       const sk = Math.max(0.4, 1 - k.hop / 30);
       ctx.fillStyle = 'rgba(0,0,0,.3)';
       ctx.beginPath(); ctx.ellipse(x, L.feet * P, 30 * sk, 8 * sk, 0, 0, 6.2832); ctx.fill();
@@ -417,7 +417,7 @@ G.ShopUI = (() => {
       ctx.globalAlpha = 1;
     }
 
-    // ---------------- dibujo: partículas y bocadillo ----------------
+    // ---------------- rendering: particles and speech bubble ----------------
 
     function drawParts() {
       for (const p of parts) {
@@ -443,7 +443,7 @@ G.ShopUI = (() => {
     return { start, stop, skip: finish, point, cheer, get intro() { return intro; } };
   })();
 
-  // ---------------- abrir ----------------
+  // ---------------- open ----------------
 
   function open() {
     G.UI.show('scr-shop', true);
@@ -454,7 +454,7 @@ G.ShopUI = (() => {
     const st = $('shop-stall'), withIntro = !G.Settings.get('calm');
     st.classList.remove('opening');
     if (withIntro) { void st.offsetWidth; st.classList.add('opening'); setTimeout(() => st.classList.remove('opening'), 4800); }
-    // (Si el lienzo aún no tiene tamaño, start lo vuelve a intentar al siguiente fotograma.)
+    // (If the canvas has no size yet, start retries on the next frame.)
     Scene.start(withIntro);
     st.onclick = () => {
       if (!Scene.intro) return;
@@ -463,7 +463,7 @@ G.ShopUI = (() => {
     };
   }
 
-  /** Mochila desde el menú principal. */
+  /** Open the Backpack from the main menu. */
   function openBag() {
     G.UI.show('scr-bag', true);
     const box = $('bag-body');
@@ -474,7 +474,7 @@ G.ShopUI = (() => {
     if (shop) shop.onclick = () => open();
   }
 
-  /** Lo que dice el Kecleon morado en el bocadillo (se va solo a los 6 s). */
+  /** Text shown by the purple Kecleon in the bubble (hides after 6 s). */
   let sayT = 0;
   function say(text) {
     const b = $('shop-bubble');
@@ -486,8 +486,8 @@ G.ShopUI = (() => {
     sayT = setTimeout(() => b.classList.add('hide'), 6000);
   }
 
-  /** El objeto comprado sale de la estantería (from) y vuela hasta su fila de la lista
-   *  (key, donde pone cuántos tienes), que bota al recibirlo. */
+  /** Animate a purchased item flying from its shelf slot (`from`) to its list row
+   *  (`key`, showing the owned count), which bounces when the item arrives. */
   function flyToBag(iconHtml, from, key) {
     const target = $('shop-body').querySelector(`[data-buy="${key}"]`)?.closest('.upg-item').querySelector('.ic');
     if (!target) return;
@@ -514,14 +514,14 @@ G.ShopUI = (() => {
   const coin = n => `<span class="coin"></span> ${n.toLocaleString(G.I18n.locale)}`;
   const moveName = id => G.T(G.Moves.BY_ID[id].name, 'move');
 
-  /** Fila de la lista: icono, nombre, texto y botón. */
+  /** List row: icon, name, description, and button. */
   function row(icon, title, desc, right) {
     return `<div class="panel upg-item"><div class="ic">${icon}</div>
       <div><b>${title}</b><div class="sub" style="font-size:13px">${desc}</div></div>
       <div class="upg-btns">${right}</div></div>`;
   }
 
-  // Qué hay en la estantería de cada cosa que se compra (para que salga de ahí).
+  // Shelf slot for each purchasable item (animation origin).
   const SHELF_ICON = { mint: 'mint', cap: 'capsule', caph: 'capsuleh' };
 
   function render() {
@@ -540,7 +540,7 @@ G.ShopUI = (() => {
         flyToBag(icon, from, key);
       };
     });
-    // Pasar por algo de la tienda: el Kecleon más cercano va a señalarlo.
+    // Hover an item in the shop: the nearest Kecleon points to it.
     box.querySelectorAll('.upg-item').forEach(it => {
       it.addEventListener('pointerenter', () => { const r = it.getBoundingClientRect(); Scene.point(r.left + r.width / 2); });
     });
@@ -583,7 +583,7 @@ G.ShopUI = (() => {
       h += row(G.Icons.html(it.icon, 32), G.T(it.name), G.T(it.desc), `<b class="gold">×${G.Shop.count(id)}</b>`);
     }
     for (const id of tms) {
-      // Cuántos de tus Pokémon la pueden aprender.
+      // How many of your Pokémon can learn this TM.
       const n = Object.keys(s.owned).filter(d => G.DEX_BY[d] && G.Mons.canLearn(+d, id)).length;
       h += row(G.Icons.html('move:' + id, 32), `${G.T('MT')} ${moveName(id)}`,
         n ? G.I18n.f('La pueden aprender {x} de tus Pokémon', n) : G.T('Ninguno de tus Pokémon la puede aprender'), `<b class="gold">×${s.tms[id]}</b>`);
@@ -591,7 +591,7 @@ G.ShopUI = (() => {
     return h + '</div>' + irisHtml();
   }
 
-  /** Amuletos Iris: los 9, los que tienes y cuánto te falta para los demás. */
+  /** Rainbow Charms: all 9, the ones you own, and how many remain. */
   function irisHtml() {
     const s = G.DB.save;
     let h = `<h3 style="margin:14px 0 6px">${G.T('Amuletos Iris')}</h3>

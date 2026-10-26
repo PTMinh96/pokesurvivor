@@ -1,13 +1,13 @@
 /* ============ main.js — arranque ============ */
 (() => {
-  // Si un archivo no llega a cargarse (conexión móvil que se corta), mejor
-  // avisar que arrancar a medias.
+  // If a file fails to load (for example, a dropped mobile connection), show
+  // an error rather than starting with incomplete resources.
   const NEED = ['U', 'I18n', 'Settings', 'DB', 'Audio', 'Input', 'Touch', 'Sprites', 'Camera', 'Moves', 'Enemies', 'Upgrades', 'Items',
                 'World', 'FX', 'Projectiles', 'EnemyMgr', 'Pickups', 'Player', 'Combat', 'Spawner', 'LevelUp', 'Gacha',
                 'Rift', 'Weather', 'Progress', 'Hazards', 'Social', 'NetCodec', 'Net', 'Coop', 'Ranking', 'Icons', 'UI', 'HUD',
                 'MenuUI', 'RunUI', 'SettingsUI', 'Funding', 'SupportUI', 'Game', 'Flow'];
   function broken() {
-    // (En la versión publicada G no está en window: va encerrado, ver tools/build.js.)
+    // In the release build, G is not on window: it is wrapped. See tools/build.js.
     const miss = NEED.filter(k => typeof G !== 'object' || !G[k]);
     if (!miss.length) return false;
     const el = document.getElementById('boot');
@@ -18,9 +18,9 @@
     return true;
   }
 
-  // Mantenimiento (mudanza a servidores nuevos): no se entra ni se inicia
-  // sesión, así no se escribe nada mientras se copian las cuentas y partidas.
-  // Para probar en local: añade ?dev a la dirección.
+  // Maintenance (migration to new servers): do not allow sign-in or new
+  // sessions, so nothing is written while accounts and saves are copied.
+  // For local testing, add ?dev to the URL.
   const MAINTENANCE = false;
   function maintenance() {
     if (!MAINTENANCE || /[?&]dev\b/.test(location.search)) return false;
@@ -39,18 +39,18 @@
   }
 
   function boot() {
-    if (window.PS_FRAMED) return;            // dentro de otra web: ver noframe.js
+    if (window.PS_FRAMED) return;            // Embedded in another site: see noframe.js
     if (maintenance()) return;
     if (broken()) return;
     G.I18n.startDom();
-    // Espera a la fuente pixel para que la UI no salte al cargarla.
+    // Wait for the pixel font so the UI does not jump when it loads.
     const ready = document.fonts && document.fonts.load ? document.fonts.load('16px Pixelify') : Promise.resolve();
     ready.catch(() => {}).then(() => G.Flow.boot());
   }
   if (document.readyState === 'loading') addEventListener('DOMContentLoaded', boot);
   else boot();
 
-  // Instalable como app (PWA). Sólo con http(s): abierto con doble clic (file://) no hace falta.
+  // Installable app (PWA). Only on http(s); not needed when opened by double-click (file://).
   if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
     addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(e => console.warn('[PWA]', e.message)));
   }

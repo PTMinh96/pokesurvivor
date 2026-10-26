@@ -1,9 +1,9 @@
-/* ============ changelog.js — novedades del juego ============
- * Lo que ve la gente en el botón "Novedades" de la barra de arriba: cambios
- * de juego y fallos arreglados (nada de servidores ni bases de datos).
- * La fecha más nueva, arriba. En cada fecha, por apartados:
- *   new  lo nuevo · chg  cambios y ajustes · fix  fallos arreglados
- * Cada línea en español y en inglés.
+/* ============ changelog.js — game news ============
+ * Content shown in the "What's New" button in the top bar: gameplay changes
+ * and bug fixes (no server or database updates).
+ * Newest date first. Each date is divided into:
+ *   new  new features · chg  changes and adjustments · fix  bug fixes
+ * Each entry is provided in Spanish and English.
  */
 G.CHANGELOG = [
   { d: '2026-10-23', title: ['Ranking de daño a Arceus y Tablas', 'Arceus damage ranking and Plates'], new: [

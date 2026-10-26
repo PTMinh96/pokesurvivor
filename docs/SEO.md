@@ -1,90 +1,91 @@
-# SEO y dominio pokesurvivor.com
+# SEO and the pokesurvivor.com domain
 
-Todo lo técnico ya está preparado en el código. Falta lo que sólo puedes hacer tú
-(comprar el dominio, configurar el DNS y dar de alta la web en Google).
+All technical work is already prepared in the code. The remaining tasks require
+your action (buying the domain, configuring DNS, and registering the site with Google).
 
-## Qué hay preparado
+## What is already prepared
 
-| Archivo | Para qué |
+| File | Purpose |
 |---|---|
-| `index.html` | Título y descripción pensados para búsquedas ("juego Pokémon gratis online", "estilo Survivor.io"), dirección canónica, tarjetas para redes (Open Graph / Twitter), datos estructurados `VideoGame` (gratis, 1-4 jugadores, navegador/Android/iOS) y un texto real mientras carga (con `<h1>`). |
-| `guia/` | Guía con cómo se juega, características, consejos y **preguntas frecuentes** (con datos `FAQPage`, que Google puede enseñar desplegables en los resultados). |
-| `pokedex/` | Los 966 Pokémon jugables con sus tipos y sprites: atrae búsquedas tipo "juego con Pikachu gratis". |
-| `404.html` | Página de "no existe" con enlaces al juego (GitHub Pages la usa sola). |
-| `robots.txt` | Permite rastrear todo menos `tools/` y `docs/`, e indica el sitemap. |
-| `sitemap.xml` | Las páginas que hay que indexar. |
-| `assets/og-image.jpg` | La imagen que sale al compartir el enlace (1200×630). |
-| `manifest.webmanifest`, iconos | App instalable, icono en el navegador y en el móvil. |
+| `index.html` | Search-oriented title and description ("free online Pokémon game", "Survivor.io style"), canonical URL, social cards (Open Graph / Twitter), structured `VideoGame` data (free, 1–4 players, browser/Android/iOS), and real content displayed while the game loads (with an `<h1>`). |
+| `guia/` | Game guide with instructions, features, tips, and **frequently asked questions** (`FAQPage` data that Google may show as expandable search results). |
+| `pokedex/` | The 966 playable Pokémon with their types and sprites: attracts searches such as "free game with Pikachu." |
+| `404.html` | Not-found page with links to the game (GitHub Pages uses it automatically). |
+| `robots.txt` | Allows crawling everything except `tools/` and `docs/`, and points to the sitemap. |
+| `sitemap.xml` | Lists the pages to be indexed. |
+| `assets/og-image.jpg` | The image shown when the link is shared (1200×630). |
+| `manifest.webmanifest`, icons | Installable app, browser icon, and mobile icon. |
 
-Las páginas se regeneran con `python tools/make_seo_pages.py` (por ejemplo, si
-cambian los Pokémon o las características).
+Regenerate the pages with `python tools/make_seo_pages.py` (for example, when
+the Pokémon or features change).
 
-> **Importante:** las direcciones canónicas ya apuntan a `https://pokesurvivor.com/`.
-> No publiques estos cambios hasta que el dominio funcione, o Google intentará
-> indexar un dominio que todavía no existe.
+> **Important:** canonical URLs already point to `https://pokesurvivor.com/`.
+> Do not publish these changes until the domain works, or Google will try to
+> index a domain that does not exist yet.
 
-## 1. Dominio
+## 1. Domain
 
-Los pasos para poner en marcha pokesurvivor.com (DNS en Cloudflare, GitHub Pages,
-Firebase y el paso final) están en [DOMINIO.md](DOMINIO.md).
+Steps for setting up pokesurvivor.com (Cloudflare DNS, GitHub Pages, Firebase,
+and the final step) are in [DOMINIO.md](DOMINIO.md).
 
-## 2. Google Search Console (lo más importante)
+## 2. Google Search Console (most important)
 
-1. Entra en <https://search.google.com/search-console> con tu cuenta de Google.
-2. **Añadir propiedad → Dominio** → `pokesurvivor.com`.
-3. Google te da un registro **TXT**: añádelo en el DNS (nombre `@`) y pulsa Verificar
-   (puede tardar unos minutos).
-4. **Sitemaps** → enviar `sitemap.xml`.
-5. **Inspección de URL** → `https://pokesurvivor.com/` → **Solicitar indexación**.
-   Repite con `/guia/` y `/pokedex/`.
+1. Go to <https://search.google.com/search-console> using your Google account.
+2. **Add property → Domain** → `pokesurvivor.com`.
+3. Google provides a **TXT** record: add it to DNS (name `@`) and click Verify
+   (it may take a few minutes).
+4. **Sitemaps** → submit `sitemap.xml`.
+5. **URL Inspection** → `https://pokesurvivor.com/` → **Request indexing**.
+   Repeat for `/guia/` and `/pokedex/`.
 
-Bing (y con él DuckDuckGo y Ecosia): <https://www.bing.com/webmasters> → "Importar
-desde Google Search Console".
+Bing (and with it DuckDuckGo and Ecosia): go to
+<https://www.bing.com/webmasters> → **Import from Google Search Console**.
 
-## 3. Lo que más posiciona (fuera de la web)
+## 3. What helps rankings most (off-site)
 
-Google sube las webs que otras webs enlazan y que la gente busca por su nombre:
+Google promotes sites that are linked to by other sites and that people search for by name:
 
-- **Tráiler en YouTube** con el enlace en la primera línea de la descripción y el
-  título "PokéSurvivor – Juego Pokémon gratis en el navegador".
-- **itch.io**: crea una página del juego (gratis, en la categoría HTML5) con enlace.
+- **YouTube trailer** with the link on the first line of the description and the
+  title "PokéSurvivor – Free Pokémon game in your browser."
+- **itch.io**: create a free game page in the HTML5 category and link to the site.
 - **Reddit**: r/PokemonROMhacks, r/incremental_games, r/WebGames, r/survivorslikes
-  (lee sus normas; a muchos les gustan los fan games gratuitos sin anuncios).
-- **Discord**: servidores de fan games de Pokémon y de "survivors-like".
-- **TikTok / Shorts** con clips de 15 s (shinies, legendarios, cooperativo).
-- Pide a quien lo juegue que lo enlace o lo comparta: cada enlace cuenta.
+  (read their rules; many users like free fan games without ads).
+- **Discord**: Pokémon fan-game and "survivors-like" servers.
+- **TikTok / Shorts** with 15-second clips (shinies, legendaries, co-op).
+- Ask players to link to or share the game: every link helps.
 
-## 4. Con el tiempo
+## 4. Over time
 
-- Revisa en Search Console las **búsquedas** que te traen visitas y añade a la guía
-  respuestas a esas dudas.
-- Cada novedad grande: una entrada nueva (por ejemplo `novedades/`) y al sitemap.
-- Las páginas cargan rápido (Lighthouse: guía y Pokédex 100/100/100/100).
+- Review the **searches** bringing visits in Search Console and add answers to
+  those questions to the guide.
+- For every major update, add a new post (for example in `novedades/`) and add
+  it to the sitemap.
+- Pages load quickly (Lighthouse: guide and Pokédex 100/100/100/100).
 
-## Aviso
+## Notice
 
-"Pokémon" es una marca registrada. El nombre PokéSurvivor y el dominio pueden
-atraer avisos de The Pokémon Company; el aviso legal y el carácter gratuito y
-sin ánimo de lucro ayudan, pero no eliminan ese riesgo.
+"Pokémon" is a registered trademark. The PokéSurvivor name and domain may
+attract notices from The Pokémon Company; the legal notice and non-commercial,
+non-profit nature of the project help, but do not remove that risk.
 
-## Cómo se trabaja ahora (importante)
+## Current development workflow (important)
 
-- **Se edita `dev.html`** (y los `js/`), no `index.html`. `dev.html` carga cada script
-  por separado para programar; `index.html` es la versión para publicar, con todo en
-  un solo `js/app.min.js` (la portada carga mucho más rápido).
-- Antes de probar la versión final o de publicar:
+- **Edit `dev.html`** (and the `js/` files), not `index.html`. `dev.html` loads
+  each script separately for development; `index.html` is the release version,
+  with everything in a single `js/app.min.js` (the homepage loads much faster).
+- Before testing the final version or publishing:
 
 ```
 node tools/build.js            # dev.html -> index.html + js/app.min.js
-node tools/export_data.js      # datos del juego para las páginas
-python tools/make_seo_pages.py # páginas en español e inglés, en/index.html, sitemap
+node tools/export_data.js      # game data for the pages
+python tools/make_seo_pages.py # Spanish and English pages, en/index.html, sitemap
 ```
 
-## Idiomas
+## Languages
 
-- El juego sale en **inglés o español** según el idioma del navegador y se cambia en
-  Ajustes → Gráficos → Idioma. `/en/` abre el juego en inglés.
-- Textos en inglés: `js/data/lang-en.js` (clave = el texto en español). Si añades un
-  texto nuevo al juego, añade también su traducción ahí.
-- Páginas: guía, Pokédex, legendarios, shinies, tipos, movimientos, objetos, logros y
-  novedades, cada una en los dos idiomas y enlazadas entre sí (hreflang).
+- The game opens in **English or Spanish** according to the browser language;
+  change it in Settings → Graphics → Language. `/en/` opens the game in English.
+- English text: `js/data/lang-en.js` (keys are the Spanish source text). When
+  adding a new in-game text, add its translation there too.
+- Pages: guide, Pokédex, legendaries, shinies, types, moves, items, achievements,
+  and news; each is available in both languages and linked with hreflang.

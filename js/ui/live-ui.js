@@ -1,11 +1,11 @@
-/* ============ live-ui.js — botón de YouTube ============
- * Botón en la barra de arriba que lleva al canal. Si el canal está en
- * directo, se pone rojo con «EN DIRECTO» y lleva al directo.
+/* ============ live-ui.js — YouTube button ============
+ * A button in the top bar that opens the channel. If the channel is live,
+ * it turns red with "LIVE" and opens the stream.
  *
- * Saber si hay directo no cuesta nada: .github/workflows/live.yml mira el
- * canal cada 5 min y deja live.json en la rama «live» del repositorio
- * ({ live, id, at }); aquí se lee de GitHub, sin Firebase. Si el aviso es
- * de hace más de 90 min (la comprobación se ha parado), no se hace caso.
+ * Checking whether the channel is live costs nothing: .github/workflows/live.yml
+ * checks the channel every 5 minutes and puts live.json on the repository's
+ * "live" branch ({ live, id, at }); this reads it from GitHub, without Firebase.
+ * Notices older than 90 minutes (when checks have stopped) are ignored.
  */
 G.LiveUI = (() => {
   const $ = G.UI.$;
@@ -31,7 +31,7 @@ G.LiveUI = (() => {
   }
 
   async function check() {
-    // Sólo con la pestaña a la vista y como mucho una vez cada 5 min.
+    // Only while the tab is visible, and at most once every 5 minutes.
     if (document.hidden || Date.now() - lastT < EVERY - 5000) return;
     lastT = Date.now();
     try {
@@ -40,7 +40,7 @@ G.LiveUI = (() => {
       const d = await r.json();
       const id = d.live && /^[\w-]{11}$/.test(d.id || '') && Date.now() - Date.parse(d.at) < STALE ? d.id : null;
       if (id !== live) { live = id; draw(); }
-    } catch (e) { /* sin red o sin archivo: se queda como estaba */ }
+    } catch (e) { /* no network or file: leave it as is */ }
   }
 
   return { init };

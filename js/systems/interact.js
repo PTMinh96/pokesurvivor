@@ -1,17 +1,17 @@
-/* ============ interact.js — altares, manantiales, cofres con candado y trampas ============
- * Los objetos los coloca world.js (raros, en el suelo libre); aquí está lo que
- * pasa al tocarlos. Todo se mira alrededor de TU Pokémon:
+/* ============ interact.js — altars, springs, locked chests, and traps ============
+ * world.js places these objects (rarely, in clear ground); this file handles
+ * what happens when they are touched. Everything is checked around YOUR Pokémon:
  *
- *   altar     da un poder de 25 s (Furia, Rayo, Imán o Prisa) y se apaga
- *   spring    cura mientras estás encima; se agota y se recarga sola
- *   bigchest  quédate a su lado CHEST_TIME segundos (mientras te atacan) y se
- *             abre: monedas, tickets y experiencia para subir un nivel
- *   trap      salta al pisarla (tú o un enemigo) y afecta a todo lo cercano:
- *             veneno, pegajosa (ralentiza) o explosiva
+ *   altar     grants a 25-second power (Fury, Lightning, Magnet, or Haste), then expires
+ *   spring    heals while you stand on it; it depletes and recharges on its own
+ *   bigchest  stay nearby for CHEST_TIME seconds (while under attack) to open it
+ *             for coins, tickets, and enough experience to gain a level
+ *   trap      triggers when stepped on by you or an enemy, affecting nearby targets:
+ *             poison, sticky (slows), or explosive
  *
- * Cooperativo: altares y manantiales son de cada uno (en cada ordenador); el
- * cofre y las trampas se rompen como cualquier objeto y el anfitrión reparte
- * el botín y el daño a los enemigos (ver world.destroyProp y coop.propBroken).
+ * Co-op: altars and springs are local to each player (on each computer); chests
+ * and traps break like any other object, and the host distributes rewards and
+ * damage to enemies (see world.destroyProp and coop.propBroken).
  */
 G.Interact = (() => {
   const CHEST_TIME = 3.5;
@@ -33,8 +33,8 @@ G.Interact = (() => {
       switch (p.type) {
         case 'spring': spring(dt, pl, p, d2); break;
         case 'altar':
-          // Contando el tamaño de tu Pokémon: uno grande (Reshiram, Zekrom...) choca
-          // con el altar antes de llegar a 30 y no lo podía activar.
+          // Account for your Pokémon's size: a large one (Reshiram, Zekrom...)
+          // collides with the altar before reaching 30 and otherwise cannot activate it.
           if (!p.used && !pl.dead && d2 < Math.max(30, p.r + pl.r + 14) ** 2) usePower(pl, p);
           break;
         case 'bigchest':
@@ -81,8 +81,8 @@ G.Interact = (() => {
   }
 
   /**
-   * Una trampa salta (en cada ordenador; ver la cabecera). El daño a enemigos
-   * sólo lo hace quien manda; a ti te afecta si estás dentro.
+   * A trap triggers (on each computer; see the header). Only the authority
+   * damages enemies; it affects you if you are inside.
    */
   function trapEffect(p) {
     const x = p.x, y = p.y - 8, k = p.kind;
@@ -108,8 +108,8 @@ G.Interact = (() => {
         else e.hurt(90 + lvl * 18, '#ff7b3d', e.x - x, e.y - y, 220);
       }
     }
-    // (Levitación y Muro Mágico: las trampas no les hacen nada; Flexibilidad y
-    // parecidas, la pegajosa no les frena. Ver data/ability-fx.js.)
+    // (Levitate and Magic Guard: traps have no effect; Limber and similar
+    // abilities ignore the sticky trap. See data/ability-fx.js.)
     const ab = (pl && pl.abil) || {};
     if (pl && !pl.dead && G.U.dist2(x, y, pl.x, pl.y) < (TRAP_R * 0.7) ** 2 && !ab.levitate && !ab.trapProof && !(k === 1 && ab.steady)) {
       pl.invuln = 0;

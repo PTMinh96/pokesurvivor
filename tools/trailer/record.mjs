@@ -1,12 +1,12 @@
-/* ============ record.mjs — graba el tráiler fotograma a fotograma ============
- *   python -m http.server 8765 --bind 127.0.0.1     (en la carpeta del juego)
- *   node tools/trailer/record.mjs [--director director.js] [--from s] [--to s] [--every n] [--out carpeta] [--small]
+/* ============ record.mjs — records the trailer frame by frame ============
+ *   python -m http.server 8765 --bind 127.0.0.1     (from the game directory)
+ *   node tools/trailer/record.mjs [--director director.js] [--from s] [--to s] [--every n] [--out <directory>] [--small]
  *
- * Abre dev.html en un Chrome sin ventana con shim.js (reloj virtual) y
- * director.js (las escenas), avanza 1/60 s cada vez y guarda cada
- * fotograma en PNG; al acabar, el sonido en audio.wav. Luego:
- *   node tools/trailer/encode.mjs carpeta salida.mp4
- * --every 10 --small  hace una prueba rápida (un fotograma de cada 10, a 640x360).
+ * Opens dev.html in headless Chrome with shim.js (virtual clock) and
+ * director.js (the scenes), advances by 1/60 s each time, and saves each
+ * frame as PNG; audio is saved to audio.wav when finished. Then:
+ *   node tools/trailer/encode.mjs <frames-dir> <output.mp4>
+ * --every 10 --small  makes a quick test (one frame out of every 10, at 640x360).
  */
 import { spawn } from 'node:child_process';
 import fs from 'node:fs';
@@ -17,7 +17,7 @@ const arg = (k, d) => { const i = process.argv.indexOf('--' + k); return i < 0 ?
 const FPS = 60;
 const FROM = +arg('from', 0), TO = arg('to', null), EVERY = +arg('every', 1);
 const SMALL = process.argv.includes('--small');
-const DIRECTOR = arg('director', 'director.js');      // el guion (director-sentencia.js: el del 23-10-2026)
+const DIRECTOR = arg('director', 'director.js');      // the script (director-sentencia.js: the 2026-10-23 version)
 const OUT = path.resolve(arg('out', path.join(os.tmpdir(), 'ps-trailer')));
 const DIR = path.dirname(new URL(import.meta.url).pathname.replace(/^\/(\w:)/, '$1'));
 const CHROME = 'C:/Program Files/Google/Chrome/Application/chrome.exe';
@@ -50,7 +50,7 @@ try {
   let target;
   for (let i = 0; i < 50 && !target; i++) {
     await sleep(200);
-    try { target = (await (await fetch(`http://127.0.0.1:${PORT}/json/list`)).json()).find(t => t.type === 'page'); } catch (e) { /* aún no */ }
+    try { target = (await (await fetch(`http://127.0.0.1:${PORT}/json/list`)).json()).find(t => t.type === 'page'); } catch (e) { /* not yet */ }
   }
   ws = new WebSocket(target.webSocketDebuggerUrl);
   await new Promise(r => ws.addEventListener('open', r));
@@ -74,7 +74,7 @@ try {
   await send('Page.addScriptToEvaluateOnNewDocument', { source: src('score.js') });
   await send('Page.navigate', { url: 'http://ps.localhost:8765/dev.html?trailer' });
 
-  // Preparación (no se graba): el reloj virtual va corriendo mientras carga.
+  // Setup (not recorded): the virtual clock runs while the page loads.
   console.log('preparando...');
   const t0 = Date.now();
   let reloaded = false;
@@ -86,7 +86,7 @@ try {
     if (st === 'listo') break;
     if (typeof st === 'string' && st.startsWith('error')) throw new Error(st);
     if (Date.now() - t0 > 240000) throw new Error('la preparación tarda demasiado: ' + st);
-    // Si algún script no llegó a cargar (pasa a veces con el servidor de Python), se recarga.
+    // If a script failed to load (sometimes happens with Python's server), reload the page.
     if (st === 'carga' && Date.now() - t0 > 30000 && !reloaded) { reloaded = true; console.log('  recargando la página...'); await send('Page.reload', { ignoreCache: true }); }
   }
   const DUR = await ev('__director.duration');
@@ -102,7 +102,7 @@ try {
     const cam = await ev(`(async () => { await __director.tick(${t}); await __advance(${1000 / FPS}); await __waitImages(); return __director.draw(${t}); })()`);
     if (Date.now() - f0 > 1500) console.log(`  fotograma ${i} (${t.toFixed(2)} s) tardó ${Date.now() - f0} ms`);
     if (t + 1e-6 < FROM || i % EVERY) continue;
-    // Con cámara: se recorta esa parte y se amplía a pantalla completa.
+    // With a camera: crop that area and enlarge it to fill the screen.
     const cw = cam && Math.round(cam.w / 16) * 16;
     const clip = cam ? { x: Math.round(cam.x), y: Math.round(cam.y), width: cw, height: cw * 9 / 16, scale: 1280 / cw } : undefined;
     const shot = await send('Page.captureScreenshot', { format: 'png', captureBeyondViewport: false, optimizeForSpeed: true, ...(clip ? { clip } : {}) });
@@ -112,7 +112,7 @@ try {
       console.log(`  ${t.toFixed(1)} s · ${el.toFixed(0)} s pasados · quedan ~${eta.toFixed(0)} s`);
     }
   }
-  // Sonido.
+  // Audio.
   if (FROM === 0 && END >= DUR - 0.01) {
     console.log('sonido...');
     const info = await ev('__audioDone()');
@@ -128,8 +128,8 @@ try {
   console.error('FALLO:', e.message);
   process.exitCode = 1;
 } finally {
-  try { ws && ws.close(); } catch (e) { /* nada */ }
+  try { ws && ws.close(); } catch (e) { /* ignored */ }
   chrome.kill();
   await sleep(500);
-  try { fs.rmSync(profile, { recursive: true, force: true }); } catch (e) { /* nada */ }
+  try { fs.rmSync(profile, { recursive: true, force: true }); } catch (e) { /* ignored */ }
 }

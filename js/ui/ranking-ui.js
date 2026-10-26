@@ -1,9 +1,9 @@
-/* ============ ranking-ui.js — pantalla del ranking ============
- * Pestañas Solo / Grupo, periodo (diario ... histórico), todos o sólo amigos,
- * filtro por Pokémon (sólo en el histórico) y tu puesto abajo aunque no salgas
- * en el top. Lo leído se guarda 2 h (ver ranking.js).
- * Dos mitades (23-10-2026): a la izquierda el daño a Arceus y a la derecha el
- * tiempo aguantado. Salen de la misma lectura (el mismo resumen).
+/* ============ ranking-ui.js — leaderboard screen ============
+ * Solo / Group tabs, period (daily ... all-time), everyone or friends only,
+ * Pokémon filter (all-time only), and your rank below the list even if you are
+ * outside the top 50. Reads are cached for 2 hours (see ranking.js).
+ * Two lists (2026-10-23): damage to Arceus on the left and survival time on
+ * the right. Both come from the same read (the same summary).
  */
 G.RankingUI = (() => {
   const $ = G.UI.$;
@@ -25,7 +25,7 @@ G.RankingUI = (() => {
     $('rk-mod').onclick = () => G.ModUI.open();
   }
 
-  /** El filtro por Pokémon sólo existe en el histórico: al elegir uno se pasa a esa pestaña. */
+  /** The Pokémon filter is only available in history: selecting one switches to that tab. */
   function setDex(d) {
     dex = d;
     if (d && period !== 'a') period = 'a';
@@ -90,7 +90,7 @@ G.RankingUI = (() => {
     const b = G.Ranking.board(mode, period, dex), done = G.Ranking.reported();
     rows.forEach((r, i) => list.appendChild(rowEl(r, i + 1, r.uids.includes(uid), b, done)));
 
-    // Daño a Arceus (no hay por Pokémon).
+    // Damage to Arceus (not per Pokémon).
     if (dex) dlist.innerHTML = '<p class="sub">El daño a Arceus no tiene ranking por Pokémon.</p>';
     else if (!dmg.rows.length) dlist.innerHTML = '<p class="sub">Todavía nadie le ha hecho daño a Arceus aquí. ¡Llega al minuto 30 y pégale!</p>';
     const db = G.Ranking.board(mode, period);
@@ -101,10 +101,10 @@ G.RankingUI = (() => {
       : G.I18n.f('Tu puesto: {x}', '#' + dmg.me.pos) + ' · ' + num(dmg.me.d);
     dme.classList.toggle('hidden', !dme.textContent);
 
-    // La frase se monta en cada idioma (traducirla por trozos sale rara).
+    // Build the phrase in each language (translating fragments sounds awkward).
     const lang = G.I18n.lang, en = lang === 'en', pos = '#' + (me && me.capped ? '1000+' : me && me.pos);
     if (lang !== 'es' && !en) {
-      // Otros idiomas: frases enteras sin periodo ni Pokémon (ya se ven en los filtros).
+      // Other languages: full phrases without the period or Pokémon (already shown in the filters).
       const rk = $('rk-me');
       rk.setAttribute('translate', 'no');
       rk.textContent = !G.Social.me ? G.T('Elige un apodo (en Amigos) para salir en el ranking.')
@@ -129,7 +129,7 @@ G.RankingUI = (() => {
 
   const num = n => (n || 0).toLocaleString(G.I18n.locale);
 
-  /** Una fila: de tiempo o, con dmg, de daño a Arceus. */
+  /** One row: time, or damage to Arceus when dmg is present. */
   function rowEl(r, pos, mine, b, done, dmg = false) {
     const el = document.createElement('div');
     el.className = 'rk-row' + (mine ? ' mine' : '') + (pos <= 3 ? ' top' + pos : '');
@@ -142,7 +142,7 @@ G.RankingUI = (() => {
       `<span class="who"><b translate="no">${r.names.map((n, i) => `<a href="#" class="plink" data-u="${esc(r.uids[i] || '')}">${esc(n)}</a>`).join(' · ')}</b>${dmg ? '' : `<small>Nv. ${r.lv || 1} · ${num(r.kills)} derrotados</small>`}</span>
        <span class="time">${dmg ? num(r.d) : fmt(r.t)}</span>`);
     el.querySelectorAll('.plink').forEach(a => { a.onclick = e => { e.preventDefault(); G.ProfileUI.show(a.dataset.u); }; });
-    // Reportar una marca sospechosa (no la tuya). Lo revisa el admin (mod-ui.js).
+    // Report a suspicious score (not your own). Reviewed by an admin (mod-ui.js).
     if (!mine && G.Social.me) {
       const rep = document.createElement('button');
       const sent = done.has(b + '__' + r.id);

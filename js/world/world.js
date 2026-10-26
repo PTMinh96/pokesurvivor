@@ -1,48 +1,48 @@
-/* ============ world.js — arena abierta infinita con obstáculos ============
+/* ============ world.js — infinite open arena with obstacles ============
  *
- * Terreno por tile, determinista (ruido de valor con semilla):
- *   floor   suelo (con manchas de tierra)
- *   wall    formaciones rocosas: bloquean a quien camina y a los proyectiles
- *   liquid  agua (ralentiza) o lava en el volcán (quema)
+ * Deterministic per-tile terrain (seeded value noise):
+ *   floor   ground (with patches of dirt)
+ *   wall    rocky formations: block walkers and projectiles
+ *   liquid  water (slows) or volcanic lava (burns)
  *
- * Objetos del escenario (props), dibujados ordenados por Y con las entidades:
- *   tree    bloquea, indestructible (cobertura)
- *   rock    bloquea, se rompe; puede soltar experiencia, monedas o bayas
- *   chest   bloquea, se rompe; suelta un buen botín
- *   grass   hierba alta, no bloquea; se corta con cualquier ataque
- *   altar   altar de poder: al tocarlo da un poder temporal (una vez)
- *   spring  manantial: cura mientras estás encima; se agota y se recarga
- *   bigchest cofre con candado: se abre quedándote al lado unos segundos
- *   trap    trampa (veneno, pegajosa, explosiva): salta al pisarla, también
- *           con los enemigos
- *   (la lógica de los interactivos está en systems/interact.js)
+ * Stage props, drawn in Y order with entities:
+ *   tree     blocks movement, indestructible (cover)
+ *   rock     blocks movement, can be broken; may drop experience, coins, or berries
+ *   chest    blocks movement, can be broken; drops good loot
+ *   grass    tall grass, non-blocking; cut by any attack
+ *   altar    power altar: grants a temporary power when touched (once)
+ *   spring   heals while standing on it; runs dry and recharges
+ *   bigchest locked chest: opens after standing beside it for a few seconds
+ *   trap     poison, sticky, or explosive trap: triggers when stepped on by
+ *            the player or enemies
+ *   (interactive logic is in systems/interact.js)
  *
- * Grieta: setArena() convierte una zona lejana del mapa en una arena redonda
- * cerrada por paredes, donde se lucha contra un legendario (systems/rift.js).
+ * Rift: setArena() turns a distant map area into a circular arena enclosed by
+ * walls, where a legendary Pokémon is fought (systems/rift.js).
  *
- * Los Pokémon voladores, los fantasma y los jefes ignoran el terreno.
+ * Flying Pokémon, Ghost types, and bosses ignore terrain.
  *
- * Coordenadas: (x, y) de una entidad = sus PIES, en el plano del suelo.
- * Los chunks se separan en DATOS (baratos, siempre) e IMAGEN (horneada a
- * resolución de arte y sólo para los visibles).
+ * Coordinates: an entity's (x, y) are its FEET on the ground plane.
+ * Chunks are split into DATA (cheap, always available) and IMAGE (baked at
+ * art resolution, only for visible chunks).
  */
 G.World = (() => {
-  const T = G.Tiles.T;                     // px de arte por tile
-  const N = 16;                            // tiles por chunk
-  const TS = T * G.Sprites.PX;             // tamaño de tile en mundo (32)
-  const CW = N * TS;                       // tamaño de chunk en mundo (512)
+  const T = G.Tiles.T;                     // art pixels per tile
+  const N = 16;                            // tiles per chunk
+  const TS = T * G.Sprites.PX;             // tile size in world coordinates (32)
+  const CW = N * TS;                       // chunk size in world coordinates (512)
   const FLOOR = 0, WALL = 1, LIQUID = 2;
   const KIND = ['floor', 'wall', 'liquid'];
 
   let seed = 1, biome = 0;
-  let arena = null;                        // { tx, ty, r } en tiles
-  const data = new Map();                  // "cx,cy" -> datos del chunk
-  let images = new Map();                  // "cx,cy" -> canvas horneado
-  // Cambio de bioma: durante FADE segundos se funde la paleta vieja con la nueva.
+  let arena = null;                        // { tx, ty, r } in tiles
+  const data = new Map();                  // "cx,cy" -> chunk data
+  let images = new Map();                  // "cx,cy" -> baked canvas
+  // Biome change: blend the old and new palettes over FADE seconds.
   const FADE = 2.6;
   let fade = null;                         // { from, images, t }
   const MAX_IMAGES = 48, MAX_DATA = 400;
-  const broken = new Set();                // props destruidos: "tx,ty"
+  const broken = new Set();                // destroyed props: "tx,ty"
   let nextPropId = 1;
 
   // ---------------- ruido ----------------
@@ -58,12 +58,12 @@ G.World = (() => {
   }
   const fbm = (x, y, s) => vnoise(x, y, s) * 0.65 + vnoise(x * 2.13 + 17, y * 2.13 - 9, s + 1) * 0.35;
 
-  /** Terreno "puro" de un tile (sin caché). */
+  /** "Raw" tile terrain (uncached). */
   function arenaDist(tx, ty) { return arena ? Math.hypot(tx - arena.tx, ty - arena.ty) : Infinity; }
 
   /**
-   * Pasillo libre de la arena: donde aparecéis (sur) y el legendario (norte).
-   * Con `clear` en el tema, además un claro donde aterriza Arceus (5 al norte).
+   * Clear arena passage: where players appear (south) and the legendary (north).
+   * If the theme has `clear`, also leave a clearing where Arceus lands (5 tiles north).
    */
   function arenaSafe(tx, ty) {
     const lx = tx - arena.tx, ly = ty - arena.ty;
@@ -77,20 +77,20 @@ G.World = (() => {
       if (ad >= arena.r) return WALL;
       if (arenaSafe(tx, ty)) return FLOOR;
       const th = arena.th;
-      // Columnas de 2×2 (cobertura) y charcos según el tipo de la arena.
+      // 2×2 columns (cover) and pools depend on the arena type.
       if (th.pillars && ad < arena.r - 2 && H(tx >> 1, ty >> 1, seed + 31 + arena.tx) < th.pillars) return WALL;
       if (th.pools && ad < arena.r - 1.5 && fbm(tx / 3.2, ty / 3.2, seed + 37 + arena.tx) < th.pools) return LIQUID;
       return FLOOR;
     }
     const d = Math.hypot(tx, ty);
-    if (d < 9) return FLOOR;                          // claro inicial
-    const ramp = G.U.clamp((d - 9) / 8, 0, 1);       // aparición suave
+    if (d < 9) return FLOOR;                          // starting clearing
+    const ramp = G.U.clamp((d - 9) / 8, 0, 1);       // gradual appearance
     if (fbm(tx / 13, ty / 13, seed + 101) < 0.04 + 0.23 * ramp) return LIQUID;
     if (fbm(tx / 8, ty / 8, seed + 202) > 1 - 0.27 * ramp) return WALL;
     return FLOOR;
   }
 
-  // ---------------- datos de chunk ----------------
+  // ---------------- chunk data ----------------
 
   function chunkData(cx, cy) {
     const k = cx + ',' + cy;
@@ -126,12 +126,12 @@ G.World = (() => {
       if (Math.hypot(tx, ty) < 7) continue;
       if (broken.has(tx + ',' + ty)) continue;
 
-      // Necesita suelo alrededor para no pegarse a paredes / agua.
+      // Keep clear ground around props so they do not touch walls or water.
       let open = true;
       for (let b = -1; b <= 1 && open; b++) for (let a = -1; a <= 1; a++)
         if (terrainRaw(tx + a, ty + b) !== FLOOR) { open = false; break; }
 
-      // Dentro de la arena: la decoración de su tipo (y nada en el pasillo).
+      // Inside the arena: themed decoration, but none in the passage.
       const ad = arenaDist(tx, ty);
       if (ad < arena_outer() + 2) {
         if (!arena || ad >= arena.r - 1.2 || arenaSafe(tx, ty)) continue;
@@ -147,13 +147,13 @@ G.World = (() => {
       const h = H(tx, ty, seed + 404);
       const grove = fbm(tx / 10, ty / 10, seed + 505) > 0.6;
       let type = null, kind = 0;
-      // Interactivos (raros), lejos del claro del principio.
+      // Rare interactive props, far from the starting clearing.
       const hs = H(tx, ty, seed + 909);
       if (open && Math.hypot(tx, ty) > 12 && hs < 0.0032) {
         type = hs < 0.0004 ? 'altar' : hs < 0.0008 ? 'spring' : hs < 0.0011 ? 'bigchest' : 'trap';
         kind = Math.floor(H(tx, ty, seed + 910) * (type === 'altar' ? 4 : 3));
       }
-      if (type) { /* ya elegido */ }
+      if (type) { /* already selected */ }
       else if (open && h < (grove ? 0.07 : 0.006)) type = 'tree';
       else if (open && h > 0.992) type = 'rock';
       else if (open && h > 0.985 && h <= 0.992 && H(tx, ty, seed + 606) < 0.07) type = 'chest';
@@ -186,7 +186,7 @@ G.World = (() => {
       r: d.r, hp: d.hp, maxHp: d.hp, solid: d.solid, flat: !!d.flat,
       destructible: d.hp !== Infinity, flash: 0,
       wiggle: H(tx, ty, 9) * 6.28,
-      used: false, charge: 1, open: 0          // altar / manantial / cofre con candado
+      used: false, charge: 1, open: 0          // altar / spring / locked chest
     };
   }
 
@@ -200,12 +200,12 @@ G.World = (() => {
   function liquidKind() { return G.Tiles.BIOMES[biome].liquid; }
 
   /**
-   * Efecto del charco actual sobre un Pokémon de estos tipos:
-   *   { slow, dmg, every, color, slide }  (dmg en % de vida máxima)
-   * Los de su tipo no sufren el suyo (Fuego en lava, Veneno en veneno...).
+   * Effect of the current liquid on a Pokémon with these types:
+   *   { slow, dmg, every, color, slide } (dmg as a percentage of max HP)
+   * Pokémon matching the liquid type are immune to it (Fire in lava, Poison in poison, etc.).
    */
   const LIQ = {
-    water: { slow: 0.6, immune: ['water'] },     // los de tipo agua nadan sin frenarse
+    water: { slow: 0.6, immune: ['water'] },     // Water types swim without slowing down.
     swamp: { slow: 0.45, immune: ['water'] },
     lava:   { dmg: 0.06, flat: 5, every: 0.5, color: '#ff8a3d', immune: ['fire'] },
     poison: { dmg: 0.035, flat: 3, every: 0.5, color: '#c86bdc', immune: ['poison', 'steel'] },
@@ -224,16 +224,16 @@ G.World = (() => {
     return c.propAt.get(tx + ',' + ty) || null;
   }
 
-  /** ¿Se puede pasar por esta casilla andando? (pathing.js) */
+  /** Can the player walk through this tile? (pathing.js) */
   function walkable(tx, ty) {
     const t = terrainAt(tx, ty);
     if (t === WALL) return false;
-    if (t === LIQUID && (LIQ[liquidKind()] || {}).dmg) return false;   // lava, veneno, descarga
+    if (t === LIQUID && (LIQ[liquidKind()] || {}).dmg) return false;   // lava, poison, or electric discharge
     const p = propAtTile(tx, ty);
     return !(p && p.solid);
   }
 
-  /** ¿Hay sitio para que algo de radio r esté aquí? */
+  /** Is there room for an object with radius r here? */
   function isFree(x, y, r = 12, allowLiquid = false) {
     const t0x = tileOf(x - r), t1x = tileOf(x + r), t0y = tileOf(y - r), t1y = tileOf(y + r);
     for (let ty = t0y; ty <= t1y; ty++) for (let tx = t0x; tx <= t1x; tx++) {
@@ -245,7 +245,7 @@ G.World = (() => {
     return true;
   }
 
-  /** Objetos destructibles (incluida la hierba) que tocan un círculo. */
+  /** Destructible props (including grass) that touch a circle. */
   function propsInCircle(x, y, r) {
     const out = [];
     const c0x = Math.floor((x - r) / CW), c1x = Math.floor((x + r) / CW);
@@ -260,7 +260,7 @@ G.World = (() => {
     return out;
   }
 
-  /** Objetos interactivos (altares, manantiales, cofres con candado, trampas) cerca. */
+  /** Nearby interactive props (altars, springs, locked chests, traps). */
   function specialsNear(x, y, r) {
     const out = [];
     const c0x = Math.floor((x - r) / CW), c1x = Math.floor((x + r) / CW);
@@ -273,7 +273,7 @@ G.World = (() => {
     return out;
   }
 
-  /** Roca o cofre más cercano (para apuntar cuando no hay enemigos). */
+  /** Nearest rock or chest (for aiming when there are no enemies). */
   function nearestBreakable(x, y, r) {
     let best = null, bd = r * r;
     for (const p of propsInCircle(x, y, r)) {
@@ -285,8 +285,8 @@ G.World = (() => {
   }
 
   /**
-   * Empuja un círculo fuera de paredes y objetos sólidos (deslizando).
-   * Devuelve true si ha chocado con algo.
+   * Push a circle out of walls and solid props (sliding along them).
+   * Returns true if it collided with anything.
    */
   function collide(e) {
     const r = e.r;
@@ -295,7 +295,7 @@ G.World = (() => {
       const t0x = tileOf(e.x - r), t1x = tileOf(e.x + r), t0y = tileOf(e.y - r), t1y = tileOf(e.y + r);
       for (let ty = t0y; ty <= t1y; ty++) for (let tx = t0x; tx <= t1x; tx++) {
         if (terrainAt(tx, ty) === WALL) {
-          // Punto más cercano de la caja del tile al centro del círculo.
+          // Closest point on the tile box to the circle's center.
           const bx0 = tx * TS, by0 = ty * TS, bx1 = bx0 + TS, by1 = by0 + TS;
           const qx = G.U.clamp(e.x, bx0, bx1), qy = G.U.clamp(e.y, by0, by1);
           let dx = e.x - qx, dy = e.y - qy;
@@ -306,7 +306,7 @@ G.World = (() => {
             const d = Math.sqrt(d2);
             e.x += dx / d * (r - d); e.y += dy / d * (r - d);
           } else {
-            // Centro dentro de la caja: sal por el lado más cercano.
+            // Center is inside the box: push it out through the nearest side.
             const l = e.x - bx0, rr = bx1 - e.x, u = e.y - by0, b = by1 - e.y;
             const m = Math.min(l, rr, u, b);
             if (m === l) e.x = bx0 - r; else if (m === rr) e.x = bx1 + r;
@@ -328,7 +328,7 @@ G.World = (() => {
     return hit;
   }
 
-  /** ¿Choca un proyectil aquí? Devuelve 'wall', el prop sólido, o null. */
+  /** Does a projectile collide here? Returns 'wall', the solid prop, or null. */
   function projectileBlock(x, y, r) {
     const tx = tileOf(x), ty = tileOf(y);
     if (terrainAt(tx, ty) === WALL) return 'wall';
@@ -339,7 +339,7 @@ G.World = (() => {
     return null;
   }
 
-  // ---------------- daño a objetos ----------------
+  // ---------------- prop damage ----------------
 
   function damageProp(p, amount, color = '#fff') {
     if (!p.destructible || p.hp <= 0) return false;
@@ -350,7 +350,7 @@ G.World = (() => {
     return false;
   }
 
-  /** Rompe el objeto de esa casilla (llega por la red en cooperativo). */
+  /** Break the prop in this tile (received over the network in co-op). */
   function breakAt(tx, ty) {
     const k = tx + ',' + ty;
     if (broken.has(k)) return;
@@ -399,7 +399,7 @@ G.World = (() => {
       return;
     }
     if (p.type === 'bigchest') {
-      // Botín grande: monedas, tickets y experiencia para subir un nivel.
+      // Large loot drop: coins, tickets, and enough experience to level up.
       G.FX.burst(p.x, p.y - 12, '#f2c443', 34, 220);
       G.FX.ring(p.x, p.y - 8, 6, 80, '#f2c443', 0.6, 5);
       G.Camera.kick(0.4);
@@ -417,15 +417,15 @@ G.World = (() => {
     if (p.type === 'trap') G.Interact.trapEffect(p);
   }
 
-  // ---------------- dibujo ----------------
+  // ---------------- rendering ----------------
 
   function chunkImage(cx, cy, bi = biome, cache = images) {
     const k = cx + ',' + cy;
     let img = cache.get(k);
     if (img) return img;
     const at = (tx, ty) => KIND[terrainAt(tx, ty)];
-    // Campo continuo de "tierra"; tiles.js lo muestrea en rejilla y lo
-    // interpola por píxel para que las manchas tengan bordes orgánicos.
+    // Continuous "dirt" field; tiles.js samples it on a grid and
+    // Interpolate per pixel so patches have organic edges.
     const S = 6 * G.Tiles.T;
     const dirtField = (gx, gy) => fbm(gx / S, gy / S, seed + 303);
     img = G.Tiles.paintChunk(cx, cy, N, at, dirtField, bi, seed);
@@ -434,7 +434,7 @@ G.World = (() => {
     return img;
   }
 
-  /** 0..1 del fundido de bioma (suavizado), o null si no hay. */
+  /** Biome blend progress, 0..1 (eased), or null when inactive. */
   function fadeK() { if (!fade) return null; const x = Math.min(1, fade.t / FADE); return x * x * (3 - 2 * x); }
 
   function visibleChunks(cam, pad = 0) {
@@ -449,9 +449,9 @@ G.World = (() => {
     ctx.imageSmoothingEnabled = false;
     const k = fadeK();
     for (const [cx, cy] of visibleChunks(cam)) {
-      // +1 de solape: con escalas no enteras evita juntas entre chunks.
+      // +1 overlap: avoids seams between chunks at non-integer scales.
       if (k == null) { ctx.drawImage(chunkImage(cx, cy), cx * CW, cy * CW, CW + 1, CW + 1); continue; }
-      // Fundido: el bioma viejo debajo y el nuevo apareciendo encima.
+      // Blend: old biome underneath, new biome fading in above it.
       ctx.drawImage(chunkImage(cx, cy, fade.from, fade.images), cx * CW, cy * CW, CW + 1, CW + 1);
       ctx.globalAlpha = k;
       ctx.drawImage(chunkImage(cx, cy), cx * CW, cy * CW, CW + 1, CW + 1);
@@ -459,7 +459,7 @@ G.World = (() => {
     }
   }
 
-  /** Brillos animados sobre el agua / burbujas de la lava (y del veneno y la electricidad). */
+  /** Animated glints on water / bubbles in lava (and poison or electric liquid). */
   function drawLiquid(ctx, cam, t) {
     const B = G.Tiles.BIOMES[biome];
     const lava = B.liquid === 'lava' || B.liquid === 'poison' || B.liquid === 'spark';
@@ -483,7 +483,7 @@ G.World = (() => {
     ctx.globalAlpha = 1;
   }
 
-  /** Props visibles, para mezclarlos en el orden por Y con las entidades. */
+  /** Visible props, to interleave with entities by Y position. */
   function visibleProps(cam) {
     const out = [];
     for (const [cx, cy] of visibleChunks(cam, 60)) {
@@ -502,7 +502,7 @@ G.World = (() => {
     const img = G.Tiles.propSprite(biome, p.type, variant);
     const w = img.width * P, h = img.height * P;
     if (p.flat) {
-      // Planos (manantial, trampa): pegados al suelo, centrados en su casilla.
+      // Flat props (spring, trap): ground-aligned and centered in their tile.
       ctx.drawImage(img, Math.round(p.x - w / 2), Math.round(p.y - 8 - h / 2), w, h);
       if (p.type === 'spring' && p.charge >= 0.15 && Math.sin(t * 3 + p.wiggle) > 0.92) {
         G.FX.twinkle(p.x + G.U.rand(-20, 20), p.y - 8 + G.U.rand(-6, 6));
@@ -510,7 +510,7 @@ G.World = (() => {
       return;
     }
     if (p.type === 'altar' && !p.used) {
-      // Halo del orbe, latiendo.
+      // Pulsing orb halo.
       const col = ['#ff5f6d', '#5fd4ff', '#ff8ad8', '#ffd23f'][p.kind];
       ctx.save();
       ctx.globalAlpha = 0.22 + Math.sin(t * 3 + p.wiggle) * 0.1;
@@ -534,7 +534,7 @@ G.World = (() => {
     const x = Math.round(p.x - w / 2), y = Math.round(p.y - h + (p.type === 'grass' ? 4 : 2));
     const k = fadeK();
     if (k != null) {
-      // El objeto viejo se desvanece mientras aparece el nuevo.
+      // Fade out the old prop while the new one appears.
       const old = G.Tiles.propSprite(fade.from, p.type, variant);
       ctx.globalAlpha = 1 - k;
       ctx.drawImage(old, Math.round(p.x - old.width * P / 2), Math.round(p.y - old.height * P + (p.type === 'grass' ? 4 : 2)), old.width * P, old.height * P);
@@ -561,17 +561,17 @@ G.World = (() => {
   }
 
   /**
-   * @param i        bioma (G.Tiles.ARENA y siguientes son las arenas de la grieta)
-   * @param instant  sin fundido (al empezar una run)
-   * Una run cambia de bioma cada 4 min y recorre toda la lista; al acabarse,
-   * vuelve a empezar. (Antes, pasado el último, hacia el minuto 84, se pedía
-   * un bioma que no existe: pantalla negra, el juego roto y niveles sin fin.)
+   * @param i        biome (G.Tiles.ARENA and following entries are rift arenas)
+   * @param instant  skip the fade (at the start of a run)
+   * A run changes biome every 4 minutes and cycles through the full list.
+   * (Previously, after the final entry around minute 84, it requested a
+   * nonexistent biome, causing a black screen, a broken game, and endless levels.)
    */
   function setBiome(i, instant = false) {
     const n = G.Tiles.BIOMES.length;
     const b = ((i % n) + n) % n;
     if (b === biome) return;
-    // El terreno es el mismo: sólo cambia la paleta, fundiéndose poco a poco.
+    // Terrain stays the same; only the palette gradually blends to the new one.
     fade = instant ? null : { from: biome, images, t: 0 };
     biome = b;
     images = new Map();
@@ -579,7 +579,7 @@ G.World = (() => {
 
   function biomeName() { return G.Tiles.BIOMES[biome].name; }
 
-  /** Viñeta en coordenadas de pantalla. */
+  /** Vignette in screen coordinates. */
   function drawVignette(ctx, w, h) {
     const g = ctx.createRadialGradient(w / 2, h / 2, Math.min(w, h) * 0.34, w / 2, h / 2, Math.max(w, h) * 0.78);
     g.addColorStop(0, 'rgba(0,0,0,0)');
@@ -593,12 +593,12 @@ G.World = (() => {
     kindAt, isWall, isLiquid, isFree, collide, projectileBlock, propsInCircle, nearestBreakable,
     damageProp, breakAt, specialsNear, update,
     breakProp(p) { if (!broken.has(p.tx + ',' + p.ty)) destroyProp(p); },
-    /** Arena de la grieta: { tx, ty, r } (en tiles) o null. */
+    /** Rift arena: { tx, ty, r } (in tiles), or null. */
     setArena(a) {
       arena = a;
       if (!a) return;
       a.th = G.Tiles.ARENA_THEMES[a.type] || G.Tiles.ARENA_THEMES.normal;
-      // Olvida los chunks de esa zona (si se hubieran generado antes).
+      // Discard chunks in this area (if they were generated earlier).
       const R = a.r + 9;
       for (const k of [...data.keys(), ...images.keys()]) {
         const [cx, cy] = k.split(',').map(Number);

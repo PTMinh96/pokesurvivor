@@ -1,18 +1,18 @@
-/* ============ noframe.js — el juego sólo se juega en su web ============
- * Hay webs que meten pokesurvivor.com dentro de un marco (iframe) y ponen sus
- * anuncios alrededor (pokesurvival.com, 19-10-2026). Si esta página está dentro
- * de un marco de otra web, no arranca el juego (main.js mira PS_FRAMED) y
- * sale un aviso con un botón a la web oficial. Un marco de la misma web sí vale.
- * Va en un archivo aparte (y no dentro del HTML) por la CSP; lo usan el juego
- * (dev.html, index.html, en/) y las páginas de la guía (make_seo_pages.py).
- * Si algún día el juego se publica en un portal que lo mete en un marco
- * (itch.io, CrazyGames...), su dominio va en ALLOW.
+/* ============ noframe.js — the game can only be played on its own website ============
+ * Some sites embed pokesurvivor.com in a frame (iframe) and place their ads
+ * around it (pokesurvival.com, 2026-10-19). If this page is inside a frame from
+ * another site, the game will not start (main.js checks PS_FRAMED), and a notice
+ * with a button to the official website is shown. A frame on the same site is OK.
+ * This is a separate file (not part of the HTML) because of the CSP; it is used
+ * by the game (dev.html, index.html, en/) and guide pages (make_seo_pages.py).
+ * If the game is ever published on a portal that embeds it in a frame
+ * (itch.io, CrazyGames...), add that domain to ALLOW.
  */
 (function () {
   var ALLOW = [];
   if (window.top === window.self) return;
   var parent = '';
-  try { parent = window.top.location.hostname; } catch (e) { /* de otra web: no se puede leer */ }
+  try { parent = window.top.location.hostname; } catch (e) { /* From another site: cannot be read. */ }
   if (parent === location.hostname) return;
   var anc = location.ancestorOrigins && location.ancestorOrigins[0];
   if (!parent && anc) { try { parent = new URL(anc).hostname; } catch (e) { /* sin origen */ } }
@@ -45,7 +45,7 @@
     var p = document.createElement('p');
     p.style.cssText = 'margin:0 0 20px';
     p.textContent = copy[1];
-    // _top saca al jugador del marco; si la web lo impide, se abre aparte.
+    // _top escapes the frame; if the site blocks it, open the link separately.
     var a = document.createElement('a');
     a.href = url; a.target = '_top'; a.rel = 'noopener';
     a.style.cssText = 'display:inline-block;padding:12px 20px;border-radius:10px;background:#ffd84a;color:#0a1430;' +

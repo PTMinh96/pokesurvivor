@@ -1,18 +1,18 @@
-/* ============ player.js — el Pokémon que controlas ============
- * (x, y) son los PIES. Sólo UN movimiento está activo a la vez: se dispara
- * solo y se cambia con 1-4 / Q / E. Cada disparo reproduce la animación de
- * ataque de Mundo Misterioso que le toca (Attack, Shoot o Charge).
+/* ============ player.js — the Pokémon you control ============
+ * (x, y) are the FEET. Only ONE move is active at a time: it fires
+ * automatically and is selected with 1-4 / Q / E. Each shot plays its
+ * corresponding Mystery Dungeon attack animation (Attack, Shoot, or Charge).
  */
 G.Player = class Player {
   /**
-   * @param mon   entrada de G.DEX
-   * @param perks mejoras permanentes ya resueltas (ver data/upgrades.js)
+   * @param mon   entry from G.DEX
+   * @param perks resolved permanent upgrades (see data/upgrades.js)
    */
   constructor(mon, perks = {}, shiny = false) {
     this.mon = mon;
     this.dex = mon.dex;
     this.shiny = shiny && G.Sprites.hasShiny(mon.dex);
-    // Los grandes, algo más pequeños y con el choque de uno normal (ver sprites.js).
+    // Large Pokémon are slightly smaller and use the collision size of a regular Pokémon (see sprites.js).
     this.scale = G.Sprites.playerScale(mon.dex);
     this.anim = new G.Sprites.Animator(mon.dex, this.scale, this.shiny);
     this.x = 0; this.y = 0;
@@ -33,13 +33,13 @@ G.Player = class Player {
     this.baseSpd = mon.spd;
     this.baseAtk = mon.atk;
 
-    this.moves = [];           // todos los movimientos aprendidos
-    this.slots = [];           // huecos: cada uno, una lista de movimientos que se lanzan a la vez
-    this.active = 0;           // hueco activo
-    this.maxMoves = 4;         // huecos
-    this.bonds = 0;            // vínculos por usar (premio de los legendarios)
+    this.moves = [];           // All learned moves
+    this.slots = [];           // Slots: each holds a list of moves fired together
+    this.active = 0;           // Active slot
+    this.maxMoves = 4;         // Slots
+    this.bonds = 0;            // Unused bonds (reward from legendaries)
 
-    // patk / satk: Danza Espada y Danza Dragón (físico) y Maquinación (especial).
+    // patk / satk: Swords Dance and Dragon Dance (physical), and Nasty Plot (special).
     this.buffs = {
       atk: { n: 0, t: 0, amount: 0 },
       patk: { n: 0, t: 0, amount: 0 },
@@ -54,13 +54,13 @@ G.Player = class Player {
     this.xpNext = Player.xpFor(1);
     this.kills = 0;
     this.bosses = 0;
-    this.rerolls = 0;          // veces que ha cambiado las cartas de nivel en esta run
-    this.rerollBonus = perks.rerolls || 0;   // cambios comprados en Mejoras (más el gratis)
-    this.critChance = perks.crit || 0;       // probabilidad de golpe crítico (Mejoras)
-    this.banned = new Set();                 // movimientos vetados (Mejoras → Veto): no salen en las cartas
-    this.bind = {};                          // movimiento -> hueco fijo (0-3), elegido en Mejoras
-    this.coins = 0;            // monedas recogidas en esta run
-    this.t1 = 0; this.t10 = 0; // tickets del gacha recogidos en esta run
+    this.rerolls = 0;          // Number of times level-up cards were rerolled this run
+    this.rerollBonus = perks.rerolls || 0;   // Rerolls purchased in Upgrades (plus the free one)
+    this.critChance = perks.crit || 0;       // Critical-hit chance (Upgrades)
+    this.banned = new Set();                 // Banned moves (Upgrades → Ban): not offered on cards
+    this.bind = {};                          // Move -> fixed slot (0-3), selected in Upgrades
+    this.coins = 0;            // Coins collected this run
+    this.t1 = 0; this.t10 = 0; // Gacha tickets collected this run
     this.dmgDealt = 0;
 
     this.invuln = 0;
@@ -70,19 +70,19 @@ G.Player = class Player {
     this.walking = false;
     this.inLiquid = false;
     this.lavaTick = 0;
-    this.attackFace = 0;       // tiempo que sigue mirando al objetivo tras atacar
+    this.attackFace = 0;       // Time spent facing the target after attacking
     this.dead = false;
-    this.power = null;         // poder de altar activo: { def, t, dur }
-    this.slowT = 0;            // pegado por una trampa
-    this.item = null;          // objeto equipado (data/items.js), uno por run
-    this.sashT = -999;         // última vez que salvó la Banda Focus
-    this.bellHeal = 0;         // curación pendiente del Cascabel Concha
-    this.statsTaken = {};      // mejoras de stat cogidas (condición de evolución)
-    this.abil = null;          // efecto de su habilidad (data/ability-fx.js), lo pone game.js
-    this.sturdyAt = -999;      // última vez que le salvó Robustez
+    this.power = null;         // Active altar power: { def, t, dur }
+    this.slowT = 0;            // Recently hit by a trap
+    this.item = null;          // Equipped item (data/items.js), one per run
+    this.sashT = -999;         // Last time Focus Sash saved the player
+    this.bellHeal = 0;         // Pending healing from Shell Bell
+    this.statsTaken = {};      // Stat upgrades collected (evolution condition)
+    this.abil = null;          // Ability effect (data/ability-fx.js), set by game.js
+    this.sturdyAt = -999;      // Last time Sturdy saved the player
   }
 
-  /** Pone la habilidad (G.AbilityFX.of) y aplica lo que hace al empezar. */
+  /** Set the ability (G.AbilityFX.of) and apply its startup effect. */
   setAbility(id) {
     this.abilId = id || '';
     this.abil = G.AbilityFX.of(id, this.mon);
@@ -90,31 +90,31 @@ G.Player = class Player {
     if (this.abil.start) this.abil.start(this);
   }
 
-  /** Segundos que hay que estar junto a un compañero caído para levantarlo. */
+  /** Seconds required beside a downed teammate to revive them. */
   static get REVIVE_TIME() { return 3; }
 
-  // (×2 y luego ×4 el 2026-10-10: se subía de nivel demasiado rápido.)
+  // (Increased to ×2, then ×4 on 2026-10-10: leveling was too fast.)
   static xpFor(level) {
     return Math.floor((8 + level * 6 + Math.pow(level, 1.75) * 1.6) * 4);
   }
 
   cy() { return this.y; }
 
-  // ---------------- stats efectivos ----------------
+  // ---------------- effective stats ----------------
   get atk() { return this.baseAtk * this.atkMul * (1 + this.buffs.atk.n * this.buffs.atk.amount); }
   /**
-   * Ataque con un movimiento: el físico o el especial de tu Pokémon (ver
-   * G.Stats), con las danzas que sean de su lado (las de mejora, sin ninguna).
+   * Attack stat for a move: the Pokémon's physical or special stat (see
+   * G.Stats), including boosts for that category, but not other boosts.
    */
   atkFor(m) {
     const cat = m && m.cat, b = cat === 'physical' ? this.buffs.patk : cat === 'special' ? this.buffs.satk : null;
     return this.atk * G.Stats.fit(this.mon, cat) * (b ? 1 + b.n * b.amount : 1) * (m && this.monoType(m.type) ? Player.MONO_K : 1);
   }
-  /** Monotipo (19-10-2026): los de un solo tipo pegan un +20 % con los ataques de su tipo (tienen menos variedad). */
+  /** Mono-type (2026-10-19): Pokémon with one type deal 20% more damage with moves of that type (they have less variety). */
   static get MONO_K() { return 1.2; }
   monoType(type) { return this.mon.types.length === 1 && type === this.mon.types[0]; }
   get spd() {
-    // (Habilidades: "steady" no se frena; speed() multiplica, ver data/ability-fx.js.)
+    // (Abilities: "steady" is not slowed; speed() applies the multiplier, see data/ability-fx.js.)
     const ab = this.abil || {}, stuck = this.slowT > 0 && !ab.steady;
     const s = this.baseSpd * this.spdMul * (1 + this.buffs.spd.n * this.buffs.spd.amount) * (stuck ? 0.5 : 1) * (ab.speed ? ab.speed(this) : 1);
     const w = G.Weather.speedFor(this.mon.types);
@@ -124,26 +124,27 @@ G.Player = class Player {
   get reduction() { return Math.min(0.8, this.dmgReduce + this.buffs.def.n * this.buffs.def.amount); }
   get regen() { return this.regenFlat + this.buffs.regen.n * this.buffs.regen.amount; }
 
-  // ---------------- movimientos ----------------
+  // ---------------- moves ----------------
   addMove(id) {
     if (this.slots.length >= this.maxMoves || this.hasMove(id)) return false;
     const m = G.Moves.instance(id, 1);
-    m.since = G.Game.st.time;          // desde cuándo lo tienes (daño por segundo en el resumen)
+    m.since = G.Game.st.time;          // When it was obtained (damage per second in the summary)
     this.moves.push(m);
     const group = [m];
     this.slots.push(group);
     this.arrange();
-    // Te quedas con el que llevabas (18-10-2026: antes se cambiaba solo al nuevo
-    // y te quitaba el ataque que estabas usando). Sólo si no tenías ninguno, el nuevo.
+    // Keep the move you had equipped (2026-10-18: previously, switching only
+    // to the new move could remove the attack in use). Use the new move only
+    // if no move was already equipped.
     if (!this.slots[this.active]) this.active = this.slots.indexOf(group);
     return true;
   }
 
   /**
-   * Huecos fijos (Mejoras → Atajos): cada movimiento con hueco elegido se pone
-   * en ese número para la memoria muscular (Confusión siempre en el 1...).
-   * Mientras no tengas tantos movimientos, va al más cercano; los demás
-   * rellenan los huecos libres en el orden en que los aprendiste.
+   * Fixed slots (Upgrades → Shortcuts): each move with a selected slot goes
+   * there for muscle memory (Confusion always goes in slot 1...).
+   * Until you have that many moves, it goes in the nearest available slot;
+   * other moves fill empty slots in the order they were learned.
    */
   arrange() {
     const n = this.slots.length;
@@ -154,8 +155,8 @@ G.Player = class Player {
     const bound = this.slots.filter(g => want(g) < Infinity).sort((a, b) => want(a) - want(b));
     for (const g of bound) {
       let p = Math.min(want(g), n - 1);
-      while (p >= 0 && out[p]) p--;                          // ocupado: el de antes
-      if (p < 0) { p = 0; while (out[p]) p++; }              // o el primero libre
+      while (p >= 0 && out[p]) p--;                          // Occupied: keep the previous slot
+      if (p < 0) { p = 0; while (out[p]) p++; }              // Otherwise, use the first free slot
       out[p] = g;
     }
     for (const g of this.slots) if (!out.includes(g)) out[out.indexOf(null)] = g;
@@ -167,7 +168,7 @@ G.Player = class Player {
 
   setActive(i) {
     if (i < 0 || i >= this.slots.length || i === this.active) return;
-    // Cinta Elección: no se puede cambiar de movimiento.
+    // Choice Scarf: the move cannot be changed.
     if (this.hasItem('choiceband') && this.slots[this.active]) {
       G.FX.dmgText(this.x, this.y - this.bodyH - 8, 'Cinta Elección', '#ff8ad8');
       return;
@@ -185,13 +186,13 @@ G.Player = class Player {
     this.setActive((this.active + dir + this.slots.length) % this.slots.length);
   }
 
-  // ---------------- vínculos (fusiones) ----------------
-  // Cada legendario vencido da un vínculo. Con él se juntan movimientos en un
-  // solo hueco y se lanzan a la vez. Sólo crece un grupo (hasta BOND_MAX); si
-  // no hay ninguno a medias, el vínculo une dos movimientos sueltos.
+  // ---------------- bonds (fusions) ----------------
+  // Each defeated legendary grants a bond. Bonds combine moves in a single
+  // slot so they fire together. Only one group can grow (up to BOND_MAX); if
+  // no group is partial, the bond joins two standalone moves.
   static get BOND_MAX() { return 4; }
 
-  /** Lo que se puede hacer ahora con un vínculo: añadir a un grupo o unir dos sueltos. */
+  /** What can be done with a bond now: add to a group or join two standalone moves. */
   bondOptions() {
     const loose = this.slots.filter(s => s.length === 1).map(s => s[0]);
     const grow = this.slots.find(s => s.length > 1 && s.length < Player.BOND_MAX);
@@ -199,7 +200,7 @@ G.Player = class Player {
     return loose.length >= 2 ? { mode: 'pair', group: null, loose } : null;
   }
 
-  /** Junta `moves` (sueltos) en el grupo `group` (o en uno nuevo) y gasta un vínculo. */
+  /** Join standalone `moves` to `group` (or a new group) and spend a bond. */
   fuse(moves, group = null) {
     const target = group || this.slots.find(s => s[0] === moves[0]);
     const cur = this.slots[this.active];
@@ -211,7 +212,7 @@ G.Player = class Player {
       target.push(m);
     }
     this.arrange();
-    // Se pasa al grupo, salvo con la Cinta Elección (sigues en el hueco que tenías, si queda).
+    // Switch to the group unless Choice Scarf is equipped (keep the current slot if possible).
     const a = this.slots.indexOf(cur);
     this.active = this.hasItem('choiceband') && a >= 0 ? a : this.slots.indexOf(target);
     this.bonds = Math.max(0, this.bonds - 1);
@@ -219,29 +220,29 @@ G.Player = class Player {
     return target;
   }
 
-  /** Movimientos que se lanzan ahora (el grupo del hueco activo). */
+  /** Moves fired now (the group in the active slot). */
   activeGroup() { return this.slots[this.active] || []; }
 
   activeMove() { return this.activeGroup()[0]; }
 
   /**
-   * Lo llama combat.js al lanzar un movimiento. Elige la animación de PMD y la
-   * acelera si la recarga es más corta que la animación, para que encadene.
+   * Called by combat.js when firing a move. Select the PMD animation and speed
+   * it up if the cooldown is shorter than the animation, so moves chain smoothly.
    */
   cast(m) {
-    // Vidasfera: cada ataque cuesta un poco de vida (nunca te deja KO).
+    // Life Orb: each attack costs a little health (never enough to knock you out).
     if (this.hasItem('lifeorb') && m.kind !== 'orbit' && m.kind !== 'trail' && !this.remote) {
       this.hp = Math.max(1, this.hp - Math.max(1, this.maxHp * 0.01));
     }
     const anim = { melee: 'Attack', beam: 'Shoot', projectile: 'Shoot', nova: 'Attack',
                    aura: 'Charge', buff: 'Charge', orbit: 'Charge', boomerang: 'Shoot', chain: 'Shoot',
                    mine: 'Charge', meteor: 'Charge', turret: 'Charge', dash: 'Attack', trail: 'Walk', cone: 'Shoot' }[m.kind] || 'Attack';
-    // Las familias nuevas suenan como la parecida de las de siempre.
+    // New move families use the sound of a similar existing family.
     const SND = { boomerang: 'projectile', chain: 'beam', mine: 'nova', meteor: 'nova', turret: 'buff', dash: 'melee', trail: 'aura', cone: 'projectile' };
-    // El rastro no suena a cada charco (sería un zumbido constante).
+    // The trail does not play a sound for every puddle (that would be a constant hum).
     if (m.kind !== 'trail') G.Audio.sfx('shot', { kind: SND[m.kind] || m.kind, type: m.type });
     if (m.kind === 'trail') return;
-    // No reinicies una animación que va por la mitad: se vería a tirones.
+    // Do not restart an animation halfway through; it would look choppy.
     if (this.anim.busy() && this.anim.progress() < 0.65) return;
     const meta = G.Sprites.animMeta(this.dex, anim);
     const len = meta ? meta.d.reduce((a, b) => a + b, 0) / 60 : 0.4;
@@ -250,15 +251,15 @@ G.Player = class Player {
     this.attackFace = 0.35;
   }
 
-  // ---------------- daño y curación ----------------
+  // ---------------- damage and healing ----------------
   /**
-   * @param type  tipo del ataque (tabla de tipos y clima); sin tipo, daño tal cual
-   * @param pure  daño que no baja con la defensa ni el cuerpo a cuerpo (Arceus)
+   * @param type  attack type (type chart and weather); if absent, damage is applied as-is
+   * @param pure  damage unaffected by defense or melee reduction (Arceus)
    */
-  /** @param cat  'physical' | 'special': con qué defensa tuya se para (la del enemigo que pega). */
+  /** @param cat  'physical' | 'special': which of your defenses applies (based on the attacking enemy). */
   hurt(amount, type = null, pure = false, cat = null) {
     if (this.invuln > 0 || this.dead) return;
-    // Habilidad (data/ability-fx.js): absorber un tipo, esquivar o recibir menos.
+    // Ability (data/ability-fx.js): absorb a type, dodge, or take reduced damage.
     const ab = this.abil, cls = cat === 'physical' ? 'p' : cat === 'special' ? 's' : '';
     if (ab && !pure) {
       if (type && ab.absorb === type) {
@@ -280,8 +281,8 @@ G.Player = class Player {
       eff = G.Types.label(k);
       amount *= k * G.Weather.mult(type);
     }
-    // Con un ataque cuerpo a cuerpo activo se recibe un 25 % menos: hay que
-    // estar encima de los enemigos para pegar (iban muy por detrás).
+    // Take 25% less damage while a melee move is active: players need to get
+    // close to enemies to attack (melee was underperforming).
     const close = this.activeGroup().some(m => m.kind === 'melee') ? 0.75 : 1;
     const d = pure ? Math.max(1, amount) : Math.max(1, amount * (1 - this.reduction) * close);
     this.hp -= d;
@@ -292,14 +293,14 @@ G.Player = class Player {
     if (!this.remote) G.Pad.rumble(0.25 + Math.min(0.75, d / this.maxHp * 3), 140);
     G.FX.dmgText(this.x, this.y - this.bodyH - 4, '-' + Math.round(d), eff === 'super' ? '#ff3048' : eff === 'weak' ? '#c9a0a8' : '#ff6b7a', eff === 'super');
     G.FX.burst(this.x, this.y - this.bodyH * 0.5, '#ff5f6d', 6, 90);
-    // Banda Focus: aguanta el golpe con 1 de vida (una vez cada 60 s).
+    // Focus Sash: survive a hit with 1 HP (once every 60 s).
     if (this.hp <= 0 && this.hasItem('focussash') && performance.now() - this.sashT > 60000) {
       this.sashT = performance.now();
       this.hp = 1; this.invuln = 1.2;
       G.FX.dmgText(this.x, this.y - this.bodyH - 16, '¡Banda Focus!', '#ff9a3d', true);
       G.FX.ring(this.x, this.y, 6, 70, '#ff9a3d', 0.5, 4);
     }
-    // Robustez (habilidad): lo mismo, una vez cada 90 s.
+    // Sturdy (ability): same effect, once every 90 s.
     if (this.hp <= 0 && ab && ab.sturdy && performance.now() - this.sturdyAt > 90000) {
       this.sturdyAt = performance.now();
       this.hp = 1; this.invuln = 1.2;
@@ -316,7 +317,7 @@ G.Player = class Player {
   }
 
   heal(amount) {
-    if (this.abil && this.abil.healMul) amount *= this.abil.healMul;     // Gula, Recogida
+    if (this.abil && this.abil.healMul) amount *= this.abil.healMul;     // Gluttony, Pickup
     const before = this.hp;
     this.hp = Math.min(this.maxHp, this.hp + amount);
     const got = Math.round(this.hp - before);
@@ -325,10 +326,10 @@ G.Player = class Player {
 
   addMaxHp(amount) { this.maxHp += amount; this.hp += amount; }
 
-  /** Devuelve cuántos niveles ha subido (pueden ser varios de golpe). */
+  /** Return the number of levels gained (possibly several at once). */
   gainXp(amount) {
     const add = amount * this.xpMul;
-    if (!Number.isFinite(add) || add <= 0) return 0;     // una experiencia infinita no acababa nunca de subir niveles
+    if (!Number.isFinite(add) || add <= 0) return 0;     // Infinite experience used to keep triggering level-ups indefinitely
     this.xp += add;
     let leveled = 0;
     while (this.xp >= this.xpNext && leveled < 50) {
@@ -340,22 +341,22 @@ G.Player = class Player {
     return leveled;
   }
 
-  // ---------------- objeto equipado ----------------
+  // ---------------- equipped item ----------------
   hasItem(id) { return this.item === id; }
 
-  /** Se pone un objeto (y se quita el que llevara). */
+  /** Equip an item, replacing the previous one. */
   equip(id) {
     if (this.item) G.Items.BY[this.item].off(this);
     this.item = id;
     if (id) G.Items.BY[id].on(this);
   }
 
-  /** Cascabel Concha: un poco de vida por el daño que haces (tope 4/s). */
+  /** Shell Bell: heal slightly based on damage dealt (capped at 4/s). */
   onDealt(dmg) {
     if (this.item === 'shellbell') this.bellHeal = Math.min(4, this.bellHeal + dmg * 0.04);
   }
 
-  /** Poder de un altar (ver systems/interact.js): se aplica y se quita solo. */
+  /** Altar power (see systems/interact.js): apply and remove it automatically. */
   addPower(def, dur) {
     if (this.power) this.power.def.off(this);
     def.on(this);
@@ -387,19 +388,19 @@ G.Player = class Player {
     if (this.power && (this.power.t -= dt) <= 0) { this.power.def.off(this); this.power = null; }
     if (this.regen > 0) this.hp = Math.min(this.maxHp, this.hp + this.regen * dt);
     if (this.abil && this.abil.tick) this.abil.tick(this, dt);
-    // Sequía, Llovizna...: su clima al empezar y cada 3 min, si no hay otro (en
-    // grupo lo pone el anfitrión, que es quien manda el clima a todos).
+    // Drought, Drizzle...: apply its weather at startup and every 3 min if no
+    // other weather is active (in co-op, the host controls the weather for all).
     if (this.abil && this.abil.summon && (!G.Coop.active || G.Coop.isHost) && (this.sumT = (this.sumT || 0) - dt) <= 0) {
       this.sumT = 180;
       if (!G.Weather.current) G.Weather.debugStart(this.abil.summon, 60);
     }
 
-    // --- movimiento con colisiones ---
-    // (En cooperativo la pausa no para el juego: sólo te quedas quieto.)
+    // --- movement with collisions ---
+    // (In co-op, pausing does not stop the game; it only freezes your player.)
     const [ax, ay] = this.frozen ? [0, 0] : G.Input.axis();
     this.walking = ax !== 0 || ay !== 0;
     const s = this.spd;
-    // Hielo: resbalas (la velocidad cambia despacio).
+    // Ice: slide (speed changes gradually).
     const slide = this.inLiquid && G.World.liquidEffect(this.mon.types).slide;
     this.svx = slide ? G.U.damp(this.svx || 0, ax * s * 1.15, 1.6, dt) : ax * s;
     this.svy = slide ? G.U.damp(this.svy || 0, ay * s * 1.15, 1.6, dt) : ay * s;
@@ -408,8 +409,8 @@ G.Player = class Player {
     G.World.collide(this);
     if (this.walking) this.moveAngle = Math.atan2(ay, ax);
 
-    // --- terreno líquido ---
-    // (Levitación: flota por encima del agua y la lava.)
+    // --- liquid terrain ---
+    // (Levitate: hover over water and lava.)
     this.inLiquid = !(this.abil && this.abil.levitate) && G.World.isLiquid(this.x, this.y);
     if (this.inLiquid) {
       const le = G.World.liquidEffect(this.mon.types);
@@ -425,13 +426,13 @@ G.Player = class Player {
       }
     }
 
-    // --- apuntado: enemigo más cercano; si no hay, hacia donde caminas ---
-    // Prioridad de blanco según el ataque activo:
-    //   a distancia (proyectil, rayo): el jefe si está a tiro > lo que te toca > el más cercano
-    //   cuerpo a cuerpo y el resto:   lo que te toca > el jefe > el más cercano
-    // Con una horda encima casi siempre te toca algo; si eso ganara siempre,
-    // los ataques a distancia no le darían nunca al jefe.
-    // Sin enemigos, apunta a la roca o cofre más cercano.
+    // --- targeting: nearest enemy, or movement direction if none ---
+    // Target priority depends on the active move:
+    //   ranged (projectile, beam): boss if in range > target facing > nearest
+    //   melee and others:          target facing > boss > nearest
+    // With a horde nearby, something is almost always facing you; if that always
+    // won, ranged attacks would never hit the boss.
+    // With no enemies, target the nearest rock or chest.
     const all = G.EnemyMgr.all();
     const m = this.activeMove();
     const ranged = !!m && (m.kind === 'projectile' || m.kind === 'beam');
@@ -440,9 +441,9 @@ G.Player = class Player {
     const tg = (ranged ? boss || threat : threat || boss)
             || G.Projectiles.nearest(all, this.x, this.y, 520)
             || G.World.nearestBreakable(this.x, this.y, 200);
-    // Apuntar a mano (Ajustes > Accesibilidad): hacia el ratón o el stick derecho.
-    // El blanco (para la cadena) es el enemigo que hay en esa dirección; si no
-    // hay ninguno, el de siempre.
+    // Manual aim (Settings > Accessibility): use the mouse or right stick.
+    // For chaining, target the enemy in that direction; if there is none, use
+    // the normal target.
     const hand = this.handAim();
     this.manualAim = hand != null;
     if (hand != null) {
@@ -454,19 +455,19 @@ G.Player = class Player {
       else if (this.walking) this.aim = this.moveAngle;
     }
 
-    // --- animación: mira al objetivo al atacar, si no a donde camina ---
+    // --- animation: face the target when attacking, otherwise face movement ---
     const face = this.attackFace > 0 || !this.walking ? this.aim : this.moveAngle;
     this.anim.dir = G.Sprites.dirFromAngle(face);
     this.anim.loop(this.walking ? 'Walk' : 'Idle', this.walking ? s / 110 : 1);
   }
 
   /**
-   * Ángulo de "Apuntar a mano", o null si toca apuntar solo. Manda lo último
-   * que se haya usado: el stick derecho mientras se empuja; si no, el ratón si
-   * se ha movido después (en PC). Soltar el stick sin tocar el ratón = solo.
+   * "Manual aim" angle, or null for auto-aim. Use the last input: the right
+   * stick while it is being pushed; otherwise the mouse if it moved afterwards
+   * (on PC). Releasing the stick without touching the mouse returns to auto-aim.
    */
   handAim() {
-    // En el móvil (táctil) no hay apuntado a mano: siempre apunta solo.
+    // On mobile (touch), manual aim is unavailable; auto-aim is always used.
     if (this.remote || G.Settings.touch || !G.Settings.get('aimManual')) return null;
     const st = G.Pad.aim();
     if (st) return Math.atan2(st[1], st[0]);
@@ -476,7 +477,7 @@ G.Player = class Player {
     return Math.hypot(dx, dy) < 4 ? null : Math.atan2(dy, dx);
   }
 
-  /** El enemigo más cercano dentro de ±25° de la dirección a (a menos de 520). */
+  /** Nearest enemy within ±25° of direction a (within 520 units). */
   enemyAlong(all, a) {
     let best = null, bd = 520 * 520;
     const ca = Math.cos(a), sa = Math.sin(a), cosMax = Math.cos(0.44);
@@ -490,7 +491,7 @@ G.Player = class Player {
     return best;
   }
 
-  /** Vuelve a levantarse (lo revive un compañero en cooperativo). */
+  /** Get back up (revived by a teammate in co-op). */
   revive(frac = 0.5) {
     this.dead = false;
     this.hp = Math.max(1, this.maxHp * frac);
@@ -502,11 +503,11 @@ G.Player = class Player {
     G.Audio.sfx('heal');
   }
 
-  // ---------------- compañero (cooperativo) ----------------
+  // ---------------- teammate (co-op) ----------------
 
   /**
-   * Un compañero en otro ordenador: su dueño manda su estado (posición, vida,
-   * movimiento activo...) y aquí se sigue con suavidad.
+   * A teammate on another computer: their owner sends their state (position,
+   * health, active move...), which is interpolated smoothly here.
    * n = { x, y, ang, walk, hp, maxHp, dead, mv, ml, mag, aim, rev }
    */
   netUpdate(dt) {
@@ -523,7 +524,7 @@ G.Player = class Player {
     this.reviveT = n.rev || 0;
     if (n.dead && !this.dead) { this.dead = true; this.anim.play('Faint', { hold: true }); G.Projectiles.clearOrbs(this); }
     else if (!n.dead && this.dead) this.revive(n.hp / (n.maxHp || 1));
-    // Movimiento activo (para el halo, el HUD y los orbes).
+    // Active move (for the aura, HUD, and orbs).
     if (n.mv && (!this.moves[0] || this.moves[0].id !== n.mv || this.moves[0].lvl !== n.ml) && G.Moves.BY_ID[n.mv]) {
       this.moves = [G.Moves.instance(n.mv, n.ml || 1)];
       this.slots = [this.moves.slice()];
@@ -540,7 +541,7 @@ G.Player = class Player {
   }
 
   draw(ctx) {
-    // Halo del tipo del movimiento activo, en el suelo.
+    // Active move's type aura on the ground.
     const m = this.activeMove();
     if (m && !this.dead) {
       ctx.save();
@@ -551,7 +552,7 @@ G.Player = class Player {
       ctx.restore();
     }
     G.Sprites.drawShadow(ctx, this.dex, this.x, this.y, this.scale);
-    // Poder de altar: aro de su color latiendo bajo los pies.
+    // Altar power: pulsing ring in its color beneath the player.
     if (this.power && !this.dead) {
       ctx.save();
       ctx.globalAlpha = 0.35 + Math.sin(performance.now() / 120) * 0.15;
@@ -563,7 +564,7 @@ G.Player = class Player {
     const alpha = this.invuln > 0 && !this.dead ? (Math.floor(this.invuln * 18) % 2 ? 0.45 : 1) : 1;
     this.anim.draw(ctx, this.x, this.y, { flash: this.flash > 0, softFlash: true, alpha, color: '#ffcb3d' });
 
-    // Arcos de buff alrededor de los pies.
+    // Buff arcs around the feet.
     const COL = { atk: '#ff6b4d', patk: '#ff6b4d', satk: '#c47bff', spd: '#7fe0ff', def: '#b0b8c8', regen: '#5fe08a' };
     let i = 0;
     for (const k in this.buffs) {
@@ -580,7 +581,7 @@ G.Player = class Player {
       i++;
     }
 
-    // Cooperativo: anillo de "reviviendo" y nombre encima.
+    // Co-op: "reviving" ring and name above the player.
     if (this.dead && this.reviveT > 0) {
       ctx.save();
       ctx.strokeStyle = '#5fe08a';

@@ -1,22 +1,22 @@
-/* ============ pathing.js — los enemigos rodean rocas y lagos ============
- * Un "campo de distancias" por jugador: cada pocas décimas se hace un
- * recorrido en anchura (BFS) por las casillas de alrededor del jugador,
- * apuntando cuántos pasos faltan desde cada casilla hasta él. Un enemigo
- * sólo tiene que ir hacia la casilla vecina con menos pasos, y así encuentra
- * el camino alrededor de paredes, rocas, árboles y charcos peligrosos.
+/* ============ pathing.js — enemies path around rocks and lakes ============
+ * A "distance field" is built for each player every few tenths of a second:
+ * run a breadth-first search (BFS) through nearby tiles, recording how many
+ * steps each tile is from the player. Enemies only need to move toward the
+ * neighboring tile with fewer steps to find a path around walls, rocks, trees,
+ * and dangerous puddles.
  *
- *   - 8 vecinos, sin cortar esquinas (no se cuela entre dos rocas en diagonal).
- *   - Bloquean: paredes, objetos sólidos y lava/veneno/descarga.
- *     El agua se puede cruzar (sólo frena).
- *   - Los que flotan (G.Sprites.hovers) no lo necesitan: van en línea recta.
+ *   - 8 neighbors, without cutting corners (cannot squeeze diagonally between rocks).
+ *   - Blocked by walls, solid props, and lava/poison/electric discharge.
+ *     Water is passable (it only slows you).
+ *   - Floating Pokémon (G.Sprites.hovers) do not need this; they move in a straight line.
  *
- * Coste: R=28 casillas de radio → 57×57 = 3.249 casillas por jugador, cada
- * 0,35 s. Los enemigos fuera del campo (muy lejos) van en línea recta.
+ * Cost: radius R=28 → 57×57 = 3,249 tiles per player every 0.35 s. Enemies
+ * outside the field (far away) move in a straight line.
  */
 G.Path = (() => {
   const R = 28, N = R * 2 + 1, EVERY = 0.35;
   const UNSEEN = 0x7fff;
-  const fields = new Map();          // jugador -> { ox, oy, dist: Int16Array, t }
+  const fields = new Map();          // player -> { ox, oy, dist: Int16Array, t }
   const queue = new Int32Array(N * N);
   const D8 = [[1, 0], [-1, 0], [0, 1], [0, -1], [1, 1], [1, -1], [-1, 1], [-1, -1]];
   let timer = 0;
@@ -30,12 +30,12 @@ G.Path = (() => {
     f.ox = ox; f.oy = oy;
     const dist = f.dist;
     dist.fill(UNSEEN);
-    // Casillas transitables del área (se consultan una vez).
+    // Walkable cells in the area (queried once).
     const open = f.open || (f.open = new Uint8Array(N * N));
     for (let j = 0; j < N; j++) for (let i = 0; i < N; i++) open[j * N + i] = G.World.walkable(ox + i, oy + j) ? 1 : 0;
 
     const start = R * N + R;
-    open[start] = 1;                 // donde está el jugador siempre cuenta
+    open[start] = 1;                 // always include the player's tile
     dist[start] = 0;
     let head = 0, tail = 0;
     queue[tail++] = start;
@@ -47,7 +47,7 @@ G.Path = (() => {
         if (nx < 0 || ny < 0 || nx >= N || ny >= N) continue;
         const n = ny * N + nx;
         if (!open[n] || dist[n] !== UNSEEN) continue;
-        // Diagonal: las dos casillas de al lado tienen que estar libres.
+        // Diagonal movement: both adjacent cells must be clear.
         if (k >= 4 && (!open[cy * N + nx] || !open[ny * N + cx])) continue;
         dist[n] = d;
         queue[tail++] = n;
@@ -55,7 +55,7 @@ G.Path = (() => {
     }
   }
 
-  /** Recalcula los campos de los jugadores vivos (lo llama el anfitrión / solitario). */
+  /** Recalculate fields for living players (called by the host / solo player). */
   function update(dt, players) {
     timer -= dt;
     if (timer > 0) return;
@@ -65,8 +65,8 @@ G.Path = (() => {
   }
 
   /**
-   * Dirección (normalizada) para que `e` llegue hasta `pl` rodeando
-   * obstáculos, o null si no hace falta (cerca, fuera del campo o sin camino).
+   * Normalized direction for `e` to reach `pl` around obstacles, or null if
+   * unnecessary (nearby, outside the field, or no path available).
    */
   function dirFor(e, pl) {
     const f = fields.get(pl);
@@ -75,13 +75,13 @@ G.Path = (() => {
     const tx = Math.floor(e.x / TS) - f.ox, ty = Math.floor(e.y / TS) - f.oy;
     if (tx < 0 || ty < 0 || tx >= N || ty >= N) return null;
     const here = f.dist[ty * N + tx];
-    if (here <= 1 || here === UNSEEN) return null;   // pegado a ti, o sin camino: directo
-    // Con vista despejada hasta el jugador, en línea recta (más natural).
-    // Se comprueba cada 0,2 s por enemigo (es lo más caro).
+    if (here <= 1 || here === UNSEEN) return null;   // adjacent or unreachable: move directly
+    // If there is a clear line of sight to the player, move directly (more natural).
+    // Checked every 0.2 s per enemy (the most expensive operation).
     const now = performance.now();
     if (!e.losAt || now - e.losAt > 200) { e.losAt = now; e.los = clearLine(f, e.x, e.y, pl.x, pl.y, e.r); }
     if (e.los) return null;
-    // Siguiente casilla del camino (la vecina con menos pasos, sin cortar esquinas).
+    // Next path cell (neighbor with the fewest steps, without cutting corners).
     let bx = tx, by = ty, best = here;
     for (let k = 0; k < 8; k++) {
       const x = tx + D8[k][0], y = ty + D8[k][1];
@@ -93,13 +93,13 @@ G.Path = (() => {
     }
     if (bx === tx && by === ty) return null;
     let gx = (f.ox + bx + 0.5) * TS, gy = (f.oy + by + 0.5) * TS;
-    // Si va descentrado y el atajo hasta esa casilla roza un obstáculo,
-    // primero al centro de la suya (así no se engancha en las esquinas).
+    // If off-center and the shortcut to that cell clips an obstacle, move to
+    // the center of the current cell first (to avoid getting caught on corners).
     if (!clearLine(f, e.x, e.y, gx, gy, e.r)) { gx = (f.ox + tx + 0.5) * TS; gy = (f.oy + ty + 0.5) * TS; }
     return G.U.norm(gx - e.x, gy - e.y);
   }
 
-  /** ¿Cabe un cuerpo de radio r en línea recta de (ax,ay) a (bx,by)? */
+  /** Can a body with radius r fit along a straight line from (ax,ay) to (bx,by)? */
   function clearLine(f, ax, ay, bx, by, r) {
     const TS = G.World.TS;
     const len = Math.hypot(bx - ax, by - ay);

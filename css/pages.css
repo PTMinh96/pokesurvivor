@@ -1,6 +1,6 @@
-/* ============ pages.css — páginas de texto (guía, Pokédex, 404) ============
- * Mismo estilo que el juego (azul de Mundo Misterioso, dorado y fuente pixel),
- * pero pensadas para leer cómodamente en PC y móvil. */
+/* ============ pages.css — text pages (guide, Pokédex, 404) ============
+ * Same style as the game (Mystery Dungeon blue, gold, and pixel font),
+ * but designed for comfortable reading on desktop and mobile. */
 @font-face { font-family: 'Pixelify'; src: url('../assets/fonts/PixelifyPS-400.ttf') format('truetype'); font-weight: 400 550; font-display: swap; }
 @font-face { font-family: 'Pixelify'; src: url('../assets/fonts/PixelifyPS-700.ttf') format('truetype'); font-weight: 551 900; font-display: swap; }
 :root { --navy: #0a1430; --box1: #2c519f; --box2: #1a3170; --edge: #f4f8ff; --gold: #ffd23f; --muted: #b9cbf0; --ink: #fff; }
@@ -53,7 +53,7 @@ main { padding: 24px 16px 40px; }
 footer { max-width: 900px; margin: 0 auto; padding: 10px 16px 40px; color: var(--muted); font-size: 14px; text-align: center; }
 @media (max-width: 600px) { body { font-size: 16px; } .top { padding: 8px 12px; } .brand { font-size: 20px; } .top nav { gap: 10px; font-size: 14px; } }
 
-/* ---------- piezas de las páginas de contenido ---------- */
+/* ---------- content-page components ---------- */
 .top nav a.lang { border: 2px solid var(--edge); border-radius: 8px; padding: 2px 10px; font-size: 14px; }
 i.ty { font-style: normal; font-size: 12px; padding: 0 7px; border-radius: 10px; color: #fff; text-shadow: 1px 1px 0 rgba(0,0,0,.6); white-space: nowrap; display: inline-block; }
 .dexgrid .tys { display: flex; gap: 4px; justify-content: center; flex-wrap: wrap; margin-top: 4px; }

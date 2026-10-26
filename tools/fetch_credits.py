@@ -31,7 +31,7 @@ def fetch(url):
 
 
 def main():
-    # ID de Discord / alias -> (nombre visible, contacto)
+    # Discord ID / alias -> (display name, contact)
     names = {}
     for line in fetch(f'{RAW}/credit_names.txt').splitlines()[1:]:
         parts = line.split('\t')
@@ -44,7 +44,7 @@ def main():
     dexes = sorted(int(d) for d in os.listdir(ASSETS) if d.isdigit())
 
     def one(dex):
-        # Créditos del sprite normal y del shiny (que puede ser de otro artista).
+        # Credits for the normal sprite and shiny sprite (which may have a different artist).
         txt = fetch(f'{RAW}/sprite/{dex:04d}/credits.txt')
         if os.path.isdir(os.path.join(ASSETS, str(dex), 's')):
             txt += '\n' + fetch(f'{RAW}/sprite/{dex:04d}/0000/0001/credits.txt')
@@ -64,22 +64,22 @@ def main():
                 per_artist.setdefault((display, contact), set()).add(dex)
 
     with io.open(OUT, 'w', encoding='utf-8', newline='\n') as f:
-        f.write('# Créditos\n\n')
+        f.write('# Credits\n\n')
         f.write('## Sprites\n\n')
-        f.write('Los sprites estilo *Pokémon Mundo Misterioso* vienen de\n')
-        f.write('[SpriteCollab](https://github.com/PMDCollab/SpriteCollab), bajo licencia\n')
-        f.write('[CC BY-NC 4.0](https://creativecommons.org/licenses/by-nc/4.0/):\n')
-        f.write('uso **no comercial** y con atribución a sus artistas.\n\n')
-        f.write('| Artista | Contacto | Sprites (nº de Pokédex) |\n|---|---|---|\n')
+        f.write('The *Pokémon Mystery Dungeon*-style sprites come from\n')
+        f.write('[SpriteCollab](https://github.com/PMDCollab/SpriteCollab), under the\n')
+        f.write('[CC BY-NC 4.0](https://creativecommons.org/licenses/by-nc/4.0/) license:\n')
+        f.write('**non-commercial use** with attribution to the artists.\n\n')
+        f.write('| Artist | Contact | Sprites (Pokédex numbers) |\n|---|---|---|\n')
         for (display, contact), dx in sorted(per_artist.items(), key=lambda kv: kv[0][0].lower()):
             nums = ', '.join(str(d) for d in sorted(dx))
             f.write(f'| {display} | {contact} | {nums} |\n')
-        f.write('\n## Datos\n\n')
-        f.write('Stats base y nombres en español: [PokeAPI](https://pokeapi.co/),\n')
-        f.write('descargados una vez y guardados en `js/data/pokedex.js`.\n\n')
-        f.write('## Marca\n\n')
-        f.write('Pokémon es propiedad de Nintendo, Creatures Inc. y GAME FREAK.\n')
-        f.write('Este es un proyecto de fan sin ánimo de lucro.\n')
+        f.write('\n## Data\n\n')
+        f.write('Base stats and Spanish names: [PokeAPI](https://pokeapi.co/),\n')
+        f.write('downloaded once and stored in `js/data/pokedex.js`.\n\n')
+        f.write('## Trademark\n\n')
+        f.write('Pokémon is owned by Nintendo, Creatures Inc., and GAME FREAK.\n')
+        f.write('This is a non-profit fan project.\n')
 
     print(f'{len(per_artist)} artistas para {len(dexes)} Pokemon -> CREDITS.md')
 

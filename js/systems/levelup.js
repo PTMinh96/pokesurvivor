@@ -1,8 +1,8 @@
-/* ============ levelup.js — las tres cartas de subida de nivel ============
- * Tipos de carta:
- *   new   aprender un movimiento nuevo (sólo si quedan huecos de los 4; un vínculo libera huecos)
- *   up    mejorar un movimiento que ya tienes
- *   stat  mejora permanente de la run
+/* ============ levelup.js — the three level-up cards ============
+ * Card types:
+ *   new   learn a new move (only if one of the 4 slots is free; a bond frees slots)
+ *   up    upgrade a move you already have
+ *   stat  permanent run upgrade
  */
 G.LevelUp = (() => {
 
@@ -27,7 +27,7 @@ G.LevelUp = (() => {
       apply: pl => pl.heal(pl.maxHp * 0.45) }
   ];
 
-  /** n elementos distintos de list, cada uno con probabilidad según weight(x). */
+  /** Pick n distinct elements from list, with each probability based on weight(x). */
   function pickWeighted(list, n, weight) {
     const rest = list.map(x => [x, weight(x)]), out = [];
     while (out.length < n && rest.length) {
@@ -38,32 +38,32 @@ G.LevelUp = (() => {
     return out;
   }
 
-  /** Construye el conjunto de cartas candidatas, con pesos. */
+  /** Build the candidate card set with weights. */
   function candidates(pl) {
     const out = [];
 
-    // --- movimientos nuevos ---
+    // --- new moves ---
     if (pl.slots.length < pl.maxMoves) {
-      // Con 2 potenciadores ya no se ofrecen más: los buff no hacen daño y
-      // llenar los 4 huecos con ellos deja la run sin salida.
+      // Do not offer more than 2 buffs: they do not deal damage, and filling
+      // all 4 slots with them leaves the run at a dead end.
       const buffs = pl.moves.filter(m => m.kind === 'buff').length;
-      // Si es de su lado flojo, cuánto rinde (Machamp con Bola Sombra...).
+      // If it is on the Pokémon's weaker side, show its effectiveness (e.g. Machamp with Shadow Ball).
       const fitNote = (mon, cat) => {
         const f = G.Stats.fit(mon, cat);
         return f < 0.95 ? ` <span class="fit-low">Con ${mon.name} rinde un ${Math.round(f * 100)} %: pega mejor con ataques ${G.Stats.sideOf(mon) === 'special' ? 'especiales' : 'físicos'}.</span>` : '';
       };
       const pool = G.Moves.poolFor(pl.mon).filter(id =>
         !pl.hasMove(id) && !(pl.banned && pl.banned.has(id)) && !(buffs >= 2 && G.Moves.BY_ID[id].kind === 'buff'));
-      // Los de su lado bueno (y los empatados y mejoras) salen el doble.
+      // Moves on its stronger side (and ties and buffs) are twice as likely.
       const weight = id => { const d = G.Moves.BY_ID[id]; return G.Stats.fit(pl.mon, d.cat) >= 0.999 ? 2 : 1; };
       for (const id of pickWeighted(pool, 6, weight)) {
         const d = G.Moves.BY_ID[id];
         out.push({
           w: 10, type: 'new', key: 'new:' + id,
           icon: 'move:' + id, color: G.U.TYPE_COLOR[d.type],
-          // (Físico o especial va en su propia etiqueta, con borde: ver run-ui.js. Los
-          // potenciadores no tienen categoría, pero Danza Espada y Danza Dragón suben el
-          // ataque físico y Maquinación el especial: llevan la del lado que suben.)
+          // (Physical or special appears in its own outlined label; see run-ui.js.
+          // Buffs have no category, but Swords Dance and Dragon Dance raise physical
+          // attack and Nasty Plot raises special attack, so they use the matching label.)
           tag: G.U.TYPE_NAME[d.type],
           cat: G.Stats.NAME[d.cat || (d.stat === 'patk' ? 'physical' : d.stat === 'satk' ? 'special' : '')] || '',
           title: G.T(d.name, 'move'), desc: d.desc + fitNote(pl.mon, d.cat),
@@ -72,8 +72,8 @@ G.LevelUp = (() => {
       }
     }
 
-    // --- evoluciones: movimiento al máximo + su condición cumplida ---
-    const waiting = {};                   // stat -> movimiento que la espera para evolucionar
+    // --- evolutions: move at max level + its condition met ---
+    const waiting = {};                   // stat -> move waiting for that evolution condition
     for (const m of pl.moves) {
       const ev = G.Moves.evoInfo(m, pl.statsTaken);
       if (!ev) continue;
@@ -92,7 +92,7 @@ G.LevelUp = (() => {
       });
     }
 
-    // --- mejoras de movimientos que ya tienes ---
+    // --- upgrades for moves you already have ---
     for (const m of pl.moves) {
       const txt = G.Moves.nextUpText(m);
       if (!txt) continue;
@@ -106,10 +106,10 @@ G.LevelUp = (() => {
     }
 
     // --- stats ---
-    // Las que desbloquean una evolución salen siempre y con aviso.
-    // Cada mejora tiene un tope de veces (`max`): en partidas muy largas se
-    // acumulaban sin fin (velocidad, recarga y experiencia por las nubes) y el
-    // juego acababa colgándose. Las que piden una evolución salen siempre.
+    // Upgrades that unlock an evolution are always offered, with a notice.
+    // Each upgrade has a maximum number of stacks (`max`): during very long
+    // runs, unlimited stacking (extreme speed, cooldown, and experience) could
+    // eventually freeze the game. Evolution prerequisites are always offered.
     const room = s => !s.max || (pl.statsTaken[s.id] || 0) < s.max;
     const pickStats = G.U.pickN(STATS.filter(s => !waiting[s.id] && room(s)), 5).concat(STATS.filter(s => waiting[s.id]));
     for (const s of pickStats) {
@@ -126,12 +126,12 @@ G.LevelUp = (() => {
     return out;
   }
 
-  /** Devuelve 3 cartas distintas, elegidas por peso. */
+  /** Return 3 distinct cards, selected by weight. */
   function offer(pl, n = 3) {
     const pool = candidates(pl);
     const picked = [];
     const used = new Set();
-    // Si hay una evolución lista, su carta dorada sale siempre.
+    // If an evolution is ready, its gold card is always offered.
     const evo = pool.findIndex(c => c.type === 'evo');
     if (evo >= 0) { const c = pool.splice(evo, 1)[0]; used.add(c.key); picked.push(c); }
 

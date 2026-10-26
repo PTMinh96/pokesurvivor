@@ -1,10 +1,10 @@
-/* ============ abilities.js — GENERADO, no editar a mano ============
- * G.ABIL[id]: nombres · G.DEX_ABIL[dex]: [habilidad 1, habilidad 2 o 0, oculta o 0].
- * Lo que hace cada una en el juego: js/data/ability-fx.js.
- * Sacado del PR #236 de TheAdro7 (datos de PokeAPI) el 20-10-2026.
- * Nombres: [es, en, fr, it, zh-Hans, zh-Hant] (pt-BR usa el inglés, como los
- * movimientos); van aquí y no en el diccionario porque "Potencia", "Imán" o
- * "Rara" ya significan otra cosa allí. Ver G.Mons.name().
+/* ============ abilities.js — GENERATED, do not edit by hand ============
+ * G.ABIL[id]: names · G.DEX_ABIL[dex]: [ability 1, ability 2 or 0, hidden ability or 0].
+ * What each ability does in the game: js/data/ability-fx.js.
+ * From TheAdro7's PR #236 (PokeAPI data), 2026-10-20.
+ * Names: [es, en, fr, it, zh-Hans, zh-Hant] (pt-BR uses English, like move
+ * names); kept here rather than in the dictionary because "Potencia", "Imán",
+ * or "Rara" have other meanings there. See G.Mons.name().
  */
 G.ABIL = {
   "adaptability":["Adaptable","Adaptability","Adaptabilité","Adattabilità","适应力","適應力"],

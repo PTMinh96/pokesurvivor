@@ -1,7 +1,7 @@
-/* ============ support-ui.js — "Apoyar el proyecto" ============
- * Botón con un corazón en la barra del menú (sólo si hay cuenta de Ko-fi en
- * js/data/funding.js) y una ventana que explica, con números, a qué va el
- * dinero. No se cobra nada dentro del juego: el pago es en Ko-fi.
+/* ============ support-ui.js — "Support the project" ============
+ * A heart button in the menu bar (only if there is a Ko-fi account in
+ * js/data/funding.js) and a dialog explaining, with figures, where the money
+ * goes. Nothing is charged in-game: payment is made through Ko-fi.
  */
 G.SupportUI = (() => {
   const $ = G.UI.$;
@@ -12,7 +12,7 @@ G.SupportUI = (() => {
 
   function init() {
     const b = $('btn-support');
-    if (!F.url) return;                       // aún sin cuenta de Ko-fi: no sale
+    if (!F.url) return;                       // no Ko-fi account yet: do not show it
     b.classList.remove('hidden');
     b.innerHTML = G.Icons.html('heart', 18) + ' <span>Apoyar</span>';
     b.onclick = open;

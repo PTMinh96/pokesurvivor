@@ -1,22 +1,22 @@
-/* ============ orbs.js — esferas de Mundo Misterioso (de un solo uso, en la partida) ============
- * Se encuentran durante la partida (cofres, jefes, a veces al derrotar a un Pokémon)
- * y se pierden al acabarla: no se guardan ni tocan la nube.
+/* ============ orbs.js — Mystery Dungeon orbs (single-use during a run) ============
+ * Found during a run (chests, bosses, sometimes by defeating a Pokémon) and
+ * lost when it ends: they are not saved or synced to the cloud.
  *
- *   4 huecos, hasta 3 de cada esfera. Si no te cabe, se queda en el suelo.
- *   Se usan con 5-8, tocando su casilla del HUD o con X (usar) / Y (cambiar) en el mando.
- *   1 s de recarga entre una y otra.
+ *   4 slots, up to 3 of each orb. If there is no room, it stays on the ground.
+ *   Use 5-8, tap its HUD slot, or press X (use) / Y (switch) on a controller.
+ *   1 s cooldown between uses.
  *
- * Dos clases:
- *   foe   a los enemigos (dormir, frenar, empujar). En cooperativo las aplica el
- *         anfitrión, que es quien manda a los enemigos: el invitado le avisa ('ou').
- *   buff  a ti y a los compañeros a menos de media pantalla. Cada uno se las pone
- *         a sí mismo al recibir el aviso ('ob'), si está cerca.
- * A los jefes y legendarios les afectan menos.
+ * Two classes:
+ *   foe   affects enemies (sleep, slow, knockback). In co-op the host applies
+ *         them, since the host controls enemies; guests send a request ('ou').
+ *   buff  affects you and teammates within half a screen. Each player applies
+ *         the buff to themselves upon receiving a nearby-player notice ('ob').
+ * Bosses and legendaries are less affected.
  */
 G.Orbs = (() => {
   const SLOTS = 4, STACK = 3, CD = 1;
-  const NEAR = 384;                 // "media pantalla" (G.Camera.VIEW_W / 2)
-  const PUSH = 1700, PUSH_R = 240;  // la Rafagaesfera los lleva a ~1/3 de pantalla
+  const NEAR = 384;                 // "Half a screen" (G.Camera.VIEW_W / 2)
+  const PUSH = 1700, PUSH_R = 240;  // Blowback Orb pushes them about 1/3 of a screen
 
   const LIST = [
     { id: 'slumber', name: 'Soporesfera', kind: 'foe', col: '#b39bff',
@@ -36,12 +36,12 @@ G.Orbs = (() => {
   for (const o of LIST) BY[o.id] = o;
 
   let cd = 0, sel = 0;
-  const seen = new Set();           // las que ya te han explicado en esta partida
+  const seen = new Set();           // Orbs already explained to you this run
 
   function roll() { return G.U.pick(LIST).id; }
 
-  // ---------------- la bolsa de cada jugador (pl.orbs = 4 huecos: { id, n } o null) ----------------
-  // Cada esfera se queda en su hueco (y en su tecla) aunque gastes las de al lado.
+  // ---------------- each player's bag (pl.orbs = 4 slots: { id, n } or null) ----------------
+  // Each orb stays in its slot (and on its key) even when adjacent ones are used.
 
   const bag = p => p.orbs || (p.orbs = new Array(SLOTS).fill(null));
 
@@ -57,7 +57,7 @@ G.Orbs = (() => {
     return true;
   }
 
-  /** Quita una del hueco que la tenga. → true si la tenía. */
+  /** Remove one from its slot. → true if the player had it. */
   function take(p, id) {
     const inv = bag(p), i = inv.findIndex(o => o && o.id === id);
     if (i < 0) return false;
@@ -65,16 +65,16 @@ G.Orbs = (() => {
     return true;
   }
 
-  /** La has cogido tú: se ve y, la primera vez en la partida, te explica qué hace. */
+  /** You picked it up: show it and explain what it does the first time this run. */
   function got(pl, id) {
     if (!add(pl, id)) return;
     const o = BY[id];
-    // Su casilla brilla y enseña el nombre unos segundos (hud.js).
+    // Its slot glows and shows its name for a few seconds (hud.js).
     pl.orbNew = { i: bag(pl).findIndex(s => s && s.id === id), at: performance.now() };
     G.FX.dmgText(pl.x, pl.y - pl.bodyH - 8, G.T(o.name), o.col, true);
     G.FX.ring(pl.x, pl.y, 6, 50, o.col, 0.4, 3);
     if (!seen.has(id)) {
-      // La primera vez en la partida: qué hace y cómo se usa.
+      // First time this run: explain what it does and how to use it.
       seen.add(id);
       const i = bag(pl).findIndex(s => s && s.id === id);
       const how = G.Pad.name ? G.T('X para usarla') : G.Touch.active ? G.T('tócala encima de tus ataques') : G.I18n.f('tecla {x}', i + 5);
@@ -82,9 +82,9 @@ G.Orbs = (() => {
     }
   }
 
-  // ---------------- usar ----------------
+  // ---------------- use ----------------
 
-  /** Usa la esfera del hueco i (0-3). */
+  /** Use the orb in slot i (0-3). */
   function use(pl, i) {
     const s = pl.orbs && pl.orbs[i];
     if (!s || cd > 0 || pl.dead || G.Game.state !== 'playing') {
@@ -106,7 +106,7 @@ G.Orbs = (() => {
     if (G.Coop.active) G.Coop.orbUsed(id, pl.x, pl.y, z);
   }
 
-  /** Mando: Y pasa a la siguiente esfera que tengas, X usa la elegida. */
+  /** Controller: Y selects the next orb you have; X uses the selected orb. */
   function next(pl) {
     const inv = bag(pl);
     for (let k = 1; k <= SLOTS; k++) if (inv[(sel + k) % SLOTS]) { sel = (sel + k) % SLOTS; G.Audio.sfx('click'); return; }
@@ -119,7 +119,7 @@ G.Orbs = (() => {
 
   function ring(id, x, y, r = 260) { G.FX.ring(x, y, 10, r, BY[id].col, 0.6, 5); }
 
-  /** A los enemigos que ve quien la usa (x, y con su zoom z). Sólo el anfitrión (o en solitario). */
+  /** Affect enemies visible to the user (x, y with their zoom z). Host only (or solo play). */
   function foe(id, x, y, z = 1) {
     ring(id, x, y);
     const hw = G.Camera.VIEW_W / 2 * z + 60, hh = G.Camera.MIN_VIEW_H * 0.75 * z + 60;
@@ -138,7 +138,7 @@ G.Orbs = (() => {
     }
   }
 
-  // ---------------- mejoras con tiempo (pl.orbBuff = { id: segundos }) ----------------
+  // ---------------- timed buffs (pl.orbBuff = { id: seconds }) ----------------
 
   function buff(pl, id) {
     const o = BY[id];
@@ -158,14 +158,14 @@ G.Orbs = (() => {
     else if (id === 'luminous') G.Camera.zoomTo = 1;
   }
 
-  /** Cada fotograma, con tu jugador. */
+  /** Every frame, for your player. */
   function update(dt, pl) {
     if (cd > 0) cd -= dt;
     const b = pl.orbBuff;
     if (b) for (const id in b) if (b[id] > 0 && (b[id] -= dt) <= 0) off(pl, id);
   }
 
-  /** Al empezar o acabar una partida: fuera la cámara alejada y lo explicado. */
+  /** At run start or end: reset the zoomed-out camera and explanations. */
   function reset() {
     cd = 0; sel = 0; seen.clear();
     G.Camera.zoomTo = 1;
@@ -173,7 +173,7 @@ G.Orbs = (() => {
 
   // ---------------- red ----------------
 
-  /** Anfitrión: un invitado ha usado una esfera. Sólo si de verdad la tenía. */
+  /** Host: a guest used an orb. Only accept it if they actually owned it. */
   function onMateUse(mpl, id, x, y, z) {
     if (!BY[id] || !take(mpl, id)) return false;
     if (BY[id].kind === 'foe') foe(id, x, y, z);
@@ -181,7 +181,7 @@ G.Orbs = (() => {
     return true;
   }
 
-  /** Mejora de un compañero: si estás a menos de media pantalla, también para ti. */
+  /** Teammate upgrade: also applies to you if they are within half a screen. */
   function nearBuff(id, x, y, pl = G.Game.player) {
     if (!BY[id] || BY[id].kind !== 'buff') { if (BY[id]) ring(id, x, y); return; }
     ring(id, x, y, NEAR);

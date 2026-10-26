@@ -1,66 +1,68 @@
-# Coturn preparado para un VPS
+# Coturn prepared for a VPS
 
-**Estado: paquete preparado; no desplegado ni conectado al juego** (PR #227 de
-aaronariasperez, integrado en `main`). No contrata recursos, no toca DNS y no modifica Firebase.
-El operador puede desplegarlo y validarlo siguiendo la [guía de Oracle](ORACLE.md).
-La activación en el juego requiere la integración y validación descritas más abajo.
+**Status: package prepared; not deployed or connected to the game** (PR #227 by
+aaronariasperez, merged into `main`). It does not provision resources, change
+DNS, or modify Firebase. The operator can deploy and validate it using the
+[Oracle guide](ORACLE.md). Enabling it in the game requires the separate
+integration and validation described below.
 
-## Qué incluye
+## What's included
 
-- Coturn `4.18.0-r0`, con UDP/TCP 3478 y relé UDP 49160–49559. Red host en Linux.
-- API de credenciales en Node 24 y Firebase Admin `14.5.0`, con lockfile.
-- Caddy `2.11.7` para HTTPS de la API; certificados renovados automáticamente.
-- Generador de configuración y secreto de 256 bits; los archivos privados están
-  ignorados por Git. No se genera ni publica ningún secreto de producción ahora.
-- Credenciales HMAC temporales; verificación de ID token del proyecto existente
-  `pokesurvivor-free`; piloto cerrado mediante una lista de UID autorizados.
-- Cuotas de asignaciones, velocidad, memoria y rotación de logs. Destinos privados,
-  loopback, metadatos del proveedor y destinos IPv6 bloqueados. Primera versión IPv4.
+- Coturn `4.18.0-r0`, with UDP/TCP 3478 and UDP relay ports 49160–49559. Linux host networking.
+- Node 24 credential API and Firebase Admin `14.5.0`, with lockfile.
+- Caddy `2.11.7` for API HTTPS; certificates renew automatically.
+- Configuration and 256-bit secret generator; private files are Git-ignored.
+  No production secret is generated or published now.
+- Temporary HMAC credentials; ID-token verification for the existing
+  `pokesurvivor-free` project; a closed pilot using an allowlist of UIDs.
+- Allocation, rate, memory, and log-rotation limits. Private destinations,
+  loopback, provider metadata, and IPv6 destinations are blocked. IPv4 only initially.
 
-Coturn transporta los datos entre navegadores cuando no pueden conectar directamente.
-La API solo entrega credenciales; no recibe estados de la partida. Firebase sigue
-gestionando la señalización como hasta ahora. No hace falta activar Identity Platform,
-crear Cloud Functions, habilitar Firestore adicional ni usar una clave de cuenta de servicio.
+Coturn relays data between browsers when they cannot connect directly. The API
+only issues credentials; it does not receive game state. Firebase continues to
+handle signaling as before. There is no need to enable Identity Platform, create
+Cloud Functions, enable additional Firestore features, or use a service-account key.
 
-## Antes del despliegue
+## Before deployment
 
-Elegir con el autor un VPS Linux dedicado o sin servicios que ocupen 80, 443, 3478,
-5349 y 8088, con IPv4 pública estable. Instalar Docker Engine y Compose v2 mediante
-las instrucciones oficiales del proveedor/Docker y mantener el reloj sincronizado.
-El acceso al grupo Docker equivale a privilegios administrativos del host.
+With the owner, choose a dedicated Linux VPS (or one without services using
+ports 80, 443, 3478, 5349, or 8088) with a stable public IPv4. Install Docker
+Engine and Compose v2 using the provider's/Docker's official instructions, and
+keep the system clock synchronized. Membership in the Docker group is equivalent
+to host administrator privileges.
 
-Crear dos registros A: `turn.<dominio>` e `ice.<dominio>` apuntando a la IPv4 pública.
-Usar DNS directo, **sin proxy HTTP de Cloudflare**, para ambos en esta configuración.
-No publicar registros AAAA todavía. Revisar las restricciones de CAA si existen.
+Create two A records: `turn.<domain>` and `ice.<domain>`, both pointing to the
+public IPv4. Use direct DNS, **without Cloudflare's HTTP proxy**, for both in
+this configuration. Do not publish AAAA records yet. Check any CAA restrictions.
 
-No se ha elegido tamaño ni proveedor: hacen falta estimaciones de concurrencia,
-porcentaje de partidas que usarán TURN y transferencia incluida. Las cuotas de abajo
-son valores para un piloto, no una promesa de capacidad ni un límite de gasto mensual.
+No size or provider has been selected: estimates are needed for concurrency,
+the share of games using TURN, and included transfer. The quotas below are pilot
+values, not a capacity promise or monthly spending limit.
 
-### Puertos del firewall del proveedor y del propio VPS
+### Provider and VPS firewall ports
 
-| Entrada | Origen | Uso |
-| --- | --- | --- |
-| SSH configurado en el VPS | Solo IP/red de administración | Administración |
-| TCP 80 y 443 | Internet | HTTPS de la API y emisión/renovación ACME |
-| UDP y TCP 3478 | Internet | Cliente → coturn |
-| UDP 49160–49559 | Internet | Puertos de relé; respetar cualquier cambio del rango |
-| TCP 5349 | Internet, solo al habilitar `tls` | TURN sobre TLS opcional |
-| TCP 8088 | **Nunca abrir** | API interna enlazada a 127.0.0.1 |
+| Incoming traffic | Source | Purpose |
+|---|---|---|
+| SSH configured on the VPS | Administration IP/network only | Administration |
+| TCP 80 and 443 | Internet | API HTTPS and ACME issue/renewal |
+| UDP and TCP 3478 | Internet | Client → coturn |
+| UDP 49160–49559 | Internet | Relay ports; honor any range changes |
+| TCP 5349 | Internet, only when `tls` is enabled | Optional TURN over TLS |
+| TCP 8088 | **Never open** | Internal API bound to 127.0.0.1 |
 
-La salida debe permitir DNS, HTTPS hacia Google/ACME y UDP hacia los puertos públicos
-de los otros jugadores, no solo hacia el rango local 49160–49559. Mantener tráfico
-de retorno establecido. No aplicar una política de firewall que corte el SSH actual.
-No se proporcionan comandos de firewall destructivos o dependientes del proveedor.
+Outbound traffic must allow DNS, HTTPS to Google/ACME, and UDP to other players'
+public ports, not just the local 49160–49559 range. Preserve established return
+traffic. Do not apply firewall rules that cut off the current SSH session.
+Provider-dependent or destructive firewall commands are not provided.
 
-## Preparar los archivos en Linux
+## Prepare the files on Linux
 
-Copiar esta carpeta al VPS. Ejecutar como el usuario de despliegue, no como root:
+Copy this directory to the VPS. Run as the deployment user, not root:
 
 ```sh
 cd infra/coturn
 cp settings.example.json settings.json
-# Editar settings.json con un editor antes de seguir.
+# Edit settings.json before continuing.
 python3 prepare.py --check
 python3 prepare.py
 docker compose config --quiet
@@ -68,26 +70,27 @@ docker compose pull
 docker compose build credentials
 ```
 
-Campos que hay que cambiar:
+Fields to change:
 
-- `turnHost`, `apiHost`, `acmeEmail`: nombres reales y correo del operador.
-- `publicIp`: IPv4 pública estable.
-- `localIp`: dirección de la interfaz, comprobada con `ip -4 address`.
-  En un VPS con IP pública directa coincide con `publicIp`. En Oracle/GCP con NAT suele ser
-  privada: se genera `external-ip=PUBLICA/PRIVADA`. El NAT debe preservar los puertos.
-- `allowedUids`: UID de las cuentas Firebase elegidas para el piloto. Con la lista
-  vacía nadie obtiene credenciales, aunque tenga una sesión válida.
-- `origins`: orígenes HTTPS exactos autorizados, sin barra final ni comodines.
-- `allowAllAuthenticated`: dejar `false` para el piloto. `true` permite todas las
-  cuentas no anónimas del proyecto, por lo que aumenta la exposición a abuso.
+- `turnHost`, `apiHost`, `acmeEmail`: actual hostnames and operator email.
+- `publicIp`: stable public IPv4.
+- `localIp`: interface address, verified with `ip -4 address`. On a VPS with a
+  directly assigned public IP, it matches `publicIp`. On Oracle/GCP behind NAT,
+  it is usually private and `external-ip=PUBLIC/PRIVATE` is generated. NAT must
+  preserve ports.
+- `allowedUids`: UIDs of Firebase accounts selected for the pilot. With an empty
+  list, nobody gets credentials, even with a valid session.
+- `origins`: exact authorized HTTPS origins, without a trailing slash or wildcards.
+- `allowAllAuthenticated`: keep `false` for the pilot. `true` allows every
+  non-anonymous account in the project and increases abuse exposure.
 
-El generador rechaza marcadores de ejemplo, configuraciones inseguras y rangos
-incoherentes. Se conserva el secreto al volver a ejecutarlo. Los contenedores de
-coturn y de la API usan el UID/GID del operador; archivos de secretos en modo 0600.
-No copiar `.env` de Windows: regenerarlo en Linux. No compartir `runtime/`, `certs/`
-ni `settings.json` en una PR. Respaldarlos solo en almacenamiento privado.
+The generator rejects example placeholders, insecure configurations, and
+inconsistent ranges. It preserves the secret when run again. Coturn and API
+containers use the operator's UID/GID; secret files have mode 0600. Do not copy
+`.env` from Windows: regenerate it on Linux. Do not share `runtime/`, `certs/`,
+or `settings.json` in a PR. Keep backups only in private storage.
 
-## Arranque del piloto
+## Start the pilot
 
 ```sh
 docker compose up -d
@@ -96,144 +99,149 @@ docker compose logs --tail=80 coturn credentials https
 curl --fail http://127.0.0.1:8088/healthz
 ```
 
-El arranque de Caddy solicita un certificado público real para `apiHost`.
-La comprobación de salud solo verifica que la API responde; **no prueba el relé**.
-Comprobar que coturn no registra opciones desconocidas, errores de permisos ni
-direcciones de escucha inexistentes. `ss -lntup` debe confirmar que 8088 solo escucha
-en loopback y que no hay interfaces de administración expuestas.
+Caddy startup requests a real public certificate for `apiHost`. The health
+check only verifies that the API responds; **it does not test the relay**.
+Check that coturn reports no unknown options, permission errors, or missing
+listening addresses. `ss -lntup` must confirm that port 8088 listens only on
+loopback and that no administration interfaces are exposed.
 
-La API acepta `POST https://ice.<dominio>/v1/ice`, sin cuerpo, con:
+The API accepts `POST https://ice.<domain>/v1/ice`, with no body, and these headers:
 
 ```text
 Origin: https://pokesurvivor.com
-Authorization: Bearer <Firebase ID token de una cuenta piloto>
+Authorization: Bearer <pilot account ID token>
 ```
 
-Devuelve `expiresAt` y un array `iceServers` compatible con WebRTC. Nunca devuelve
-el secreto compartido. No pegar tokens o credenciales en tickets públicos, comandos
-con historial ni webs de terceros. El origen/CORS no sustituye a la autenticación:
-los clientes externos pueden falsificar Origin, pero siguen necesitando un token válido.
+It returns `expiresAt` and an `iceServers` array compatible with WebRTC. It
+never returns the shared secret. Do not paste tokens or credentials into public
+tickets, commands stored in shell history, or third-party websites. Origin/CORS
+does not replace authentication: external clients can forge Origin, but still
+need a valid token.
 
-El SDK verifica firma, emisor, audiencia y caducidad. No consulta revocación/bloqueo
-en cada petición: un ID token ya emitido puede seguir aceptándose hasta que expire.
-Retirar un UID del piloto y reiniciar la API corta nuevas credenciales para esa cuenta;
-las ya emitidas no se revocan por ello. No se registra el encabezado Authorization.
-Los logs de coturn pueden contener direcciones IP/usuarios: tratarlos como datos operativos privados.
+The SDK verifies signature, issuer, audience, and expiration. It does not check
+revocation/disabled status on every request: an already-issued ID token may
+remain accepted until it expires. Removing a UID from the pilot and restarting
+the API prevents new credentials for that account; credentials already issued
+are not revoked. The Authorization header is not logged. Coturn logs may contain
+IP addresses/usernames and must be treated as private operational data.
 
-### Comprobación real del relé, pendiente
+### Real relay check (pending)
 
-Antes de activarlo para todos, probar con dos navegadores/equipos en redes distintas,
-incluyendo una conexión móvil, usando credenciales piloto y temporalmente
-`iceTransportPolicy: 'relay'` en un entorno de pruebas. Debe abrirse el DataChannel
-y transportar mensajes en ambos sentidos. Inspeccionar el par ICE seleccionado:
-debe tener candidato `relay`; recoger solo un candidato no demuestra conectividad.
+Before enabling it for everyone, test with two browsers/devices on different
+networks, including a mobile connection, using pilot credentials and temporarily
+setting `iceTransportPolicy: 'relay'` in a test environment. The DataChannel
+must open and exchange messages in both directions. Inspect the selected ICE
+pair: it must have a `relay` candidate; gathering a candidate alone does not
+prove connectivity.
 
-Probar UDP y TCP por separado, TLS si se habilita, reconexión, dos jugadores ambos
-tras NAT restrictivo, expiración/renovación, límite de cuota y credenciales inválidas.
-Después restaurar `iceTransportPolicy: 'all'`: la conexión directa sigue preferida.
-Registrar los resultados con la lista de aceptación de la guía de Oracle.
+Test UDP and TCP separately, TLS if enabled, reconnection, two players behind
+restrictive NATs, expiration/renewal, quota limits, and invalid credentials.
+Then restore `iceTransportPolicy: 'all'`: direct connection remains preferred.
+Record results using the Oracle guide's acceptance checklist.
 
-## TLS para TURN, opcional
+## Optional TURN TLS
 
-El HTTPS de Caddy protege la API; **no convierte el TURN UDP/TCP en TURN TLS**.
-El DataChannel WebRTC sigue usando su cifrado DTLS de extremo a extremo, pero para
-redes que exijan TURN sobre TLS hay que completar estos pasos:
+Caddy's HTTPS protects the API; **it does not turn UDP/TCP TURN into TURN TLS**.
+The WebRTC DataChannel still uses end-to-end DTLS encryption, but networks that
+require TURN over TLS need these steps:
 
-1. Obtener mediante un cliente ACME un certificado para **`turnHost`**, preferiblemente
-   con validación DNS automatizada. No usar un certificado autofirmado en producción.
-2. Instalar los archivos reales `certs/fullchain.pem` y `certs/privkey.pem`, legibles
-   por el usuario de despliegue; clave en 0600. No montar enlaces simbólicos que
-   apunten fuera de la carpeta montada.
-3. Configurar `tls: true`, regenerar y recrear coturn y la API. Abrir TCP 5349.
-4. Automatizar la renovación ACME con un hook que copie ambos PEM y reinicie coturn
-   en una ventana acordada. Caddy NO renueva estos dos archivos externos.
+1. Obtain a certificate for **`turnHost`** using an ACME client, preferably with
+   automated DNS validation. Do not use a self-signed certificate in production.
+2. Install real `certs/fullchain.pem` and `certs/privkey.pem` files, readable by
+   the deployment user; set the private key to mode 0600. Do not mount symlinks
+   that point outside the mounted directory.
+3. Set `tls: true`, regenerate and recreate coturn and the API. Open TCP 5349.
+4. Automate ACME renewal with a hook that copies both PEM files and restarts
+   coturn during an agreed maintenance window. Caddy does NOT renew these external files.
 
-El paquete no ofrece TURN/TLS por 443: ese puerto pertenece al HTTPS de la API.
-Si las redes objetivo bloquean también 5349, habrá que usar otra IP o rediseñar la
-terminación TLS antes de asegurar cobertura para esas redes.
+The package does not provide TURN/TLS on port 443: that port belongs to API
+HTTPS. If target networks also block 5349, use another IP or redesign TLS
+termination before claiming support for those networks.
 
-## Integración posterior en el juego (no activada aquí)
+## Later game integration (not enabled here)
 
-Solicitar las credenciales con `G.DB.fb.auth.currentUser.getIdToken()` y el endpoint
-aprobado antes de crear cada RTCPeerConnection (oferta y respuesta). Añadir sus
-`iceServers` a los STUN actuales. Cachear por usuario hasta unos minutos antes de
-`expiresAt`, limpiar al cerrar sesión, y si la API falla seguir con STUN directo.
-El secreto HMAC jamás va en JavaScript público, Firebase cliente ni variables de build.
+Request credentials with `G.DB.fb.auth.currentUser.getIdToken()` from the
+approved endpoint before creating each RTCPeerConnection (offer and answer).
+Add the returned `iceServers` to the existing STUN servers. Cache them per user
+until a few minutes before `expiresAt`, clear them on sign-out, and continue with
+direct STUN if the API fails. The HMAC secret must never be in public JavaScript,
+Firebase client configuration, or build variables.
 
-Las credenciales duran entre 55 y 60 minutos por defecto (se agrupan en intervalos
-de cinco minutos). Una conexión puede sobrevivir más que el token del broker, pero
-no asumir que las renovaciones de TURN funcionarán indefinidamente: probar partidas
-largas y preparar renovación con `setConfiguration` y reinicio ICE coordinado antes
-de la caducidad. Si el juego necesita más margen, ajustar `credentialTtl` hasta 7200
-segundos, entendiendo la mayor vida útil de las credenciales robadas.
+Credentials last 55–60 minutes by default (rounded to five-minute intervals).
+A connection may outlast the broker token, but do not assume TURN credential
+renewal works indefinitely: test long sessions and prepare coordinated renewal
+with `setConfiguration` and an ICE restart before expiration. If the game needs
+more time, `credentialTtl` can be increased up to 7200 seconds, with the
+correspondingly longer lifetime of stolen credentials understood.
 
-Los timeouts actuales del juego son cortos para algunas redes: comprobarlos en el
-piloto. No activar el relé de Realtime Database ni forzar relay en producción.
-Esta integración requiere una revisión aparte y la aprobación del autor.
+The game's current timeouts are short for some networks; test them in the pilot.
+Do not enable the Realtime Database relay or force relay in production. This
+integration needs a separate review and the owner's approval.
 
-## Operación, límites y apagado
+## Operations, limits, and shutdown
 
-Valores iniciales: 200 asignaciones globales, 12 por usuario TURN, 1 MiB/s por
-asignación y 3 MiB/s de capacidad global configurada (3 MiB/s × 31 días ≈ 8,4 TB:
-queda por debajo de los 10 TB/mes de salida gratis de Oracle Always Free). Coturn trata entrada/salida
-por separado. Una asignación no equivale necesariamente a un jugador; puede haber
-varias por conexión. Los nombres de usuario temporales cambian por intervalo:
-no interpretar su cuota como un límite permanente por cuenta Firebase.
+Initial values: 200 global allocations, 12 per TURN user, 1 MiB/s per
+allocation, and 3 MiB/s configured global capacity (3 MiB/s × 31 days ≈ 8.4 TB,
+below Oracle Always Free's 10 TB/month free egress). Coturn treats inbound and
+outbound traffic separately. An allocation is not necessarily one player; a
+connection may use several. Temporary usernames change by interval: do not
+interpret their quota as a permanent per-Firebase-account limit.
 
-La API limita a 6 solicitudes/UID/minuto, 30/IP/minuto, 300 globales/minuto y
-32 verificaciones simultáneas; contadores locales reiniciados al reiniciar el proceso.
-Es una instancia piloto, no un mecanismo distribuido contra abuso. Límites muy bajos
-pueden afectar a redes compartidas o a reintentos: ajustar con datos reales.
+The API limits requests to 6/UID/minute, 30/IP/minute, and 300 globally/minute,
+with 32 concurrent verifications; local counters reset when the process restarts.
+This is a pilot instance, not a distributed abuse-prevention system. Very low
+limits can affect shared networks or retries; tune them using real data.
 
-Vigilar con métricas del proveedor la transferencia de salida acumulada y diaria,
-errores de cuota, CPU, memoria, logs y expiración de certificados. Las cuotas de
-velocidad no impiden consumir muchos TB/mes. Definir alertas y un procedimiento de
-apagado con el autor antes del despliegue general.
+Monitor cumulative and daily outbound transfer, quota errors, CPU, memory, logs,
+and certificate expiration using provider metrics. Rate limits do not prevent
+many TB/month from being consumed. Define alerts and a shutdown procedure with
+the owner before general deployment.
 
 ```sh
-# Detiene nuevas credenciales; las existentes siguen siendo válidas temporalmente.
+# Stops issuing new credentials; existing ones remain valid temporarily.
 docker compose stop credentials
-# Parada total: corta las partidas que usan este relé.
+# Full shutdown: interrupts games using this relay.
 docker compose stop
 ```
 
-Cambios en `settings.json`: ejecutar `python3 prepare.py` y
-`docker compose up -d --force-recreate` en una ventana acordada; reiniciar coturn
-interrumpe asignaciones. Las modificaciones del código de la API requieren además
-`docker compose build credentials`. La rotación del secreto debe coordinarse entre
-coturn y API: hacer copia privada, sustituir `runtime/auth-secret` por 32 bytes
-aleatorios en hexadecimal, regenerar y recrear ambos servicios; las credenciales
-anteriores dejan de funcionar. No cambiar el secreto automáticamente en cada arranque.
+For changes to `settings.json`, run `python3 prepare.py` and
+`docker compose up -d --force-recreate` during an agreed window; restarting
+coturn interrupts allocations. API code changes also require
+`docker compose build credentials`. Secret rotation must be coordinated between
+coturn and the API: make a private backup, replace `runtime/auth-secret` with
+32 random bytes in hexadecimal, regenerate, and recreate both services; old
+credentials will stop working. Do not change the secret automatically at every startup.
 
-Para actualizar versiones, revisar las notas de seguridad, fijar la nueva imagen y
-probar el piloto. La imagen Node usa la línea mantenida `24-alpine`; al desplegar,
-registrar los digests reales de todas las imágenes para poder reproducir/volver atrás.
-Un rollback nunca debe restaurar una versión con una vulnerabilidad conocida.
+To update versions, review security notes, pin the new image, and test the pilot.
+The Node image uses the maintained `24-alpine` line; record the actual image
+digests at deployment to support reproduction/rollback. A rollback must never
+restore a version with a known vulnerability.
 
-## Validación realizada en este equipo
+## Validation on this machine
 
 ```sh
 node --test infra/coturn/tests/broker.test.mjs
 python -m unittest discover -s infra/coturn/tests -p 'test_*.py'
 ```
 
-8 pruebas del servicio y 5 del generador pasan. Cubren HMAC, expiración, CORS,
-autenticación simulada, lista piloto, rate limits, mapeo NAT, rechazo de configuración,
-bloqueo de destinos privados y conservación del secreto. SDK oficial cargado y
-rechazo de token inválido comprobado sin cuenta de servicio. Lockfile instalado;
-`npm audit` reportó cero vulnerabilidades durante la preparación.
+All 8 service tests and 5 generator tests pass. They cover HMAC, expiration,
+CORS, simulated authentication, the pilot allowlist, rate limits, NAT mapping,
+configuration rejection, private-destination blocking, and secret preservation.
+The official SDK was loaded and invalid-token rejection checked without a
+service account. The lockfile was installed; `npm audit` reported zero
+vulnerabilities during preparation.
 
-**Sin Docker instalado aquí:** no se han ejecutado `docker compose config`, imágenes,
-coturn real, ACME, verificación de un ID token real ni pruebas WebRTC/NAT. No se ha
-controlado el escritorio. La revisión operativa anterior es obligatoria antes de
-considerarlo validado para producción. No cambia ningún archivo del juego, por lo
-que no corresponde regenerar el bundle ni añadir novedades de jugadores.
+**Docker is not installed here:** `docker compose config`, images, real coturn,
+ACME, real ID-token verification, and WebRTC/NAT testing have not been run. No
+desktop control was used. The operational review above is required before
+considering this validated for production. No game files are changed, so there
+is no need to regenerate the bundle or add a player changelog entry.
 
-## Referencias oficiales consultadas
+## Official references
 
-- [Coturn: imagen oficial y red host](https://github.com/coturn/coturn/blob/master/docker/coturn/README.md)
-- [Release Docker 4.18.0-r0](https://github.com/coturn/coturn/releases/tag/docker/4.18.0-r0)
-- [Opciones de la configuración fijada](https://github.com/coturn/coturn/blob/docker/4.18.0-r0/docker/coturn/turnserver.conf)
-- [Firebase: verificar ID tokens](https://firebase.google.com/docs/auth/admin/verify-id-tokens)
-- [Caddy: HTTPS automático](https://caddyserver.com/docs/automatic-https)
-- [Docker: red host](https://docs.docker.com/engine/network/drivers/host/)
+- [Coturn: official image and host networking](https://github.com/coturn/coturn/blob/master/docker/coturn/README.md)
+- [Docker release 4.18.0-r0](https://github.com/coturn/coturn/releases/tag/docker/4.18.0-r0)
+- [Pinned configuration options](https://github.com/coturn/coturn/blob/docker/4.18.0-r0/docker/coturn/turnserver.conf)
+- [Firebase: verify ID tokens](https://firebase.google.com/docs/auth/admin/verify-id-tokens)
+- [Caddy: automatic HTTPS](https://caddyserver.com/docs/automatic-https)
+- [Docker: host networking](https://docs.docker.com/engine/network/drivers/host/)

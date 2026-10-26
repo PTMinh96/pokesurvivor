@@ -1,22 +1,22 @@
-/* ============ icons.js — iconos pixel art (sustituyen a los emojis) ============
- * Todo se dibuja desde mapas de caracteres, igual que los tiles: así la
- * interfaz comparte estilo con los sprites de Mundo Misterioso.
+/* ============ icons.js — pixel-art icons (replace emojis) ============
+ * Everything is drawn from character maps, like the tiles, so the interface
+ * shares a style with the Mystery Dungeon sprites.
  *
- *   G.Icons.html('coin', 18)     <img> para el DOM
+ *   G.Icons.html('coin', 18)     <img> for the DOM
  *   G.Icons.draw(ctx, 'coin', x, y, 18)   en el canvas
- *   G.Icons.url('star')          data URL (para CSS)
- *   'move:<id>'                  emblema del tipo + insignia de la familia
- *   'type:<tipo>'                sólo el emblema
+ *   G.Icons.url('star')          data URL (for CSS)
+ *   'move:<id>'                  type emblem + move-family badge
+ *   'type:<type>'                emblem only
  */
 G.Icons = (() => {
-  const K = '#1b1528';          // contorno
+  const K = '#1b1528';          // outline
 
-  // ---------------- iconos de interfaz (12×12) ----------------
+  // ---------------- interface icons (12×12) ----------------
   const MEDAL = ['.kkk....kkk.', '.krk....kqk.', '..krk..kqk..', '...krkkqk...', '....kkkk....', '...kmmmmk...',
                  '..kmwmmmnk..', '.kmwmsmmmnk.', '.kmmsssmmnk.', '.kmmmsmmmnk.', '..kmmmmmnk..', '...kkkkkk...'];
 
   const UI = {
-    // Tienda Kecleon y Mochila (20-10-2026, dibujados por TheAdro7 en el PR #236): MT, Menta, Cápsulas, Mochila y tienda.
+    // Kecleon Shop and Backpack (drawn by TheAdro7 in PR #236 on 2026-10-20): TM, Mint, Capsules, Backpack, and shop.
     tm: { pal: { b: '#7f93ff', d: '#4a5bc4', w: '#e6ecff' }, rows: [
       '....kkkk....', '..kkbbbbkk..', '.kbbwwbbbbk.', '.kbwwbbbbbk.', 'kbbwbkkbbbbk', 'kbbbk..kbbbk',
       'kbbbk..kbbbk', 'kbbbbkkbbbdk', '.kbbbbbbbdk.', '.kbbbbbbddk.', '..kkbbddkk..', '....kkkk....'] },
@@ -32,7 +32,7 @@ G.Icons = (() => {
     bag: { pal: { b: '#e0743d', d: '#9a4418', w: '#ffc59f', y: '#ffd23f' }, rows: [
       '....kkkk....', '...k....k...', '..kkkkkkkk..', '.kbbbbbbbbk.', '.kbwbbbbbbk.', '.kkkkkkkkkk.',
       '.kbbbyybbbk.', '.kbbbyybbbk.', '.kbbbbbbbbk.', '.kbbbbbbbdk.', '.kddddddddk.', '..kkkkkkkk..'] },
-    // Amuleto Iris (uno por generación, en la Mochila): una gema con los colores del arcoíris.
+    // Rainbow Charm (one per generation, in the Backpack): a rainbow-colored gem.
     iris: { pal: { y: '#ffd23f', w: '#ffffff', r: '#ff5f6d', o: '#ffa64d', g: '#5fe08a', b: '#4fb4ff', p: '#c47bff' }, rows: [
       '....kkkk....', '...ky..yk...', '....kyyk....', '.....kk.....', '....kwrk....', '...kwrrok...',
       '..kwrroyyk..', '.krooyyggbk.', '..koyggbbk..', '...kgbppk...', '....kbpk....', '.....kk.....'] },
@@ -48,15 +48,15 @@ G.Icons = (() => {
     phone: { pal: { b: '#2c519f', s: '#9fd8ff', w: '#e6f4ff' }, rows: [
       '...kkkkkk...', '...kbbbbk...', '...kssssk...', '...kswssk...', '...kssssk...', '...kssssk...',
       '...kssssk...', '...kssssk...', '...kssssk...', '...kbbbbk...', '...kbwwbk...', '...kkkkkk...'] },
-    // Banderita: reportar una marca del ranking.
+    // Flag: report a leaderboard record.
     flag: { pal: { r: '#ff5f6d', w: '#c9cfdc' }, rows: [
       '.kk.........', '.kwkkkkkk...', '.kwkrrrrrk..', '.kwkrrrrrrk.', '.kwkrrrrrk..', '.kwkrrrrk...',
       '.kwkkkkk....', '.kwk........', '.kwk........', '.kwk........', 'kkwkk.......', 'kkkkk.......'] },
-    // Prohibido (Veto: movimiento bloqueado).
+    // Banned (Veto: blocked move).
     ban: { pal: { r: '#ff5f6d' }, rows: [
       '...kkkkkk...', '..krrrrrrk..', '.krrkkkkrrk.', 'krrk..krrrrk', 'krk..krrkkrk', 'krk.krrk.krk',
       'krkkrrk..krk', 'krrrrk..krrk', '.krrkkkkrrk.', '..krrrrrrk..', '...kkkkkk...', '............'] },
-    // YouTube (botón de la barra de arriba, 23-10-2026).
+    // YouTube (top-bar button, 2026-10-23).
     yt: { pal: { r: '#ff2a2a', s: '#b3121a', w: '#ffffff' }, rows: [
       '............', '............', '.kkkkkkkkkk.', 'krrrrrrrrrrk', 'krrrrwrrrrrk', 'krrrrwwrrrrk',
       'krrrrwwwrrrk', 'krrrrwwrrrsk', 'krrrrwrrrrsk', 'kssssssssssk', '.kkkkkkkkkk.', '............'] },
@@ -72,7 +72,7 @@ G.Icons = (() => {
     boot: { pal: { b: '#4fb4ff', d: '#2a6fb0', w: '#e6f4ff', g: '#e8e8f0' }, rows: [
       '............', '....kkkk....', '....kbbk....', '....kbbk....', '....kbbk....', '....kbbbkk..',
       '...kbwbbbbk.', '..kbbbbbbbbk', '..kdddddddbk', '..kgggggggk.', '...kkkkkkk..', '............'] },
-    // Vínculo (premio de los legendarios): dos eslabones enlazados.
+    // Bond (Legendary reward): two interlinked chains.
     bond: { pal: { y: '#ffd23f', w: '#fff3b0', p: '#ff8ad8', q: '#ffd3f1' }, rows: [
       '.kkkkk......', 'kwyyyyk.....', 'kykkkyk.....', 'kyk.kyk.....', 'kykkkyk.....', 'kyyyyykkkkk.',
       '.kkkkkqppppk', '.....kpkkkpk', '.....kpk.kpk', '.....kpkkkpk', '.....kpppppk', '......kkkkk.'] },
@@ -106,7 +106,7 @@ G.Icons = (() => {
     star: { pal: { y: '#ffd23f', o: '#c08a10', w: '#fff4b0' }, rows: [
       '.....kk.....', '.....kk.....', '....kwyk....', '....kyyk....', 'kkkkwyyykkkk', 'kwyyyyyyyyok',
       '.kyyyyyyyok.', '..kyyyyyyk..', '..kyyyoyyk..', '.kyok..koyk.', '.kok....kok.', '.kk......kk.'] },
-    // Marca de shiny: la estrella roja de la ficha de los juegos, con un destello.
+    // Shiny marker: the red star on the games' details screen, with a sparkle.
     shiny: { pal: { y: '#ff4d5e', w: '#ffd0d6', o: '#b8283a', x: '#fff6b0' }, rows: [
       '.....kk...x.', '.....kk..xxx', '....kwyk..x.', '....kyyk....', 'kkkkwyyykkkk', 'kwyyyyyyyyok',
       '.kyyyyyyyok.', '..kyyyyyyk..', '..kyyyoyyk..', '.kyok..koyk.', '.kok....kok.', '.kk......kk.'] },
@@ -146,7 +146,7 @@ G.Icons = (() => {
     wfog: { pal: { g: '#c9cfdc', d: '#8f98ab' }, rows: [
       '............', '............', '..gggggg....', '.g......gg..', '............', '....gggggg..',
       '..dd......d.', '............', '.ggggggg....', 'g.......gg..', '............', '............'] },
-    // Bolas del tragaperras del gacha (una por rareza).
+    // Gacha slot-machine balls (one per rarity).
     ball2: { pal: { r: '#3d7bff', s: '#2a56b8', w: '#cfe0ff', b: '#f4f4f4' }, rows: [
       '....kkkk....', '..kkrrrrkk..', '.krwrrrrrrk.', '.krwrrrrrsk.', 'krrrrkkrrssk', 'kkkkkbbkkkkk', 'kbbbkbbkbbbk', 'kbbbbkkbbbbk', '.kbbbbbbbbk.', '.kbbbbbbbbk.', '..kkbbbbkk..', '....kkkk....'] },
     ball3: { pal: { r: '#3a3a46', s: '#1d1d26', w: '#ffd23f', b: '#f4f4f4' }, rows: [
@@ -155,7 +155,7 @@ G.Icons = (() => {
       '....kkkk....', '..kkrrrrkk..', '.krwrrrrrrk.', '.krwrrrrrsk.', 'krrrrkkrrssk', 'kkkkkbbkkkkk', 'kbbbkbbkbbbk', 'kbbbbkkbbbbk', '.kbbbbbbbbk.', '.kbbbbbbbbk.', '..kkbbbbkk..', '....kkkk....'] },
     ballLux: { pal: { r: '#30303a', s: '#18181e', w: '#ff5f6d', b: '#ffd23f' }, rows: [
       '....kkkk....', '..kkrrrrkk..', '.krwrrrrrrk.', '.krwrrrrrsk.', 'krrrrkkrrssk', 'kkkkkbbkkkkk', 'kbbbkbbkbbbk', 'kbbbbkkbbbbk', '.kbbbbbbbbk.', '.kbbbbbbbbk.', '..kkbbbbkk..', '....kkkk....'] },
-    // ---------- objetos equipables (data/items.js) ----------
+    // ---------- equippable items (data/items.js) ----------
     leftovers: { pal: { r: '#ff5f6d', d: '#b8283a', w: '#ffd8d8', g: '#5fe08a' }, rows: [
       '.....kgk....', '....kggk....', '..kkkkkkkk..', '.krwrrrrrrk.', 'krwrrrrrrrdk', 'krrrrrrrrrdk',
       'krrrrrrrrrdk', 'krrrrrrrrddk', '.krrrrrrrdk.', '..kdrrrrdk..', '...kkkkkk...', '............'] },
@@ -189,7 +189,7 @@ G.Icons = (() => {
     assaultvest: { pal: { g: '#4f8a3a', d: '#2f5a22', y: '#ffd23f' }, rows: [
       '............', '.kkk....kkk.', 'kggk....kggk', 'kgggkkkkgggk', 'kgggyggygggk', 'kgggggggggdk',
       'kggyggggygdk', 'kgggggggggdk', 'kgggggggggdk', 'kddddddddddk', 'kkkkkkkkkkkk', '............'] },
-    // ---------- medallas de logros (bronce, plata, oro) ----------
+    // ---------- achievement medals (bronze, silver, gold) ----------
     medal1: { pal: { r: '#ff5f6d', q: '#b8283a', m: '#d08a4a', n: '#8a5226', w: '#ffd0a0', s: '#ffe8c8' }, rows: MEDAL },
     medal2: { pal: { r: '#4fb4ff', q: '#2a6fb0', m: '#c9d2de', n: '#7d8899', w: '#ffffff', s: '#ffffff' }, rows: MEDAL },
     medal3: { pal: { r: '#c47bff', q: '#7a3fb0', m: '#ffd23f', n: '#c08a10', w: '#fff3b0', s: '#fffbe0' }, rows: MEDAL },
@@ -207,10 +207,10 @@ G.Icons = (() => {
       '....kkkk....', '..kkrrrrkk..', '.krwrrrrrrk.', '.krwrrrrrsk.', 'krrrrkkrrssk', 'kkkkkwwkkkkk',
       'kwwwkwwkwwwk', 'kwwwwkkwwwwk', '.kwwwwwwwwk.', '.kwwwwwwwwk.', '..kkwwwwkk..', '....kkkk....'] }
   };
-  // Variantes de paleta.
+  // Palette variants.
   UI.starDim = { rows: UI.star.rows, pal: { y: '#3a4870', o: '#2a3458', w: '#4a5a88' } };
 
-  // ---------------- glifos de tipo (8×8, blancos sobre el emblema) ----------------
+  // ---------------- type glyphs (8×8, white on the emblem) ----------------
   const TYPE_GLYPH = {
     normal:   ['..####..', '.#....#.', '#......#', '#..##..#', '#..##..#', '#......#', '.#....#.', '..####..'],
     fire:     ['...#....', '...##...', '..###.#.', '.#####..', '.######.', '##.####.', '##..###.', '.######.'],
@@ -232,7 +232,7 @@ G.Icons = (() => {
     fairy:    ['...#....', '...#....', '..###...', '#######.', '..###...', '..#.#...', '.#...#..', '........']
   };
 
-  // Insignia de la familia de movimiento (5×5).
+  // Move-family badge (5×5).
   const KIND_GLYPH = {
     projectile: ['..#..', '...#.', '#####', '...#.', '..#..'],
     melee:      ['....#', '...#.', '..#..', '.#...', '#....'],
@@ -260,8 +260,8 @@ G.Icons = (() => {
     stun:       ['#.#.#', '.....', '..#..', '.....', '#.#.#']
   };
 
-  // Esferas de Mundo Misterioso (orbs.js): la misma bola con el color de cada una.
-  // l claro · c color · d sombra · w brillo
+  // Mystery Dungeon orbs (orbs.js): the same ball in each orb's color.
+  // l light · c color · d shadow · w highlight
   const ORB = ['....kkkk....', '..kkllcckk..', '.kllwlcccdk.', '.klwwlcccdk.', 'kllwlccccddk', 'kllccccccddk',
                'klccccccdddk', 'kcccccccdddk', '.kcccccdddk.', '.kcccdddddk.', '..kkddddkk..', '....kkkk....'];
   const ORB_PAL = {
@@ -304,15 +304,15 @@ G.Icons = (() => {
     return cv;
   }
 
-  /** Emblema circular de un tipo (16×16), con insignia de familia opcional. */
+  /** Circular type emblem (16×16), with an optional move-family badge. */
   function emblem(type, kind) {
     const S = 16;
     const cv = document.createElement('canvas');
     cv.width = cv.height = S;
-    const c = cv.getContext('2d', { willReadFrequently: true });   // se lee en svgOf()
+    const c = cv.getContext('2d', { willReadFrequently: true });   // read in svgOf()
     const col = G.U.TYPE_COLOR[type] || '#b0a99f';
     const dark = shade(col, 0.55), lite = shade(col, 1.3);
-    // Disco con contorno, sombra abajo-derecha y brillo arriba-izquierda.
+    // Disc with an outline, bottom-right shadow, and top-left highlight.
     for (let y = 0; y < S; y++) for (let x = 0; x < S; x++) {
       const d = Math.hypot(x - 7.5, y - 7.5);
       if (d > 7.6) continue;
@@ -323,7 +323,7 @@ G.Icons = (() => {
       c.fillStyle = f; c.fillRect(x, y, 1, 1);
     }
     const g = TYPE_GLYPH[type] || TYPE_GLYPH.normal;
-    // Sombra del glifo y glifo.
+    // Glyph shadow and glyph.
     c.fillStyle = dark;
     g.forEach((row, y) => [...row].forEach((ch, x) => { if (ch === '#') c.fillRect(x + 5, y + 5, 1, 1); }));
     c.fillStyle = '#ffffff';
@@ -356,7 +356,7 @@ G.Icons = (() => {
   function url(name) {
     let u = urls.get(name);
     if (!u) {
-      // Los de interfaz, directamente de su dibujo; los emblemas (tipos, movimientos), del canvas.
+      // Interface icons use their drawing directly; emblems (types, moves) use the canvas.
       const plain = !name.startsWith('move:') && !name.startsWith('type:');
       u = plain ? svgOfRows(UI[name] || UI.star) : svgOf(canvas(name));
       urls.set(name, u);
@@ -365,15 +365,15 @@ G.Icons = (() => {
   }
 
   /**
-   * El icono como SVG de texto (un rectángulo por tramo de píxeles iguales).
-   * toDataURL() hacía lo mismo en PNG, pero la primera vez el navegador tarda
-   * ~175 ms en prepararlo y eso bloqueaba la carga de la página (Lighthouse).
+   * Render the icon as an SVG string (one rectangle per run of identical pixels).
+   * toDataURL() did the same as PNG, but the browser took about 175 ms the first
+   * time, blocking page load (Lighthouse).
    */
   function svgDoc(W, H, rects) {
     return 'data:image/svg+xml,' + encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" shape-rendering="crispEdges">${rects}</svg>`);
   }
 
-  /** Igual que fromRows() pero sin canvas (ni lectura de píxeles). */
+  /** Like fromRows(), but without a canvas (or pixel reads). */
   function svgOfRows(def) {
     const h = def.rows.length, w = Math.max(...def.rows.map(r => r.length));
     const pad = def.outline ? 1 : 0;
@@ -411,15 +411,15 @@ G.Icons = (() => {
   }
 
   /**
-   * Ajusta el tamaño a un múltiplo entero de la resolución del icono: un
-   * icono de 16 px pintado a 24 duplicaría unos píxeles sí y otros no.
+   * Snap the size to an integer multiple of the icon resolution: drawing a
+   * 16 px icon at 24 px would scale some pixels by 1 and others by 2.
    */
   function snap(name, size) {
     const w = canvas(name).width;
     return w * Math.max(1, Math.round(size / w));
   }
 
-  /** <img> pixelado para el DOM. */
+  /** Pixelated <img> for the DOM. */
   function html(name, size = 20, cls = '') {
     const cv = canvas(name), w = snap(name, size), h = w * cv.height / cv.width;
     return `<img class="pix ${cls}" src="${url(name)}" width="${w}" height="${h}" alt="" draggable="false">`;
@@ -436,9 +436,9 @@ G.Icons = (() => {
   }
 
   /**
-   * Centelleo de shiny, dibujado píxel a píxel (no es un icono): una cruz que
-   * nace, crece, echa puntas en diagonal y se apaga, como en los juegos.
-   * phase 0..1 · px = tamaño de píxel en pantalla.
+   * Shiny sparkle drawn pixel by pixel (not an icon): a cross that appears,
+   * grows, sprouts diagonal points, and fades, as in the games.
+   * phase 0..1 · px = on-screen pixel size.
    */
   function twinkle(ctx, x, y, phase, px = 2) {
     const st = phase < 0.15 ? 0 : phase < 0.32 ? 1 : phase < 0.62 ? 2 : phase < 0.82 ? 1 : 0;
@@ -455,15 +455,15 @@ G.Icons = (() => {
   }
 
   /**
-   * Rareza como Poké Ball: Poké (Común), Super (Poco común), Ultra (Rara),
-   * Lujo (Épica) y Master (Legendaria).
+   * Rarity as a Poké Ball: Poké (Common), Great (Uncommon), Ultra (Rare),
+   * Luxury (Epic), and Master (Legendary).
    */
   const RARITY_BALL = { 1: 'ball', 2: 'ball2', 3: 'ball3', 4: 'ballLux', 5: 'ball4' };
   function rarity(n, size = 12) {
     return `<span class="rarity-ball" title="${(G.Gacha && G.Gacha.RARITY_NAME[n]) || ''}">${html(RARITY_BALL[n] || 'ball', size)}</span>`;
   }
 
-  /** Publica en CSS los iconos que usan las hojas de estilo. */
+  /** Publish the icons used by stylesheets to CSS. */
   function installCss() {
     const r = document.documentElement.style;
     r.setProperty('--ico-coin', `url("${url('coin')}")`);

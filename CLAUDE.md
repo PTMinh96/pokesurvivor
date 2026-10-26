@@ -1,32 +1,32 @@
-# PokéSurvivor — cómo se trabaja y se publica
+# PokéSurvivor — development and releases
 
-Normas fijas del dueño del proyecto. Se aplican SIEMPRE.
+The project owner's standing requirements. ALWAYS apply them.
 
-## Publicar una versión
-1. Se edita `dev.html` (nunca `index.html`, que se genera).
-2. `node tools/build.js && node tools/export_data.js && python tools/make_seo_pages.py`
-   - `build.js` genera `index.html`, `js/app.min.js` y **`version.json`** (la huella de esta versión).
-3. Commit (sin "Co-Authored-By" ni ninguna firma de IA) y `git push origin main` sólo cuando el dueño lo pida.
+## Releasing a version
+1. Edit `dev.html` (never `index.html`, which is generated).
+2. Run `node tools/build.js && node tools/export_data.js && python tools/make_seo_pages.py`.
+   - `build.js` generates `index.html`, `js/app.min.js`, and **`version.json`** (the fingerprint for this version).
+3. Commit (without "Co-Authored-By" or any AI signature) and `git push origin main` only when the owner asks.
 
-## Actualización automática de los jugadores (obligatorio)
-Al publicar, todos los jugadores deben pasar a la versión nueva sin perder nada
-(`js/core/updater.js`, mira `version.json` cada 5 min):
-- **Fuera de partida** (menú, sala de cooperativo incluida): aviso de 5 s y la página se recarga.
-  Si está en el gacha, la tienda de mejoras, los ajustes o escribiendo en un campo, espera a que termine.
-- **En partida**: no se toca. Al acabar, la run se guarda como siempre y, al volver al menú, se recarga.
-- Antes de recargar se sube a la nube lo pendiente.
-No quitar `updater.js` ni la escritura de `version.json` en `tools/build.js`.
+## Mandatory automatic player updates
+When publishing, every player must move to the new version without losing anything
+(`js/core/updater.js` checks `version.json` every 5 minutes):
+- **Outside a run** (including the menu and co-op lobby): show a 5-second notice and reload the page.
+  If the player is using the gacha, upgrade shop, settings, or typing in a field, wait until they finish.
+- **During a run**: do nothing. At the end, save the run as usual, then reload on returning to the menu.
+- Upload pending data to the cloud before reloading.
+Do not remove `updater.js` or the `version.json` generation in `tools/build.js`.
 
-## Novedades (changelog)
-Cada cambio de juego o arreglo de fallos va también en `js/data/changelog.js`
-(español e inglés, en `new` / `chg` / `fix` de la fecha de hoy). Los cambios de
-servidores, base de datos o costes NO van ahí.
+## Changelog
+Every gameplay change or bug fix must also be recorded in `js/data/changelog.js`
+(Spanish and English, under `new` / `chg` / `fix` for today's date). Server,
+database, or cost changes do NOT belong there.
 
-## Servidores
-- Firebase: proyecto **pokesurvivor-free** (autenticación normal: cuentas gratis sin límite).
-  **Nunca** activar "Identity Platform" ni nada que lo active (funciones de bloqueo, MFA,
-  "Actualizar para habilitar"): cobra por usuario. El proyecto viejo pokesurvivor-jpter se borró el 13-10-2026 (con su facturación).
-- Cloudflare: SÓLO el dominio pokesurvivor.com (comprado allí, DNS gratis). El Worker y el TURN
-  (Cloudflare Realtime) se quitaron el 15-10-2026: el cooperativo va sólo con conexión directa
-  (STUN gratis de Google). No volver a añadir nada de pago.
-- Mantenimiento: `MAINTENANCE` en `js/main.js` (con `?dev` se puede entrar para probar).
+## Servers
+- Firebase: project **pokesurvivor-free** (standard authentication: unlimited free accounts).
+  **Never** enable "Identity Platform" or anything that enables it (blocking functions, MFA,
+  "Upgrade to enable"): it charges per user. The old pokesurvivor-jpter project was deleted on 2026-10-13 (including its billing).
+- Cloudflare: ONLY the pokesurvivor.com domain (purchased there, free DNS). The Worker and TURN
+  (Cloudflare Realtime) were removed on 2026-10-15: co-op now uses direct connections only
+  (Google's free STUN). Do not add any paid services again.
+- Maintenance mode: `MAINTENANCE` in `js/main.js` (use `?dev` to enter for testing).

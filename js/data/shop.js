@@ -1,14 +1,14 @@
-/* ============ shop.js — Tienda Kecleon y Mochila ============
- * (20-10-2026, del PR #236 de TheAdro7, adaptado: sin niveles ni caramelos.)
+/* ============ shop.js — Kecleon Shop and Backpack ============
+ * (2026-10-20, from TheAdro7's PR #236, adapted without levels or candies.)
  *
- * Se compra con Pokémonedas y lo comprado va a la Mochila:
- *   save.bag[id]     Menta, Cápsula Habilidad y Cápsula Habilidad Oculta
- *   save.tms[move]   MT sin usar (cada una se gasta al enseñarla: G.Mons.teach)
- * Las dos van en la libreta de las monedas (core/db.js): lo gastado en un
- * aparato no reaparece al fusionar con otro.
+ * Purchased with Pokémon Coins; purchases go into the Backpack:
+ *   save.bag[id]     Mint, Ability Capsule, and Hidden Ability Capsule
+ *   save.tms[move]   unused TM (consumed when taught: G.Mons.teach)
+ * Both are tracked in the currency ledger (core/db.js): spending on one device
+ * does not restore the item when merged with another.
  *
- * MT a la venta: 8 cada día, iguales para todos (semilla: la fecha en España).
- * Si ninguna sirve a tu compañero, la última se cambia por una que sí aprenda.
+ * TMs for sale: 8 per day, the same for everyone (seed: the date in Spain).
+ * If none work for your partner, the last is replaced with one it can learn.
  */
 G.Shop = (() => {
   const ITEMS = {
@@ -24,7 +24,7 @@ G.Shop = (() => {
 
   const save = () => G.DB.save;
 
-  // ---------------- Mochila ----------------
+  // ---------------- Backpack ----------------
 
   const count = id => { const s = save(); return (s && s.bag && s.bag[id]) || 0; };
   function take(id) {
@@ -41,9 +41,9 @@ G.Shop = (() => {
     return true;
   }
 
-  // ---------------- MT del día ----------------
+  // ---------------- daily TMs ----------------
 
-  /** Fecha de hoy en España (todos ven la misma tienda el mismo día). */
+  /** Current date in Spain (everyone sees the same shop on the same day). */
   function today() {
     const p = {};
     for (const x of new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Madrid', year: 'numeric', month: '2-digit', day: '2-digit' }).formatToParts(new Date())) p[x.type] = x.value;
@@ -54,7 +54,7 @@ G.Shop = (() => {
     for (let i = 0; i < seed.length; i++) { h ^= seed.charCodeAt(i); h = Math.imul(h, 16777619); }
     return () => { h += 0x6D2B79F5; let t = h; t = Math.imul(t ^ t >>> 15, t | 1); t ^= t + Math.imul(t ^ t >>> 7, t | 61); return ((t ^ t >>> 14) >>> 0) / 4294967296; };
   }
-  /** Las 8 MT a la venta hoy. */
+  /** The 8 TMs on sale today. */
   function dailyTms() {
     const all = Object.keys(G.TM_MOVES).sort(), r = rng('kecleon:' + today());
     for (let i = all.length - 1; i > 0; i--) { const j = Math.floor(r() * (i + 1)); [all[i], all[j]] = [all[j], all[i]]; }
@@ -70,7 +70,7 @@ G.Shop = (() => {
 
   // ---------------- comprar ----------------
 
-  /** Compra un objeto ('mint'...) o una MT ('tm:flamethrower'). → { ok, error? } */
+  /*  * Purchase an item ('mint'...) or a TM ('tm:flamethrower'). → { ok, error? } */
   function buy(key) {
     const s = save();
     if (!s) return { ok: false };

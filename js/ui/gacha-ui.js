@@ -1,5 +1,5 @@
-/* ============ gacha-ui.js — banners por generación y animación de tirada ============
- * La lógica (probabilidades, pity, shiny, repetidos) está en systems/gacha.js.
+/* ============ gacha-ui.js — generation banners and pull animation ============
+ * The logic (odds, pity, shiny, duplicates) is in systems/gacha.js.
  */
 G.GachaUI = (() => {
   const $ = G.UI.$;
@@ -12,7 +12,7 @@ G.GachaUI = (() => {
     $('pull-100').onclick = () => pull(100, 't1');
     $('pull-100b').onclick = () => pull(100, 't10');
     $('pull-close').onclick = close;
-    // Saltar: se acaba la tragaperras y salen todas las cartas de golpe (también con Esc).
+    // Skip: end the slot animation and reveal all cards at once (also with Esc).
     $('pull-skip').onclick = skipNow;
     addEventListener('keydown', e => { if (e.key === 'Escape' && busy && !$('pull-fx').classList.contains('hidden')) skipNow(); });
 
@@ -102,15 +102,15 @@ G.GachaUI = (() => {
     slot.style.display = '';
     fx.classList.remove('hidden');
 
-    // La tragaperras (ui/slots.js) y luego las cartas.
-    // La ×100 gira 10 veces: una por cada ×10, enseñando lo mejor de cada una.
+    // The slot machine (ui/slots.js), followed by the cards.
+    // ×100 spins 10 times: once for each ×10, showing the best result from each.
     const rank = r => (r.shiny ? 100 : 0) + r.rarity * 10 + (r.isNew ? 1 : 0);
     const spins = n === 100 ? Array.from({ length: 10 }, (_, k) => res.slice(k * 10, k * 10 + 10).reduce((a, b) => (rank(b) > rank(a) ? b : a))) : res;
     await G.Slots.play(slot, spins, n);
     G.Audio.sfx('burst', { rarity: best });
     slot.style.display = 'none';
 
-    // En la ×100, un resumen arriba y las cartas de mejor a peor.
+    // For ×100 pulls, show a summary at the top and cards from best to worst.
     let cards = res;
     if (n === 100) {
       cards = res.slice().sort((a, b) => rank(b) - rank(a));
@@ -129,7 +129,7 @@ G.GachaUI = (() => {
       const tag = r.isNew
         ? `<span class="new">${r.shiny ? '¡SHINY NUEVO!' : '¡NUEVO!'}</span>`
         : `Repetido · <span class="coin"></span> +${r.refund}`;
-      // Nuevo: con qué naturaleza y habilidad te ha tocado (la oculta, en dorado).
+      // New: the nature and ability you got (the hidden ability is highlighted in gold).
       const ab = r.isNew ? G.Mons.abilityOf(r.dex) : null;
       const who = ab ? `<div class="pmon" translate="no">${G.Mons.name(G.Mons.natureOf(r.dex).n)} · <span class="${ab.slot === 2 ? 'gold' : ''}">${G.Mons.abilityName(ab.id)}</span></div>` : '';
       c.insertAdjacentHTML('beforeend', `<b>${r.shiny ? G.Icons.html('shiny', 12) + ' ' : ''}${mon.name}</b>${who}<div class="tag">${tag}</div>`);
@@ -139,7 +139,7 @@ G.GachaUI = (() => {
       await wait(n === 100 ? 30 : n === 10 ? 150 : 0);
     }
     $('pull-skip').classList.add('hidden');
-    // La última que faltaba de la generación: su Amuleto Iris.
+    // The last missing Pokémon in the generation: its Shiny Charm.
     if (res.iris) {
       const name = G.T(G.Gacha.BANNERS[res.iris - 1].name);
       out.insertAdjacentHTML('beforeend', `<div class="iris-get">${G.Icons.html('iris', 36)}

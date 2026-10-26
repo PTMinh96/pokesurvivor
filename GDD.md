@@ -1,515 +1,533 @@
-# GDD — PokéSurvivor · Mundo Misterioso
+# GDD — PokéSurvivor · Mystery Dungeon
 
-> Documento de diseño vivo. Refleja el estado **actual** del juego; al final hay
-> un registro de decisiones con fecha.
+> Living design document. Describes the game's **current** state; a dated
+> decision log appears at the end.
 
-## 1. Concepto
+## 1. Concept
 
-- **Plataforma:** navegador. Se abre con doble clic en `index.html`, sin servidor.
-- **Género:** bullet-heaven / horde survival + **roguelike** + **gacha de personajes**.
-- **Referencias:** Survivor.io, Megabonk, Vampire Survivors.
-- **Estética:** **Pokémon Mundo Misterioso** (sprites de PMD, cajas de diálogo
-  azules, iconos pixel art, música de aldea).
-- **El jugador es un Pokémon.** Hay **966 Pokémon** de las 9 generaciones.
-- **Todo es local:** sprites, datos, fuente, música y guardado. El juego no hace
-  ninguna petición a internet.
+- **Platform:** browser. Open `index.html` with a double-click; no server required.
+- **Genre:** bullet-heaven / horde survival + **roguelike** + **character gacha**.
+- **References:** Survivor.io, Megabonk, Vampire Survivors.
+- **Style:** **Pokémon Mystery Dungeon** (PMD sprites, blue dialogue boxes,
+  pixel-art icons, village music).
+- **The player is a Pokémon.** There are **966 Pokémon** from all 9 generations.
+- **Everything is local:** sprites, data, font, music, and saves. The game makes
+  no internet requests.
 
-## 2. Flujo de pantallas
+## 2. Screen flow
 
 ```
-Login / Crear cuenta / Invitado
+Login / Create account / Guest
         │
-        ├─ (primera vez) Test de personalidad ─> Compañero asignado
-        │                                          ├─ ¡Vamos juntos!
-        │                                          └─ Elegir otro (29 starters)
+        ├─ (first time) Personality test ─> Assigned companion
+        │                                    ├─ Let's go together!
+        │                                    └─ Choose another (29 starters)
         ▼
-Menú principal  (el mundo de fondo, con Pokémon salvajes paseando)
-   ├─ Jugar      → run → resumen (+ Pokémonedas, shinies conseguidos) → menú
-   ├─ Pokémon    → colección por región, elegir compañero (normal o shiny)
-   ├─ Mejoras    → mejoras permanentes
-   ├─ Gacha      → 9 banners, uno por región
-   ├─ Amigos     → añadir por apodo, en línea, invitar → Sala (hasta 4) → partida en grupo
-   └─ Ranking    → tiempo aguantado: Solo / Grupo × día, semana, mes, año, histórico
+Main menu (background world, with wild Pokémon wandering around)
+   ├─ Play        → run → summary (+ Pokécoins, shinies caught) → menu
+   ├─ Pokémon     → collection by region; choose normal or shiny companion
+   ├─ Upgrades    → permanent upgrades
+   ├─ Gacha       → 9 banners, one per region
+   ├─ Friends     → add by nickname, see online status, invite → lobby (up to 4) → group run
+   └─ Leaderboard → survival time: Solo / Group × day, week, month, year, all-time
 ```
 
-### 2.3 Multijugador cooperativo (hasta 4)
-- **Amigos por apodo.** Las cuentas de nombre y contraseña usan su nombre; las
-  de Google eligen un apodo único (su nombre real nunca se enseña).
-- **Sala:** el que invita es el anfitrión; los amigos en línea reciben la
-  invitación en el menú. El anfitrión empieza la partida para todos.
-- **Conexión:** directa entre navegadores (WebRTC, estrella con el anfitrión);
-  si la red no lo permite, por la Realtime Database (más lento, pero funciona).
-- **Quién manda:** el anfitrión lleva enemigos, objetos, experiencia y reloj;
-  cada jugador su Pokémon (posición, vida, ataques). Los golpes a enemigos se
-  mandan al anfitrión; los ataques de los compañeros se ven como "fantasmas".
-- **Experiencia compartida**; al subir de nivel cada uno elige su carta y el
-  juego **no sigue hasta que eligen todos**.
-- **Caer:** te quedas en el suelo; un compañero a tu lado 3 s te levanta con la
-  mitad de vida. Se acaba cuando caéis todos.
-- **Flechas** en el borde de la pantalla hacia los compañeros que no se ven
-  (nombre y metros; roja si está caído).
-- Dificultad: ×(1 + 0,75·(n−1)) enemigos y ×(1 + 0,3·(n−1)) vida; la
-  experiencia del equipo se divide entre (1 + 0,6·(n−1)).
-- La pausa no para el juego; si se va el anfitrión, la partida acaba para todos.
+### 2.1 Accounts
 
-### 2.4 Ranking
-- Tiempo aguantado. Pestañas **Solo / Grupo**; periodos **diario, semanal,
-  mensual, anual e histórico** (hora de España); **todos o sólo amigos**;
-  **filtro por Pokémon**; tu puesto abajo aunque no salgas en el top 50.
-- Una entrada por jugador (o equipo) y tabla, sólo si mejora. En grupo sale
-  el equipo entero en la misma fila (la sube el anfitrión).
-- Anti-trampas básico: al empezar se apunta la hora del servidor y las reglas
-  no aceptan un tiempo mayor que el tiempo real transcurrido.
+- Sign in, create an account, or **play as a guest** (nothing is saved).
+- Temporary local implementation behind `js/core/db.js` using `localStorage`.
+  Passwords use salt + SHA-256, but this is local and is not real security.
+- The session is remembered when the game is reopened.
 
-### 2.1 Cuentas
-- Entrar, crear cuenta o **jugar como invitado** (no se guarda nada).
-- Provisional en `localStorage` detrás de `js/core/db.js`. Contraseñas con sal +
-  SHA-256, pero es local: no es seguridad real.
-- La sesión se recuerda al reabrir el juego.
+### 2.2 Personality test
 
-### 2.2 Test de personalidad
-- 8 preguntas estilo Mundo Misterioso; cada respuesta suma puntos de rasgo.
-- El rasgo dominante decide el compañero entre los **29 iniciales**: starters de
-  las 9 generaciones + Psyduck + Slowpoke. Se puede rechazar y elegir otro.
+- 8 Mystery Dungeon-style questions; each answer adds trait points.
+- The dominant trait selects a companion from the **29 starters**: starters
+  from all 9 generations plus Psyduck and Slowpoke. The player can decline and
+  choose another.
 
-## 3. Combate
+### 2.3 Cooperative multiplayer (up to 4)
 
-- El Pokémon **ataca solo** con el **movimiento activo** (1 de hasta 4).
-- Cambias el activo con `1`–`4` o `Q`/`E`. Moverse: `WASD` / flechas. Pausa: `Esc`.
-- Cada ataque reproduce la **animación de PMD** que toca: `Attack`, `Shoot` o `Charge`.
-- **Apuntado:** lo que te está tocando > el jefe si está a tiro > el enemigo más
-  cercano > (sin enemigos) la roca o cofre más cercano.
-- **52 movimientos** en 7 familias (proyectil, cuerpo a cuerpo, rayo, orbes,
-  nova, aura, potenciador), 5 niveles cada uno. Cubren los **18 tipos**.
-- El pool de cada Pokémon sale de sus tipos + el pool normal común.
-- Los potenciadores no hacen daño: entras, acumulas y vuelves a uno de ataque.
-  Nunca se ofrecen más de 2.
-- Al subir de nivel: **1 de 3 cartas**.
+- **Friends by nickname.** Username/password accounts use their username;
+  Google accounts choose a unique nickname (their real name is never shown).
+- **Lobby:** the inviter is the host; online friends receive an invitation in
+  the menu. The host starts the run for everyone.
+- **Connection:** direct between browsers (WebRTC, star topology with the host);
+  if the network prevents this, use Realtime Database (slower, but works).
+- **Authority:** the host controls enemies, objects, experience, and the timer;
+  each player controls their Pokémon (position, health, attacks). Hits on
+  enemies are sent to the host; teammates' attacks appear as "ghosts."
+- **Shared experience**; each player chooses a card on level-up, and the game
+  **does not continue until everyone has chosen**.
+- **Downed:** you stay on the ground; a teammate standing beside you for 3 s
+  revives you with half health. The run ends when everyone is down.
+- **Arrows** at the screen edge point to off-screen teammates (name and distance;
+  red if downed).
+- Difficulty: ×(1 + 0.75·(n−1)) enemies and ×(1 + 0.3·(n−1)) health; team
+  experience is divided by (1 + 0.6·(n−1)).
+- Pausing does not stop the game; if the host leaves, the run ends for everyone.
 
-## 4. Mundo
+### 2.4 Leaderboard
 
-Arena abierta e infinita, generada con ruido determinista y pintada en pixel art
-desde código (16 px por tile, ×2).
+- Survival time. **Solo / Group** tabs; **daily, weekly, monthly, yearly, and
+  all-time** periods (Spain time); **everyone or friends only**; **Pokémon
+  filter**; your rank is shown below even if you are outside the top 50.
+- One entry per player (or team) and table, only when a record improves. In
+  group mode, the entire team appears in one row (submitted by the host).
+- Basic anti-cheat: server time is recorded at the start; rules reject a time
+  longer than the elapsed real time.
 
-| Elemento | Efecto |
+## 3. Combat
+
+- The Pokémon **automatically attacks** with the **active move** (1 of up to 4).
+- Change the active move with `1`–`4` or `Q`/`E`. Move with `WASD` / arrow keys.
+  Pause with `Esc`.
+- Each attack plays the appropriate **PMD animation**: `Attack`, `Shoot`, or `Charge`.
+- **Target priority:** something touching you > boss in range > nearest enemy >
+  (if there are no enemies) nearest rock or chest.
+- **52 moves** across 7 families (projectile, melee, beam, orbs, nova, aura,
+  buff), each with 5 levels. They cover all **18 types**.
+- Each Pokémon's move pool comes from its types plus the shared normal-type pool.
+- Buffs do no damage: take one, build it up, then return to an attack move.
+  No more than 2 buffs are offered.
+- On level-up: **1 of 3 cards**.
+
+## 4. World
+
+An open, infinite arena generated with deterministic noise and rendered in
+pixel art in code (16 px per tile, ×2).
+
+| Element | Effect |
 |---|---|
-| Formaciones rocosas | Bloquean a quien camina y a los proyectiles |
-| Agua | Ralentiza (×0,6 jugador, ×0,55 enemigos) |
-| Lava (bioma volcán) | Quema a quien la pisa — se puede atraer a los enemigos |
-| Árboles / cristales | Bloquean; dan cobertura contra disparos enemigos |
-| Rocas | Se rompen; sueltan XP, monedas o bayas |
-| Cofres | Se rompen; buen botín de monedas |
-| Hierba alta | Se corta con cualquier ataque; a veces suelta algo |
-| **Altar de poder** | Al tocarlo, 25 s de Furia (daño ×2), Rayo (+45% velocidad), Imán (×4) o Prisa (−40% recarga); luego se apaga |
-| **Manantial** | Cura mientras estás encima; se agota y se recarga solo en ~45 s |
-| **Cofre con candado** | Quédate 3,5 s a su lado (aunque te ataquen): monedas, 1-3 tickets (15% un ×10) y experiencia para subir un nivel |
-| **Trampas** | Veneno, pegajosa (te frena) o explosiva; saltan al pisarlas, también con los enemigos |
-| **Grieta** | Rara (cada 30 s, 14% desde el minuto 1:15; dura 45 s). Te lleva a la arena de un legendario |
+| Rock formations | Block walkers and projectiles |
+| Water | Slows movement (×0.6 player, ×0.55 enemies) |
+| Lava (volcanic biome) | Burns anything that steps on it; enemies can be lured onto it |
+| Trees / crystals | Block movement and provide cover from enemy shots |
+| Rocks | Breakable; drop XP, coins, or berries |
+| Chests | Breakable; good coin drops |
+| Tall grass | Cut by any attack; may drop an item |
+| **Power altar** | On contact, grants 25 s of Fury (damage ×2), Lightning (+45% speed), Magnet (×4), or Haste (−40% cooldown), then deactivates |
+| **Spring** | Heals while standing on it; depletes and recharges in about 45 s |
+| **Locked chest** | Stay beside it for 3.5 s (even while attacked): coins, 1–3 tickets (15% chance of ×10), and enough experience for a level |
+| **Traps** | Poison, sticky (slows you), or explosive; trigger when stepped on by players or enemies |
+| **Rift** | Rare (every 30 s, 14% chance starting at 1:15; lasts 45 s). Takes you to a legendary arena |
 
-- **Voladores, fantasmas y jefes** ignoran el terreno.
-- **3 biomas** que rotan cada 4 minutos, cada uno con su música:
-  Bosque Umbrío, Cueva Cristal, Volcán Ceniza. El cambio es un **fundido**
-  de 2,6 s entre la paleta vieja y la nueva (suelo y objetos).
-- **Grieta → arena:** zona redonda cerrada en el bioma *Grieta Distorsión*,
-  contra un **legendario** (2 min). Ganas: ticket ×10 extra, 3 tickets y
-  monedas, y vuelves donde estabas. Pierdes (caéis todos o se acaba el tiempo):
-  vuelves sin premio con el 30% de vida. Mientras, los enemigos del mapa esperan.
+- **Flying enemies, ghosts, and bosses** ignore terrain.
+- **3 biomes** rotate every 4 minutes, each with its own music:
+  Shadow Forest, Crystal Cave, Ashen Volcano. Transitions use a **2.6 s fade**
+  between old and new palettes (ground and objects).
+- **Rift → arena:** a closed circular area in the *Distortion Rift* biome,
+  against a **legendary** (2 min). Win: extra ×10 ticket, 3 tickets, and coins;
+  return to where you were. Lose (everyone falls or time runs out): return
+  without a reward at 30% health. Map enemies wait during the fight.
 
-### 4.0 Arenas de la grieta (una por tipo)
-El legendario te espera en la arena de **uno de sus dos tipos, al azar**. Cada
-arena tiene su paleta, su decoración, su terreno y su clima, y suena un tema
-propio ("rift"). El legendario choca con paredes y columnas como tú y no puede
-salir del círculo.
+### 4.1 Rift arenas (one per type)
 
-| Tipo | Arena | Terreno | Clima |
+The legendary waits in an arena matching **one of its two types, chosen at
+random**. Each arena has its own palette, decorations, terrain, weather, and
+"rift" music. The legendary collides with walls and pillars like the player and
+cannot leave the circle.
+
+| Type | Arena | Terrain | Weather |
 |---|---|---|---|
-| Normal | Pradera Eterna | columnas | — |
-| Fuego | Volcán Ígneo | ríos de lava (quema) | sol |
-| Agua | Gruta Marina | charcos (frenan) | lluvia |
-| Planta | Selva Esmeralda | ciénaga (frena mucho), árboles | — |
-| Eléctrico | Central Voltio | charcos con descarga | lluvia |
-| Hielo | Glaciar Eterno | placas de hielo (resbalas) | nieve |
-| Lucha | Dojo Ancestral | muchas columnas | — |
-| Veneno | Ciénaga Tóxica | charcos de veneno | — |
-| Tierra | Desierto Rojo | arenas movedizas | arena |
-| Volador | Pico Celeste | árboles-nube | — |
-| Psíquico | Templo Mental | cristales rosas, columnas | — |
-| Bicho | Bosque Colmena | ciénaga, mucha hierba | — |
-| Roca | Cantera Antigua | muchas columnas y rocas | arena |
-| Fantasma | Cementerio Sombrío | árboles muertos | niebla |
-| Dragón | Santuario Dragón | llamas dracónicas (queman) | — |
-| Siniestro | Callejón Oscuro | columnas | — |
-| Acero | Fortaleza de Acero | muchas columnas | — |
-| Hada | Bosque Encantado | árboles rosas, fuentes | — |
+| Normal | Eternal Meadow | pillars | — |
+| Fire | Igneous Volcano | lava rivers (burning) | sun |
+| Water | Sea Grotto | puddles (slow) | rain |
+| Grass | Emerald Jungle | deep swamp, trees | — |
+| Electric | Volt Station | charged puddles | rain |
+| Ice | Eternal Glacier | ice sheets (slippery) | snow |
+| Fighting | Ancestral Dojo | many pillars | — |
+| Poison | Toxic Swamp | poison pools | — |
+| Ground | Red Desert | quicksand | sand |
+| Flying | Sky Peak | cloud trees | — |
+| Psychic | Mind Temple | pink crystals, pillars | — |
+| Bug | Hive Forest | swamp, lots of grass | — |
+| Rock | Ancient Quarry | many pillars and rocks | sand |
+| Ghost | Shadow Cemetery | dead trees | fog |
+| Dragon | Dragon Shrine | dragon flames (burning) | — |
+| Dark | Dark Alley | pillars | — |
+| Steel | Steel Fortress | many pillars | — |
+| Fairy | Enchanted Forest | pink trees, fountains | — |
 
-Inmunidades al terreno: Fuego a la lava, Veneno/Acero al veneno,
-Eléctrico/Tierra a la descarga, Hielo al hielo. El legendario no sufre su arena.
+Terrain immunities: Fire to lava; Poison/Steel to poison; Electric/Ground to
+electric discharges; Ice to ice. The legendary is immune to its arena.
 
-### 4.1 Climas (evento raro)
-Desde el minuto 2, cada minuto hay un 18% de que llegue un clima (~1 minuto):
+### 4.2 Weather (rare event)
 
-| Clima | Efecto |
+Starting at minute 2, there is an 18% chance of weather each minute (lasts about 1 minute):
+
+| Weather | Effect |
 |---|---|
-| Sol abrasador | Fuego ×1,5 · Agua ×0,5 |
-| Lluvia | Agua ×1,5 · Eléctrico ×1,2 · Fuego ×0,5 |
-| Tormenta de arena | Roca, Tierra y Acero ×1,3; el resto pierde un 1,2% de vida cada 2 s (nunca KO) |
-| Nevada | Hielo ×1,5; el resto pierde vida igual y va un 10% más lento |
-| Niebla | Fantasma, Hada y Psíquico ×1,3; la viñeta se cierra un poco |
+| Harsh sunlight | Fire ×1.5 · Water ×0.5 |
+| Rain | Water ×1.5 · Electric ×1.2 · Fire ×0.5 |
+| Sandstorm | Rock, Ground, and Steel ×1.3; all others lose 1.2% health every 2 s (never KO) |
+| Snow | Ice ×1.5; all others lose health at the same rate and move 10% slower |
+| Fog | Ghost, Fairy, and Psychic ×1.3; vignette closes slightly |
 
-Afecta a todos (tú y los enemigos). Cada bioma prefiere unos climas. Lo visual
-es suave: tinte leve y pocas partículas pixel. En grupo lo decide el anfitrión.
+Weather affects everyone (player and enemies). Each biome favors certain
+weather. Visuals are subtle: slight tint and a few pixel particles. In co-op,
+the host chooses the weather.
 
-### 4.2 Tabla de tipos (suavizada)
-La de los juegos, pero ×1,6 / ×0,6 / ×0,3 en vez de ×2 / ×0,5 / ×0 (con un
-solo ataque activo, una inmunidad total dejaría enemigos imposibles). Dos
-tipos se multiplican, con tope ×0,3–×2,4. Tus ataques usan el tipo del
-movimiento; los enemigos, su tipo principal (o el de su disparo). Número
-amarillo cuando es muy eficaz; gris si no (sin texto, para no cargar la pantalla).
+### 4.3 Type chart (softened)
 
-## 5. Enemigos
+Based on the games, but uses ×1.6 / ×0.6 / ×0.3 instead of ×2 / ×0.5 / ×0
+(with only one active attack, complete immunity could make enemies impossible).
+Dual types multiply, capped at ×0.3–×2.4. Player attacks use the move's type;
+enemies use their primary type (or their projectile's type). A yellow number
+indicates super-effective damage; gray indicates not very effective (no text,
+to keep the screen clear).
 
-- **De todas las generaciones.** 6 tramos por total de stats base; en cada run se
-  sortea un elenco de 7 Pokémon por tramo, así cada partida es distinta.
-- IA según tipos: persecución, embestida telegrafiada (`Charge` → `Attack`),
-  disparo a distancia o tanque.
-- **5 jefes** (min. 3, 6, 9, 12, 15): Pokémon fuertes **no legendarios**
-  (pseudolegendarios, Slaking...) al azar, cada vez más fuertes; cada uno suelta
-  un **ticket ×10**. Los legendarios sólo salen en las grietas. Durante un combate de jefe las oleadas bajan al 25%, no
-  hay mareas y suena el tema de jefe.
-- Mareas cada ~45 s. Tope de **280** enemigos a la vez; al llegar al tope, los
-  que siguen saliendo son élite (×1,6 vida y experiencia, ×1,25 daño).
-- **Pathfinding:** campo de distancias (BFS) alrededor de cada jugador; los que
-  caminan rodean rocas, paredes y charcos peligrosos. Sólo vuelan por encima
-  los que **flotan en su sprite** (`hv` en sprites-meta, tools/hover_flags.py):
-  Rowlet o Pidgey caminan aunque sean Voladores; Gastly o Zubat flotan.
+## 5. Enemies
 
-### 5.1 Personalidades
-En cada run, cada tramo de enemigos trae al menos 2 con personalidad (1 en el
-primero, para ir aprendiendo). Los ataques "con aviso" se ven antes en el suelo.
+- **All generations.** 6 tiers by total base stats; each run randomly selects
+  7 Pokémon per tier, so every run is different.
+- Type-based AI: chase, telegraphed charge (`Charge` → `Attack`), ranged shot,
+  or tank.
+- **5 bosses** (minutes 3, 6, 9, 12, 15): randomly selected strong
+  **non-legendaries** (pseudo-legendaries, Slaking, etc.), growing stronger
+  each time; each drops a **×10 ticket**. Legendaries appear only in rifts.
+  During a boss fight, waves drop to 25%, there are no tides, and boss music plays.
+- Tides every ~45 s. Maximum **280** enemies at once; after the cap, new
+  spawns are elite (×1.6 health and experience, ×1.25 damage).
+- **Pathfinding:** distance field (BFS) around each player; walkers go around
+  rocks, walls, and dangerous puddles. Only Pokémon that **float in their
+  sprite** (`hv` in sprites-meta, `tools/hover_flags.py`) fly: Rowlet and Pidgey
+  walk despite being Flying types; Gastly and Zubat float.
 
-| Personalidad | Quién | Qué hace |
+### 5.1 Personalities
+
+Each enemy tier in a run includes at least 2 enemies with a personality (1 in
+the first tier, to help players learn). Telegraphs appear on the ground first.
+
+| Personality | Examples | Behavior |
 |---|---|---|
-| Curandero | Chansey, Blissey, Audino, Clefairy... | Cura un 15% a los de alrededor cada 3,5 s |
-| Escudo | Shuckle, Bronzong, Mr. Mime, Bastiodon... | Escudo del 35% de vida a 6 compañeros |
-| Invocador | Nidoqueen, Vespiquen, Golbat, Gyarados... | Llama a 2 de su manada (Nidoran, Combee...) |
-| Kamikaze | Voltorb, Electrode, Koffing, Geodude... | Se acerca y explota (aviso de 1 s) |
-| Rayo | Eléctrico, Psíquico, Dragón, Hielo (algunos) | Rayo con franja de aviso |
-| Zonas | Fuego, Tierra, Veneno (algunos) | Círculos bajo tus pies que estallan |
-| Abanico | Agua, Planta, Bicho, Hada (algunos) | 3 disparos en abanico (5 más adelante) |
-| Saltador | Lucha, Tierra, Normal, Roca (algunos) | Salta y cae donde estabas |
+| Healer | Chansey, Blissey, Audino, Clefairy... | Heals nearby allies by 15% every 3.5 s |
+| Shield | Shuckle, Bronzong, Mr. Mime, Bastiodon... | Gives 6 allies a shield worth 35% of health |
+| Summoner | Nidoqueen, Vespiquen, Golbat, Gyarados... | Calls 2 pack members (Nidoran, Combee...) |
+| Kamikaze | Voltorb, Electrode, Koffing, Geodude... | Approaches and explodes (1 s warning) |
+| Beam | Electric, Psychic, Dragon, some Ice | Beam with a warning strip |
+| Zones | Fire, Ground, some Poison | Circles under the player's feet that explode |
+| Fan | Water, Grass, Bug, some Fairy | 3 fan shots (5 later) |
+| Jumper | Fighting, Ground, Normal, some Rock | Jumps and lands where the player was |
 
 ## 6. Shinies
 
-- **Salvajes:** cada enemigo tiene **1/4096** de salir shiny (también los jefes).
-  Brilla, tiene el doble de vida, da ×5 de experiencia, no desaparece aunque te
-  alejes y una flecha en el borde de la pantalla te indica dónde está.
-  **Si lo derrotas, te lo quedas** (y la versión normal si no la tenías). Si ya
-  tenías ese shiny, +300 monedas.
-- **Gacha:** 1 de cada 100 tiradas sale shiny. Shiny repetido = triple de monedas.
-- **Colección:** en la ficha de un Pokémon cuyo shiny tienes hay un selector
-  **Normal / Shiny**; eliges compañero en la versión que quieras.
-- 958 de los 966 Pokémon tienen sprite shiny auténtico de SpriteCollab.
+- **Wild:** every enemy has a **1/4096** chance to be shiny (bosses too).
+  It sparkles, has double health, grants ×5 experience, does not disappear if
+  you move away, and an edge-of-screen arrow points to it.
+  **Defeat it to keep it** (and the normal version if not already owned). If
+  the shiny is already owned, receive +300 coins.
+- **Gacha:** 1 in 100 pulls is shiny. Duplicate shiny = triple coins.
+- **Collection:** a **Normal / Shiny** selector appears on a Pokémon's entry if
+  its shiny is owned; choose either form as your companion.
+- 958 of the 966 Pokémon have an authentic SpriteCollab shiny sprite.
 
-## 7. Progresión
+## 7. Progression
 
-### 7.1 Pokémonedas
-Al terminar una run: `tiempo/5 + derrotados/4 + 80 por jefe + monedas recogidas`,
-multiplicado por la mejora Fortuna. Cuenta nueva: 500 de regalo.
+### 7.1 Pokécoins
 
-Las monedas sirven para las **mejoras**; el gacha va con tickets.
+At the end of a run: `time/5 + defeated/4 + 80 per boss + collected coins`,
+multiplied by the Fortune upgrade. New account: 500 coins as a gift.
 
-### 7.2 Mejoras permanentes — de cada Pokémon
-Vitalidad, Fuerza, Zancada, Reflejos, Coraza, Síntesis, Imán, Sabiduría, Fortuna
-y **Repertorio (empezar con 2 movimientos)**. Cada Pokémon tiene las suyas y
-sólo cuentan cuando juegas con él (en la pantalla de Mejoras se elige cuál).
-Las que se compraron cuando eran de la cuenta pasaron al compañero de entonces.
+Coins are used for **upgrades**; gacha uses tickets.
 
-### 7.2a Objetos equipables (uno por run)
-Restos, Cinta Elección, Garra Rápida, Banda Focus, Cascabel Concha, Moneda
-Amuleto, Huevo Suerte, Vidasfera, Pañuelo Elección, Casco Dentado y Chaleco
-Asalto. Los sueltan **todos los jefes**, los cofres con candado (50%) y a veces
-los normales (8%). Si ya llevas uno, eliges (en solitario el juego se para).
+### 7.2 Permanent upgrades — per Pokémon
 
-### 7.2c Evolución de movimientos
-Un movimiento al nivel máximo evoluciona si en esa run has cogido su mejora de
-condición (Ascuas + Potencia → Llamarada, Burbuja + Carrera → Surf...): sale
-una **carta dorada** (siempre, si está lista). Los 47 de ataque evolucionan.
+Vitality, Strength, Stride, Reflexes, Armor, Synthesis, Magnet, Wisdom, Fortune,
+and **Move Set (start with 2 moves)**. Each Pokémon has its own upgrades; they
+apply only when playing as that Pokémon (choose it in the Upgrades screen).
+Upgrades purchased when upgrades were account-wide were assigned to the
+companion active at the time.
 
-### 7.2d Misiones, logros y perfil
-- **3 diarias + 2 semanales** (premio en tickets y monedas); una diaria se puede
-  cambiar al día. Mismas misiones en cualquier ordenador (semilla por cuenta).
-- **Logros** con medalla (bronce, plata, oro), premio y a veces **título**;
-  uno por cada **legendario** vencido en una grieta.
-- **Perfil público** (desde el ranking o la lista de amigos): 3 favoritos,
-  título, mejores marcas y las 8 mejores medallas.
+### 7.2a Equippable items (one per run)
 
-### 7.2b Tickets del gacha
-- **Ticket** (×1): cada Pokémon derrotado tiene 1/400 de soltar uno; los cofres
-  con candado dan 1-3.
-- **Ticket ×10**: los jefes, el legendario de la grieta (2) y, a veces, los
-  cofres con candado.
-- En grupo los tickets son del equipo: todos se llevan los que se recogen.
+Leftovers, Choice Band, Quick Claw, Focus Sash, Shell Bell, Amulet Coin, Lucky
+Egg, Life Orb, Choice Scarf, Rocky Helmet, and Assault Vest. Dropped by **all
+bosses**, locked chests (50%), and sometimes regular chests (8%). If already
+carrying one, choose which to keep (the game pauses in solo mode).
 
-### 7.3 Gacha — un banner por región
-Kanto, Johto, Hoenn, Sinnoh, Teselia, Kalos, Alola, Galar y Paldea, cada uno con
-**sus Pokémon, sus 3 destacados y su propio pity**.
+### 7.2b Gacha tickets
 
-| Rareza | Prob. | Repetido devuelve |
+- **Ticket** (×1): each defeated Pokémon has a 1/400 chance to drop one; locked
+  chests give 1–3.
+- **×10 ticket:** bosses, rift legendary (2), and sometimes locked chests.
+- In a group, tickets belong to the team: everyone receives those collected.
+
+### 7.2c Move evolution
+
+A max-level move evolves if its condition upgrade was collected during that
+run (Ember + Power → Fire Blast, Bubble + Dash → Surf, etc.): a **gold card**
+appears (always, if available). All 47 attack moves can evolve.
+
+### 7.2d Missions, achievements, and profile
+
+- **3 daily + 2 weekly** (ticket and coin rewards); one daily can be rerolled
+  per day. Missions are the same on every computer (account-based seed).
+- **Achievements** award bronze, silver, or gold medals, rewards, and sometimes
+  **titles**; there is one for each **legendary** defeated in a rift.
+- **Public profile** (from leaderboard or friends list): 3 favorites, title,
+  best records, and the 8 highest medals.
+
+### 7.3 Gacha — one banner per region
+
+Kanto, Johto, Hoenn, Sinnoh, Unova, Kalos, Alola, Galar, and Paldea, each with
+**its Pokémon, 3 featured Pokémon, and its own pity counter**.
+
+| Rarity | Chance | Duplicate refund |
+|---|---:|---:|
+| Common | 45% | 15 |
+| Uncommon | 30% | 30 |
+| Rare | 17% | 60 |
+| Epic | 6.5% | 120 |
+| Legendary | 1.5% | 300 |
+| *Shiny* | *1% (any rarity)* | *×3* |
+
+- ×1 pull: 1 ticket · ×10: **10 regular tickets or 1 ×10 ticket** (two buttons,
+  choose how to pay), with at least one **Epic** guaranteed. Duplicates still
+  grant coins.
+- **Pixel-art slot-machine animation** (lever, 3 reels, bulbs). Symbols show
+  rarity: Poké, Great, Ultra, Luxury, and Master Ball (Legendary), plus a red
+  star (shiny). For Epic or better, the last reel waits longer. ×10 is 10 quick
+  pulls that drop into the tray. Click to speed it up.
+- **Pity:** after 70 pulls without a Legendary on a banner, the next one is Legendary.
+- Some regions have almost empty rarities (Galar has only 4 Uncommon Pokémon);
+  if a banner has no Pokémon at a rarity, the nearest available rarity is used.
+
+## 8. Music and sound
+
+Composed for the game and played by a Web Audio synthesizer (flute, marimba,
+plucked guitar, bass, pad, lead, and drums, with reverb). No audio files.
+
+| Theme | Where | Style |
 |---|---|---|
-| Común | 45% | 15 |
-| Poco común | 30% | 30 |
-| Rara | 17% | 60 |
-| Épica | 6,5% | 120 |
-| Legendaria | 1,5% | 300 |
-| *Shiny* | *1% (cualquier rareza)* | *×3* |
+| Village | Menus | F major, 100 bpm with swing, flute and marimba |
+| Forest | Run (forest) | Adventurous D minor, 122 bpm |
+| Cave | Run (cave) | Mysterious A minor, 92 bpm, bells |
+| Volcano | Run (volcano) | Tense E Phrygian, 132 bpm |
+| Boss | Boss fight | Intense E minor, 150 bpm |
 
-- Tirada ×1: 1 ticket · ×10: **10 tickets normales o 1 ticket ×10** (dos botones,
-  eliges con qué pagar), con **al menos una
-  Épica** garantizada. Los repetidos siguen dando monedas.
-- **Animación: tragaperras pixel art** (palanca, 3 rodillos, bombillas). Los
-  símbolos son la rareza: Poké, Super, Ultra, Lujo y Master Ball
-  (Legendaria) y la estrella roja (shiny); con Épica o mejor el último rodillo se hace
-  esperar. La ×10 son 10 tiradas rápidas que caen a la bandeja. Clic = acelerar.
-- **Pity:** a las 70 tiradas sin Legendaria en un banner, la siguiente lo es.
-- Algunas regiones tienen rarezas casi vacías (Galar sólo tiene 4 Poco comunes);
-  si una rareza no tiene Pokémon en ese banner, sale la más cercana.
+- Effects for buttons, each attack family (with pitch based on type), hits,
+  falls, experience (pitch rises during a streak), coins, levels, bosses,
+  shinies, breakage, and gacha (drop, shakes, rarity-based burst).
+- Music/effect volume and mute button in the top bar and pause menu; settings
+  are remembered in the browser.
+- Measured: all 5 themes playing together (RMS 0.075–0.09), without clipping
+  even during a boss fight.
 
-## 8. Música y sonido
+## 9. Interface
 
-Compuesto para el juego y tocado por un sintetizador Web Audio (flauta, marimba,
-guitarra punteada, bajo, pad, lead y batería, con reverb). Cero ficheros.
+- **No emoji.** Pixel-art icons drawn in code (`js/ui/icons.js`): each move has
+  its **type emblem** (18) plus a **family badge**, along with heart, glove,
+  boot, clock, shield, sprout, magnet, book, coin, cards, berry, bomb, star,
+  shiny sparkle, crown, Poké Ball, and more.
+- Always draw at integer multiples of the source resolution so pixels stay crisp.
 
-| Tema | Dónde | Estilo |
-|---|---|---|
-| Aldea | Menús | Fa mayor, 100 bpm con swing, flauta y marimba |
-| Bosque | Run (bosque) | Re menor aventurero, 122 bpm |
-| Cueva | Run (cueva) | La menor misterioso, 92 bpm, campanitas |
-| Volcán | Run (volcán) | Mi frigio tenso, 132 bpm |
-| Jefe | Combate de jefe | Mi menor intenso, 150 bpm |
+## 10. Technology
 
-- Efectos para botones, cada familia de ataque (con tono según el tipo),
-  golpes, caídas, experiencia (sube de tono en racha), monedas, nivel, jefe,
-  shiny, roturas, gacha (caída, sacudidas, estallido según rareza).
-- Volumen de música y efectos y botón de silencio en la barra superior y en la
-  pausa; se recuerda en el navegador.
-- Medido: los 5 temas a la par (RMS 0,075–0,09), sin saturar ni con jefe + combate.
-
-## 9. Interfaz
-
-- **Sin emojis.** Iconos pixel art dibujados en código (`js/ui/icons.js`):
-  cada movimiento lleva el **emblema de su tipo** (18) + una **insignia de su
-  familia**; más corazón, guante, bota, reloj, escudo, brote, imán, libro,
-  moneda, cartas, baya, bomba, estrella, destello shiny, corona, Poké Ball…
-- Siempre a múltiplos enteros de su resolución, para que el píxel quede nítido.
-
-## 10. Técnica
-
-- HTML + CSS + JavaScript vanilla sobre Canvas 2D. Sin build, sin dependencias.
+- Vanilla HTML + CSS + JavaScript on Canvas 2D. No build step or dependencies.
 - **Sprites:** [SpriteCollab](https://github.com/PMDCollab/SpriteCollab), 966
-  Pokémon × 7 animaciones × 8 direcciones, normal y shiny, en `assets/pokemon/`
-  (76 MB, PNG con paleta sin pérdida). **CC BY-NC 4.0: uso no comercial y
-  atribución** (114 artistas en `CREDITS.md`).
-- **Datos:** stats y nombres en español bajados **una vez** de PokeAPI.
-- **Fuente:** Pixelify Sans (OFL).
-- Los ficheros generados se rehacen con los scripts de `tools/`.
+  Pokémon × 7 animations × 8 directions, normal and shiny, in `assets/pokemon/`
+  (76 MB, lossless palette PNG). **CC BY-NC 4.0: non-commercial use and
+  attribution** (114 artists in `CREDITS.md`).
+- **Data:** base stats and Spanish names downloaded **once** from PokeAPI.
+- **Font:** Pixelify Sans (OFL).
+- Generated files are recreated using scripts in `tools/`.
 
-## 11. Pendiente
+## 11. Planned
 
-- [ ] Efectividades de tipo en el daño
-- [ ] Gráficos propios para los proyectiles (ahora son orbes de color)
-- [ ] Movimientos propios por Pokémon (ahora salen de sus tipos)
-- [ ] Controles táctiles / mando
-- [ ] 59 Pokémon sin sprite en SpriteCollab (sobre todo gen 5, 8 y 9)
+- [ ] Type effectiveness in damage calculations
+- [ ] Custom projectile graphics (currently colored orbs)
+- [ ] Pokémon-specific moves (currently selected by type)
+- [ ] Touch / controller controls
+- [ ] 59 Pokémon without SpriteCollab sprites (mostly generations 5, 8, and 9)
 
 ---
 
-## Registro de decisiones
+## Decision log
 
-**2026-10-07 · primera versión**
-- Stack vanilla + Canvas. 1 movimiento activo que se cambia con 1–4. Combate primero.
+**2026-10-07 · first version**
+- Vanilla stack + Canvas. One active move, switched with 1–4. Combat first.
 
-**2026-10-07 · segunda versión**
-- Todo en local: fuera la API en tiempo de ejecución.
-- Sprites de Mundo Misterioso (SpriteCollab) con animaciones de ataque.
-- Tiles pintados en código (los de PMD sólo existen ripeando la ROM).
-- Mapa: **arena abierta con obstáculos** (no salas y pasillos estrictos de PMD).
-- Guardado: `localStorage` detrás de una capa de datos única.
+**2026-10-07 · second version**
+- Everything local: runtime API removed.
+- Mystery Dungeon sprites (SpriteCollab) with attack animations.
+- Tiles drawn in code (PMD tiles are only available by ripping the ROM).
+- Map: **open arena with obstacles** (not strict PMD rooms and corridors).
+- Saves: `localStorage` behind one data layer.
 
-**2026-10-07 · tercera versión**
-- **Todas las generaciones** (966 con sprite). Gacha: **un banner por región**.
-- **Shinies:** 1/4096 salvaje, 1/100 en gacha; el compañero se elige en versión
-  normal o shiny desde la colección.
-- **Música compuesta en código** (no se puede usar la de Nintendo) + efectos.
-- **Fuera los emojis**: iconos pixel art propios.
+**2026-10-07 · third version**
+- **All generations** (966 with sprites). Gacha: **one banner per region**.
+- **Shinies:** 1/4096 in the wild, 1/100 in gacha; choose a normal or shiny
+  companion from the collection.
+- **Music composed in code** (Nintendo music cannot be used) + sound effects.
+- **No emoji:** custom pixel-art icons.
 
-**2026-10-07 · arreglo de combate**
-- Bug: los proyectiles nacían en el borde del Pokémon y avanzaban hasta 8 unidades
-  por fotograma, así que **los enemigos pegados al jugador eran inmunes** a todos
-  los movimientos de proyectil (en un survivor, casi siempre hay alguno pegado).
-  Ahora nacen en el centro y la colisión es barrida (todo el tramo del fotograma).
-  En la simulación de 10 min se pasó de 0 a 1 jefe derrotado por partida.
-- Vídeos de demostración en `videos/` (jefe, shiny salvaje, shiny en el gacha).
+**2026-10-07 · combat fix**
+- Bug: projectiles spawned at the Pokémon's edge and moved up to 8 units per
+  frame, so **enemies next to the player were immune** to every projectile move
+  (in a survivor game, something is almost always close). Projectiles now spawn
+  at the center and collision is swept across the full frame segment. In a
+  10-minute simulation, the result improved from 0 to 1 boss defeated per run.
+- Demo videos in `videos/` (boss, wild shiny, shiny from the gacha).
 
-**2026-10-07 · efectos y retoques visuales**
-- **Ataques con sprites pixel art** (`js/entities/vfx.js`): 23 formas (llama,
-  gota, burbuja, hoja, rayo, cristal, roca, lodo, aguijón, estrella, viento,
-  telaraña, onda, media luna, sonido, impacto, zarpazo, mandíbulas, flecha,
-  esfera, bola sombra, corazón...) pintadas con la paleta de cada tipo y con
-  contorno como los sprites de PMD. Rayos como chorros (llamas, agua, zigzag
-  eléctrico, cristales), golpes como medialuna pixelada con extra (mandíbulas,
-  zarpazo, impacto, hojas/plumas), auras y potenciadores con partículas del
-  tipo, estelas (ascuas, gotas, burbujas de veneno, polvo...). Los disparos
-  enemigos usan el tipo del enemigo y llevan un aro rojo en el suelo.
-- **Mismo tamaño de píxel en toda la interfaz** (×2): los legendarios grandes
-  parecían de otro estilo porque se dibujaban a ×1. Los jefes, en múltiplos de 0,5.
-- **Shiny:** gema pixel art como marca y centelleos de píxeles animados.
-- **Compañero del menú:** recuadro oscuro con borde del color de su tipo.
-- **Apuntado:** los ataques a distancia priorizan al jefe; los cuerpo a cuerpo,
-  lo que tienes pegado.
+**2026-10-07 · effects and visual polish**
+- **Pixel-art attack sprites** (`js/entities/vfx.js`): 23 shapes (flame, drop,
+  bubble, leaf, lightning, crystal, rock, mud, sting, star, wind, web, wave,
+  crescent, sound, impact, claw, jaws, arrow, orb, shadow ball, heart, etc.)
+  painted with each type's palette and outlined like PMD sprites. Beams use
+  streams (flames, water, electric zigzag, crystals); hits use pixelated
+  crescents with extra details (jaws, claws, impact, leaves/feathers); auras
+  and buffs use type particles; trails include embers, drops, poison bubbles,
+  and dust. Enemy shots use the enemy's type and have a red ring on the ground.
+- **Consistent pixel size across the interface** (×2): large legendaries looked
+  out of place when drawn at ×1. Bosses use 0.5 increments.
+- **Shiny:** pixel-art gem marker and animated pixel sparkles.
+- **Menu companion:** dark panel with a border in its type color.
+- **Targeting:** ranged attacks prioritize bosses; melee attacks prioritize
+  whatever is closest to the player.
 
-**2026-10-07 · base de datos y publicación**
-- **Firebase** (Authentication + Firestore): cuentas con nombre + contraseña o
-  Google; la partida se sigue en cualquier ordenador. Copia local para jugar
-  sin conexión, escucha en tiempo real de otros ordenadores y **fusión** al
-  sincronizar (colecciones unidas, máximos en mejoras/estadísticas, monedas y
-  compañero de la versión más reciente). Reglas: cada jugador sólo accede a
-  `saves/{su uid}`. Las cuentas locales antiguas se suben al entrar con el
-  mismo nombre y contraseña. Probado con el emulador oficial en dos navegadores.
-- Sin configuración o abierto con doble clic, sigue en modo local.
-- **Aviso legal y privacidad** con contacto para retirar contenido y botón
-  para borrar la cuenta. Código abierto (MIT) en GitHub (JPTER78).
-- Medidas que NO se aplican a petición: renombrar sin "Pokémon" y quitar los
-  sprites ripeados de los juegos (los de CHUNSOFT).
+**2026-10-07 · database and publishing**
+- **Firebase** (Authentication + Firestore): username/password or Google
+  accounts; saves available on any computer. Local copy for offline play,
+  real-time updates from other computers, and **merge** on sync (collections
+  combined, maximum upgrade/stat values retained, coins and companion from the
+  newest version). Rules: each player accesses only `saves/{their uid}`. Old
+  local accounts upload on sign-in with the same username and password. Tested
+  with the official emulator in two browsers.
+- Without configuration or when opened with a double-click, the game stays local.
+- **Legal notice and privacy** with a content-removal contact and account-delete
+  button. Open-source code (MIT) on GitHub (JPTER78).
+- Measures NOT taken on request: rename to remove "Pokémon" and remove sprites
+  ripped from the games (CHUNSOFT).
 
-**2026-10-08 · nuevo nombre**
-- El juego pasa a llamarse **PokéSurvivor** (sin "Pokémon" en el nombre, como
-  PokéRogue o Showdown). Repositorio: `pokesurvivor`.
-- Firebase: proyecto nuevo **`pokesurvivor-jpter`** (Firestore en eur3, correo/
-  contraseña y Google activos, dominios `jpter78.github.io` y `localhost`). Los
-  proyectos `pokemon-survivors-jpter` y `asdaad-9e84f` se borraron (30 días
-  recuperables en Google Cloud).
+**2026-10-08 · new name**
+- Renamed to **PokéSurvivor** (without "Pokémon" in the title, like PokéRogue
+  or Showdown). Repository: `pokesurvivor`.
+- New Firebase project **`pokesurvivor-jpter`** (Firestore in eur3, email/
+  password and Google enabled, domains `jpter78.github.io` and `localhost`).
+  Projects `pokemon-survivors-jpter` and `asdaad-9e84f` were deleted (recoverable
+  for 30 days in Google Cloud).
 
-**2026-10-09 · móvil y ajustes**
-- **Jugable en móvil y tablet, en horizontal** (en vertical sale "Gira el
-  móvil" y la partida se pausa). **Joystick flotante**: aparece donde pones el
-  dedo. Los iconos de ataque se tocan para cambiarlo (en PC también con clic) y
-  hay botón de pausa. Al cambiar de app, la partida se pausa sola.
-- La cámara asegura un alto mínimo de mundo en pantallas muy anchas.
-- Interfaz compacta en pantallas bajas (menú en dos columnas, barra superior
-  pequeña, la línea de créditos pasa a Ajustes → Acerca de).
-- **Ajustes** (PC y móvil): sonido; gráficos (calidad Auto/Alta/Media/Baja,
-  números de daño, menos sacudidas y destellos, FPS, pantalla completa);
-  controles (tamaño del joystick, teclas); cuenta (apodo fijo, nube, cerrar
-  sesión, borrar); acerca de (versión, créditos, aviso legal, contacto).
-- **Calidad automática**: baja efectos si el juego va a menos de 45 FPS.
-- **Instalable como app** (PWA: icono, pantalla completa, abre sin conexión).
-- Arreglos: el orbe extra de los movimientos de órbita al mejorarlos; sonido
-  que no arrancaba en móvil; los invocadores respetan el tope de enemigos;
-  aviso claro si un archivo del juego no llega a cargar.
+**2026-10-09 · mobile and settings**
+- **Playable in landscape on phones and tablets** (portrait shows "Rotate your
+  phone" and pauses the run). **Floating joystick** appears where the player
+  touches. Tap attack icons to switch moves (also clickable on PC); pause button
+  added. Switching apps pauses automatically.
+- Camera maintains a minimum world height on very wide screens.
+- Compact UI on short screens (two-column menu, smaller top bar, credits moved
+  to Settings → About).
+- **Settings** (PC and mobile): sound; graphics (Auto/High/Medium/Low quality,
+  damage numbers, reduced shake and flashes, FPS, fullscreen); controls
+  (joystick size, keys); account (fixed nickname, cloud, sign out, delete);
+  About (version, credits, legal notice, contact).
+- **Automatic quality:** lowers effects below 45 FPS.
+- **Installable app** (PWA: icon, fullscreen, works offline).
+- Fixes: extra orb on improved orbit moves; mobile audio startup; summoners obey
+  the enemy cap; clear notice if a game file fails to load.
 
-**2026-10-09 · gastar lo mínimo de Firebase (plan gratuito)**
-- **Ranking con resumen**: un documento `lbs/{tabla}` con el top 50 por
-  tabla (1 lectura por pestaña en vez de ~52) y caché de 10 min en el
-  navegador; las marcas propias se recuerdan para no leer antes de escribir.
-  El filtro por Pokémon queda **sólo en el histórico** (la mitad de escrituras).
-- **"En línea" aproximado** por Firestore (`pres/`, latido cada 10 min, se lee
-  al abrir Amigos o la sala) e **invitaciones por Firestore** (`inv/`). La
-  Realtime Database sólo se conecta dentro de una sala: el tope de 100
-  conexiones del plan gratis ya no limita a los jugadores normales.
-- **Guardado en la nube** como mucho cada 30 s (y al cerrar), sin escucha en
-  vivo del propio documento; perfil público como mucho cada 10 min.
-- Medido en el emulador: ver todo el ranking dos veces pasó de 1.275 a 20
-  lecturas; terminar una partida de 12 a 3.
-- Menos Pokémon en pantalla pero más fuertes (×0,45 de cantidad, ×2,1 vida,
-  ×1,35 daño, ×2,6 experiencia) y sin textos de "¡Muy eficaz!".
+**2026-10-09 · minimize Firebase usage (free plan)**
+- **Leaderboard summaries:** one `lbs/{table}` document with the top 50 for
+  each table (1 read per tab instead of about 52), cached in the browser for
+  10 minutes; personal records are remembered to avoid reading before writing.
+  Pokémon filter is **all-time only** (half as many writes).
+- Approximate **online status** through Firestore (`pres/`, heartbeat every
+  10 minutes, read when Friends or the lobby opens) and **invitations through
+  Firestore** (`inv/`). Realtime Database connects only inside a room: the free
+  plan's 100-connection limit no longer affects regular players.
+- **Cloud saves** at most every 30 seconds (and on close), without listening to
+  the player's own document in real time; public profile at most every 10 minutes.
+- Emulator measurement: viewing all leaderboard data twice went from 1,275
+  reads to 20; finishing a run went from 12 to 3.
+- Fewer but stronger on-screen Pokémon (×0.45 count, ×2.1 health, ×1.35 damage,
+  ×2.6 experience); removed "Super effective!" messages.
 
-**2026-10-08 · multijugador, amigos y ranking**
-- **Cooperativo hasta 4** con **lista de amigos** (no códigos de sala ni salas
-  públicas). Experiencia compartida y **cartas que esperan a todos**; un caído
-  se **revive** quedándose a su lado.
-- Conexión **WebRTC directa** con señalización por la **Realtime Database**
-  (nueva instancia `pokesurvivor-jpter-default-rtdb`, europe-west1), y **relé**
-  por esa misma base de datos si no se puede conectar directo. Sin servidor
-  propio ni TURN de pago.
-- **Apodo único** para amigos y ranking; las cuentas de Google lo eligen al
-  entrar (privacidad: no se enseña su nombre real).
-- **Ranking de tiempo aguantado**: Solo / Grupo, diario a histórico, amigos,
-  por Pokémon, tu puesto. El grupo sale entero en una fila.
-- Aviso de privacidad: en grupo los navegadores se conectan directamente y
-  pueden verse la IP (como en una videollamada).
+**2026-10-08 · multiplayer, friends, and leaderboard**
+- **Co-op for up to 4** with a **friends list** (no room codes or public rooms).
+  Shared experience and **cards that wait for everyone**; revive a downed
+  teammate by staying beside them.
+- **Direct WebRTC** connection with signaling over **Realtime Database**
+  (new `pokesurvivor-jpter-default-rtdb` instance, europe-west1), with relay
+  through that same database if direct connection fails. No custom server or
+  paid TURN.
+- **Unique nickname** for friends and leaderboard; Google accounts choose one
+  on first sign-in (their real name is not shown).
+- **Survival-time leaderboard:** Solo / Group, daily through all-time, friends,
+  by Pokémon, and your rank. Groups appear as one row.
+- Privacy notice: browsers connect directly in group play and may reveal IP
+  addresses (as in a video call).
 
-**2026-10-08 · mejoras por Pokémon, tickets, grietas e interactivos**
-- **Mejoras de cada Pokémon** (no de la cuenta); las ya compradas pasan al
-  compañero actual. Las monedas quedan sólo para mejoras.
-- **Gacha con tickets** que se ganan jugando (sin regalo inicial ni conversión
-  de monedas): ×1 de Pokémon normales (1/260), ×10 de legendarios (siempre) y jefes (1 de cada 3).
-- **Jefes casuales no legendarios**; los legendarios, sólo en las **grietas**
-  (arena aparte; perder te devuelve sin premio). En grupo viajáis todos.
-- **Altares, manantiales, cofres con candado y trampas**, en pixel art propio.
-- **Fundido** entre biomas en vez del cambio brusco.
-- Pokédex: campo `leg` (legendario o singular) de PokeAPI.
+**2026-10-08 · Pokémon upgrades, tickets, rifts, and interactables**
+- **Per-Pokémon upgrades**, not account-wide; purchased upgrades transfer to
+  the current companion. Coins are used only for upgrades.
+- **Gacha tickets** earned through play (no initial gift or coin conversion):
+  ×1 from regular Pokémon (1/260), ×10 from legendaries (always) and bosses
+  (one in three).
+- **Casual non-legendary bosses**; legendaries appear only in **rifts**
+  (separate arena; losing gives no reward). In co-op everyone travels together.
+- **Altars, springs, locked chests, and traps**, with custom pixel art.
+- **Biome fades** replace abrupt transitions.
+- Pokédex: PokeAPI `leg` field (legendary or mythical).
 
-**2026-10-08 · climas, tabla de tipos y tragaperras**
-- **Climas** como evento raro (sol, lluvia, arena, nieve, niebla), visual suave.
-- **Tabla de tipos suavizada** en los dos sentidos.
-- Gacha con **tragaperras pixel art** en vez de la Poké Ball.
+**2026-10-08 · weather, type chart, and slot machine**
+- **Weather** as a rare event (sun, rain, sand, snow, fog), with subtle visuals.
+- **Softened type chart** in both directions.
+- Gacha uses a **pixel-art slot machine** instead of a Poké Ball.
 
-**2026-10-08 · arenas por tipo**
-- Bug: los legendarios (jefes = voladores) atravesaban las rocas de la arena y
-  no se les podía disparar (Celebi). Ahora chocan y no salen del círculo.
-- 18 arenas de grieta, una por tipo, con terreno que afecta y clima propio;
-  tema musical nuevo para la grieta.
+**2026-10-08 · type-specific arenas**
+- Bug fix: legendaries (bosses are flyers) passed through arena rocks and could
+  not be shot (Celebi). They now collide and cannot leave the circle.
+- 18 rift arenas, one per type, with affecting terrain and unique weather;
+  new rift music.
 
-**2026-10-08 · iconos más Pokémon**
-- Shiny: **estrella roja** con destello (como la marca de shiny de los juegos),
-  en vez de la gema.
-- Rareza: ya no hay estrellas; cada rareza es su **Poké Ball** — Poké (Común),
-  Super (Poco común), Ultra (Rara), Lujo (Épica) y **Master (Legendaria)**.
+**2026-10-08 · more Pokémon-like icons**
+- Shiny marker changed from a gem to a **red star** with a sparkle (like the
+  games' shiny marker).
+- Rarity no longer uses stars; each rarity has its own **Poké Ball** — Poké
+  (Common), Great (Uncommon), Ultra (Rare), Luxury (Epic), and **Master (Legendary)**.
 
-**2026-10-08 · cámara, rendimiento e IA**
-- Cámara un 20% más lejos (768 de ancho de mundo en vez de 640).
-- Rendimiento: el destello al golpear usaba `ctx.filter` (×95 más caro que una
-  silueta blanca precalculada, que es lo que se usa ahora); tope de 70 números
-  de daño; resolución interna ×1,5 como mucho; menos trabajo fuera de pantalla;
-  tope de 280 enemigos con élites al llegar al tope.
-- Los enemigos rodean obstáculos; vuelan sólo los que flotan en su sprite.
+**2026-10-08 · camera, performance, and AI**
+- Camera moved 20% farther back (768 world-width instead of 640).
+- Performance: hit flash used `ctx.filter` (×95 more expensive than a
+  precalculated white silhouette, now used); cap of 70 damage numbers; internal
+  resolution at most ×1.5; less off-screen work; cap of 280 enemies, with elites
+  spawning once the cap is reached.
+- Enemies go around obstacles; only those that float in their sprites fly.
 
-**2026-10-08 · misiones, logros, objetos, evoluciones y enemigos con personalidad**
-- Misiones 3+2, logros con premio y título, perfil público (todos lo ven).
-- Objetos equipables de un solo uso por run (cofres y jefes).
-- Evolución de movimientos: nivel máximo + condición, carta dorada.
-- Enemigos con personalidad: curanderos, escudos, invocadores y ataques con
-  aviso (rayos, zonas, kamikazes, abanico, saltos). Ajustados con un piloto
-  automático: la supervivencia media es parecida a la de antes (89 s frente a 60 s).
+**2026-10-08 · missions, achievements, items, evolutions, and personalities**
+- Missions 3+2, achievements with rewards and titles, public profiles (visible
+  to everyone).
+- One-use-per-run equippable items (from chests and bosses).
+- Move evolution: max level + condition, then a gold card.
+- Enemy personalities: healers, shields, summoners, and telegraphed attacks
+  (beams, zones, kamikazes, fans, jumps). Tuned with an autoplayer: average
+  survival is similar to before (89 s vs. 60 s).
 
-**2026-10-10 · últimos detalles antes de la web**
-- Los Pokémon de tipo Agua no se frenan en el agua ni en el pantano.
-- Se sube de nivel la mitad de rápido (experiencia por nivel ×2).
-- Menos enemigos a la vez (tope 64) pero bastante más duros. Los que se quedan
-  atrás mientras corres se desvanecen y vuelven a salir por delante, así no se
-  forma la cola detrás y no se puede huir sin más. Un "corredor" por tramo
-  (rápido y frágil, va a donde vas a estar).
-- Jefes y legendarios con 4 ataques avisados (pisotón, embestida o salto, y dos
-  de lejos según su tipo: lluvia de zonas, rayos en abanico, anillo o abanico
-  de disparos). Alternan entre ir a por ti y pelear de lejos, y por debajo de
-  la mitad de vida se enfurecen. Más vida (×1,35) y daño (×1,2).
-- Grietas: flecha grande que late, con distancia y tiempo, y aviso propio al
-  abrirse.
-- Pantalla "Pulsa para empezar" (el navegador no deja sonar sin tocar nada) y
-  música también en el inicio de sesión y en las preguntas de personalidad.
-- 8 formas nuevas de atacar con los mismos gráficos: bumerán, cadena, minas,
-  meteoros, torreta, embestida, rastro y abanico corto. 7 movimientos pasan a
-  ellas (mismo id) y hay 12 nuevos (64 en total).
-- Anti-trampas: el servidor rechaza nivel y derrotados imposibles para el
-  tiempo; el juego vigila reloj, vida, velocidad, ataque, nivel, monedas y las
-  herramientas de prueba. Si algo no cuadra, la partida no cuenta para el
-  ranking ni los récords.
-- Eventos a mitad de partida cada 4-5 min (systems/events.js): horda de un tipo
-  (30 s), hora dorada (30 s, doble de experiencia y monedas) y Pokémon perdido
-  (lo llevas a la marca; cura, monedas, ticket y 1 de cada 5 se une a ti).
-  Duendes del tesoro 1-2 por partida: Meowth (monedas) o Gholdengo (ticket ×10;
-  Gimmighoul no tiene sprite). Huyen y se escapan a los 15 s. En grupo, todo
-  compartido.
-- Más tarde (10-10): subir de nivel otra vez la mitad de rápido (experiencia
-  por nivel ×4 respecto al original) y tickets ×1 más raros (1/400 en vez de 1/260).
-  Misiones de nivel 8/12/15 y logros de nivel 15 y 30 (antes 12/16/20, 20 y 40).
+**2026-10-10 · final details before the website**
+- Water-type Pokémon are not slowed by water or swamp.
+- Leveling is half as fast (experience per level ×2).
+- Fewer simultaneous enemies (cap 64), but much tougher. Enemies left behind
+  while running fade out and respawn ahead, preventing a trailing queue and
+  endless escape. One "runner" per tier (fast and fragile, heads toward where
+  the player will be).
+- Bosses and legendaries have 4 telegraphed attacks (stomp, charge or jump,
+  plus two ranged attacks based on type: zones, fan beams, ring, or fan shots).
+  They alternate between chasing and ranged combat and enrage below half health.
+  More health (×1.35) and damage (×1.2).
+- Rifts: large pulsing arrow with distance and timer, plus a unique opening notice.
+- "Tap to start" screen (browsers require a user gesture for audio); music also
+  plays on login and during the personality questions.
+- 8 new attack shapes using existing graphics: boomerang, chain, mines,
+  meteors, turret, charge, trail, and short fan. 7 moves switched to these
+  shapes (same IDs) and 12 new moves added (64 total).
+- Anti-cheat: server rejects impossible level/defeat counts for elapsed time;
+  game monitors clock, health, speed, attacks, level, coins, and test tools. If
+  something is inconsistent, the run does not count toward leaderboard or records.
+- Mid-run events every 4–5 min (`systems/events.js`): type horde (30 s), golden
+  hour (30 s, double experience and coins), and lost Pokémon (take it to the
+  marker for healing, coins, a ticket, and a 1-in-5 chance it joins you).
+  1–2 treasure sprites per run: Meowth (coins) or Gholdengo (×10 ticket;
+  Gimmighoul has no sprite). They flee and escape after 15 s. Shared in co-op.
+- Later (2026-10-10): level-ups slowed by half again (experience per level ×4
+  relative to the original); ×1 tickets made rarer (1/400 instead of 1/260).
+  Mission levels 8/12/15 and achievement levels 15/30 (previously 12/16/20 and
+  20/40).

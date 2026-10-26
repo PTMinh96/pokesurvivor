@@ -26,20 +26,21 @@ No runtime translation or Pokémon-name service is introduced. The repository's
 existing license files remain unchanged. Other Traditional Chinese alternatives
 (#148, #166, #191) are not silently merged into this dictionary.
 
-## Cómo funciona en el juego (19-10-2026)
+## How localization works in the game (2026-10-19)
 
-- Español e inglés van dentro del juego (`js/app.min.js`), como siempre.
-- Francés, italiano, portugués y chino van aparte, uno por idioma: `js/lang/<idioma>.js`.
-  Lo genera `tools/build_langs.js` (lo llama `tools/build.js`) a partir de los
-  `js/data/lang-*.js` de esos idiomas y de `js/data/lang-updates.js`.
-  `js/core/locales.js` descarga sólo el del jugador, antes que el juego.
-- Si a un idioma le falta un texto, sale en **inglés** (nunca en español).
-- **Textos nuevos del juego**: además de `lang-en.js`, se añaden en
-  `js/data/lang-updates.js` en los cinco idiomas (una fila por texto).
-  `node tools/build_langs.js --faltan --todo` lista lo que falta;
-  `node --test tests/i18n.test.cjs` falla si falta algo.
-- Los avisos al entrar (`login.js`) y la frase del ranking quedan como estaban
-  en español e inglés; en los demás idiomas se traducen enteros.
+- Spanish and English are bundled with the game (`js/app.min.js`), as before.
+- French, Italian, Portuguese, and Chinese are separate, one file per language:
+  `js/lang/<language>.js`. `tools/build_langs.js` (called by `tools/build.js`)
+  generates them from each language's `js/data/lang-*.js` and
+  `js/data/lang-updates.js`. `js/core/locales.js` downloads only the player's
+  language before loading the game.
+- If a translation is missing, the text appears in **English** (never Spanish).
+- **New in-game text** must be added to `lang-en.js` and to all five languages
+  in `js/data/lang-updates.js` (one row per text).
+  `node tools/build_langs.js --faltan --todo` lists missing translations;
+  `node --test tests/i18n.test.cjs` fails if any are missing.
+- Login notices (`login.js`) and the leaderboard phrase remain as they are in
+  Spanish and English; they are translated in full for the other languages.
 
 ## Architecture
 

@@ -1,29 +1,29 @@
-/* ============ ability-fx.js — qué hace cada habilidad en el juego ============
- * (20-10-2026, del PR #236 de TheAdro7, adaptado a este juego.)
+/* ============ ability-fx.js — what each ability does in the game ============
+ * (2026-10-20, from TheAdro7's PR #236, adapted for this game.)
  *
- * Los nombres están en data/abilities.js. Aquí, el efecto en PokéSurvivor de las
- * que tienen sentido en un survivor; las demás dan una pasiva sencilla de su tipo
- * principal (+8 % de daño con sus movimientos), con su nombre de siempre.
+ * Names are in data/abilities.js. This file defines the PokéSurvivor effects
+ * for abilities that make sense in a survivor game; the others grant a simple
+ * passive for the primary type (+8% damage with its moves), using their usual names.
  *
- * Ganchos (todos opcionales):
- *   start(pl)             al empezar la partida (stats fijos)
- *   out(pl, m, e)         × al daño que hace el movimiento m al enemigo e (combat.js)
- *   hit(pl, e, m)         ha golpeado a e (después del daño)
- *   inMul(pl, type, cls)  × al daño que recibe (cls 'p' físico, 's' especial)
- *   absorb: 'tipo'        ese tipo no le hace daño: le cura un poco
- *   dodge(pl, type, cls)  probabilidad de esquivar un golpe
- *   hurt(pl, type, cls)   le acaban de golpear
- *   contact(pl, e)        un enemigo le ha golpeado cuerpo a cuerpo
- *   tick(pl, dt)          cada fotograma
- *   kill(pl, e)           ha caído un enemigo
- *   speed(pl)             × a la velocidad
- *   healMul               × a lo que le curan
- *   statusCd              × a la recarga de los potenciadores · cdMul × a todas
- *   critMul               daño del crítico (normal ×1,5)
- *   summon: 'clima'       pone su clima al empezar y cada 3 min (si no hay otro)
- *   levitate / steady / sturdy / sheer / serene / lavaProof / damp / touchPoison  (marcas)
- * Las descripciones van en español; las traducciones, en lang-en.js y lang-updates.js
- * (muchas son el mismo texto con otro tipo: '+20 % de daño con movimientos de tipo {x}.').
+ * Hooks (all optional):
+ *   start(pl)             at run start (fixed stats)
+ *   out(pl, m, e)          × damage dealt by move m to enemy e (combat.js)
+ *   hit(pl, e, m)          after hitting e (after damage)
+ *   inMul(pl, type, cls)   × damage received (cls 'p' physical, 's' special)
+ *   absorb: 'type'         that type does not deal damage; it heals slightly
+ *   dodge(pl, type, cls)   chance to dodge a hit
+ *   hurt(pl, type, cls)    called after being hit
+ *   contact(pl, e)         an enemy hit it with a melee attack
+ *   tick(pl, dt)           each frame
+ *   kill(pl, e)            an enemy was defeated
+ *   speed(pl)              × movement speed
+ *   healMul                × healing received
+ *   statusCd               × buff cooldown · cdMul × all move cooldowns
+ *   critMul                critical damage (normally ×1.5)
+ *   summon: 'weather'      set its weather at startup and every 3 min (if none is active)
+ *   levitate / steady / sturdy / sheer / serene / lavaProof / damp / touchPoison (flags)
+ * Descriptions are in Spanish; translations are in lang-en.js and lang-updates.js
+ * (many use the same text with a different type: '+20% damage with {x}-type moves.').
  */
 G.AbilityFX = (() => {
   const low = pl => pl.hp < pl.maxHp / 3;
@@ -51,7 +51,7 @@ G.AbilityFX = (() => {
   const superEff = (pl, type) => type && mult(type, pl.mon.types) > 1;
 
   const FX = {
-    // --- más daño ---
+    // --- more damage ---
     'overgrow': pinch('grass'), 'blaze': pinch('fire'), 'torrent': pinch('water'), 'swarm': pinch('bug'),
     'steelworker': boost('steel'), 'steely-spirit': boost('steel'), 'dragons-maw': boost('dragon'), 'transistor': boost('electric'),
     'water-bubble': { d: '+40 % de daño de tipo Agua y recibe la mitad de daño de Fuego.',
@@ -87,7 +87,7 @@ G.AbilityFX = (() => {
     'compound-eyes': { d: '+6 % de probabilidad de golpe crítico.', start: pl => { pl.critChance += 0.06; } },
     'moxie': moxie, 'chilling-neigh': moxie, 'grim-neigh': moxie, 'beast-boost': moxie,
 
-    // --- velocidad ---
+    // --- speed ---
     'speed-boost': { d: 'Cada 10 segundos va un 1,5 % más rápido (hasta +30 %).',
       tick: (pl, dt) => { pl.boostT = (pl.boostT || 0) + dt; if (pl.boostT >= 10) { pl.boostT = 0; pl.abSpd = Math.min(0.3, (pl.abSpd || 0) + 0.015); } },
       speed: pl => 1 + (pl.abSpd || 0) },
@@ -130,7 +130,7 @@ G.AbilityFX = (() => {
     'limber': steady, 'own-tempo': steady, 'oblivious': steady, 'inner-focus': steady, 'clear-body': steady,
     'white-smoke': steady, 'full-metal-body': steady, 'insomnia': steady, 'vital-spirit': steady,
 
-    // --- contraataques (al recibir un golpe cuerpo a cuerpo) ---
+    // --- counterattacks (when hit by a melee attack) ---
     'static': contact((pl, e) => e.applySlow(0.5, 2.5), 'Quien le golpea cuerpo a cuerpo se queda frenado (paralizado).'),
     'flame-body': contact((pl, e) => e.applyBurn(2), 'Quien le golpea cuerpo a cuerpo se quema.'),
     'poison-point': contact((pl, e) => e.applyPoison(2), 'Quien le golpea cuerpo a cuerpo se envenena.'),
@@ -140,11 +140,11 @@ G.AbilityFX = (() => {
     'iron-barbs': contact((pl, e) => e.hurt(dmgBack(pl), '#9aa6b5'), 'Quien le golpea cuerpo a cuerpo recibe daño.'),
     'poison-touch': { d: 'Sus ataques cuerpo a cuerpo y embestidas envenenan.', touchPoison: true },
 
-    // --- botín ---
+    // --- loot ---
     'pickup': { d: '+15 % de Pokémonedas en la partida.', start: pl => { pl.coinMul *= 1.15; } },
     'honey-gather': { d: '+15 % de Pokémonedas en la partida.', start: pl => { pl.coinMul *= 1.15; } },
 
-    // --- las que en los juegos son un lastre: aquí, un intercambio ---
+    // --- abilities that are drawbacks in the games: a trade-off here ---
     'truant': { d: 'Golpes sueltos y fuertes: tarda un 60 % más en recargar, pero cada golpe hace +35 %.', cdMul: 1.6, out: () => 1.35 },
     'slow-start': { d: 'Arranca lento: el primer minuto hace −40 % de daño y va más despacio; después, a plena potencia.',
       tick: (pl, dt) => { pl.ssT = (pl.ssT || 0) + dt; }, out: pl => ((pl.ssT || 0) < 60 ? 0.6 : 1), speed: pl => ((pl.ssT || 0) < 60 ? 0.8 : 1) },
@@ -161,7 +161,7 @@ G.AbilityFX = (() => {
     'imposter': { d: 'Se transforma: pega y aguanta como un Pokémon equilibrado.',
       start: pl => { const m = pl.mon; m.pa = m.sa = m.atk = pl.baseAtk = Math.max(m.atk, 1.12); m.df = Math.max(m.df, 72); m.sd = Math.max(m.sd, 72); } },
 
-    // --- las genéricas más comunes (suman también la pasiva de su tipo: plus) ---
+    // --- the most common abilities (also add their type passive: plus) ---
     'keen-eye': { d: '+5 % de probabilidad de golpe crítico.', plus: true, start: pl => { pl.critChance += 0.05; } },
     'frisk': { d: 'Atrae los objetos desde más lejos (+20 % de imán).', plus: true, start: pl => { pl.magnet *= 1.2; } },
     'magnet-pull': { d: 'Atrae los objetos desde más lejos (+20 % de imán).', plus: true, start: pl => { pl.magnet *= 1.2; } },
@@ -250,16 +250,16 @@ G.AbilityFX = (() => {
   FX['pure-power'] = FX['huge-power'];                // Energía Pura = Potencia
   FX['libero'] = FX['protean'];                       // Líbero = Mutatipo
 
-  /** Pasiva genérica: +8 % con los movimientos de su tipo principal. */
+  /** Generic passive: +8% with moves of its primary type. */
   function generic(mon) {
     const t = mon.types[0];
     return { generic: true, d: '+8 % de daño con movimientos de tipo ' + TN(t) + '.', out: (pl, m) => (m.type === t ? 1.08 : 1) };
   }
 
   /**
-   * Efecto de la habilidad `id` para el Pokémon `mon` (nunca null). Las que
-   * llevan `plus` suman además la pasiva genérica de su tipo (su texto va en d2,
-   * aparte, para que cada frase se traduzca entera).
+   * Effect of ability `id` for Pokémon `mon` (never null). Abilities with
+   * `plus` also add the generic passive for their type (its text goes in d2,
+   * separately, so each sentence can be translated as a whole).
    */
   function of(id, mon) {
     const fx = id && FX[id];

@@ -1,11 +1,11 @@
-/* ============ pickup.js — orbes de experiencia y objetos ============
- * Los orbes se quedan quietos hasta que entras en el radio del imán; entonces
- * aceleran hacia ti. Para que no se acumulen miles, al pasar de MAX se fusionan
- * los más antiguos.
+/* ============ pickup.js — experience orbs and items ============
+ * Orbs stay still until you enter the magnet's radius, then accelerate toward
+ * you. To prevent thousands from piling up, the oldest are merged when the
+ * count exceeds MAX.
  *
- * Cooperativo: los objetos los crea el anfitrión (cada uno con su id) y los
- * demás reciben una copia. Todos vuelan hacia el jugador más cercano; quien
- * decide quién lo ha cogido es el anfitrión.
+ * Co-op: the host creates items (each with its own id), and the others receive
+ * a copy. All items fly toward the nearest player; the host decides who picked
+ * them up.
  */
 G.Pickups = (() => {
   let list = [];
@@ -21,26 +21,26 @@ G.Pickups = (() => {
     coin:  { color: '#ffd23f', glow: '#b8860b', r: 5.5 },
     ticket:   { color: '#ffd23f', glow: '#c08a10', r: 7 },
     ticket10: { color: '#c47bff', glow: '#8a3fd0', r: 8 },
-    item:     { color: '#ffd23f', glow: '#c08a10', r: 9 },      // value = id del objeto
-    sphere:   { color: '#c9b8ff', glow: '#7e5be0', r: 8 }       // value = id de la esfera (orbs.js)
+    item:     { color: '#ffd23f', glow: '#c08a10', r: 9 },      // value = item id
+    sphere:   { color: '#c9b8ff', glow: '#7e5be0', r: 8 }       // value = orb id (orbs.js)
   };
-  /** Probabilidad de que un Pokémon normal suelte un ticket del gacha. */
-  const BOSS_T10 = 1 / 3;               // ticket ×10 de un jefe normal
-  const LEGEND_T10 = 1 / 2;             // ticket ×10 del legendario de la grieta
-  const TICKET_RATE = 1 / 400;          // (antes 1/260; más raros desde 2026-10-10)
-  const SPHERE_RATE = 1 / 300;          // esfera de un Pokémon normal (y los jefes, siempre)
+  /** Chance for a regular Pokémon to drop a gacha ticket. */
+  const BOSS_T10 = 1 / 3;               // ×10 ticket from a regular boss
+  const LEGEND_T10 = 1 / 2;             // ×10 ticket from a rift legendary
+  const TICKET_RATE = 1 / 400;          // (Previously 1/260; rarer since 2026-10-10)
+  const SPHERE_RATE = 1 / 300;          // Orb from a regular Pokémon (bosses always drop one)
 
   function clear() { list = []; }
   function all() { return list; }
 
   function push(o) {
-    // En cooperativo sólo el anfitrión crea objetos (las copias llegan por la red).
+    // In co-op, only the host creates items (copies arrive over the network).
     if (G.Coop.active && !G.Coop.isHost) return;
     o.id = nextId++;
     list.push(o);
     if (G.Coop.isHost) G.Coop.pickupAdded(o);
     if (list.length > MAX) {
-      // Fusiona los dos más antiguos de XP para no crecer sin límite.
+      // Merge the two oldest XP orbs to keep the list bounded.
       const i = list.findIndex(p => p.kind === 'xp' || p.kind === 'xpBig');
       if (i >= 0) {
         const a = list.splice(i, 1)[0];
@@ -54,7 +54,7 @@ G.Pickups = (() => {
     }
   }
 
-  /** Copia de un objeto del anfitrión. */
+  /** Copy of an item from the host. */
   function addRemote(id, kind, x, y, value) {
     if (list.some(p => p.id === id)) return;
     const o = orb(kind, x, y, value);
@@ -68,13 +68,13 @@ G.Pickups = (() => {
     return list.splice(i, 1)[0];
   }
 
-  /** Imán: todo vuela hacia el jugador más cercano. */
+  /** Magnet: everything flies toward the nearest player. */
   function pullAll() { for (const o of list) o.pulled = true; }
 
-  /** @param plain  sólo la experiencia (los legendarios de la Sentencia de Arceus) */
+  /** @param plain  experience only (Arceus Judgment legendaries) */
   function dropXp(x, y, value, boss = false, legend = false, plain = false) {
     if (boss) {
-      // Los jefes revientan en un montón de orbes grandes + recompensas.
+      // Bosses burst into a pile of large orbs and rewards.
       for (let i = 0; i < 14; i++) {
         const a = Math.random() * 6.2832, d = G.U.rand(10, 70);
         push(orb('xpBig', x + Math.cos(a) * d, y + Math.sin(a) * d, Math.ceil(value / 14)));
@@ -82,8 +82,8 @@ G.Pickups = (() => {
       if (plain) return;
       push(orb('heal', x + 24, y, 0));
       push(orb('magnet', x - 24, y, 0));
-      // Ticket ×10: siempre el legendario de la grieta; un jefe normal, 1 de cada 3 veces.
-      // (Hasta el 12-10-2026 el legendario de la grieta daba siempre 2: salían demasiados.)
+      // ×10 ticket: always from a rift legendary; from a regular boss, 1 in 3 times.
+      // (Until 2026-10-12, a rift legendary always dropped 2; too many were appearing.)
       if (Math.random() < (legend ? LEGEND_T10 : BOSS_T10)) push(orb('ticket10', x, y - 20, 1));
       push(orb('sphere', x - 20, y - 16, G.Orbs.roll()));
       if (legend) push(orb('sphere', x + 20, y - 16, G.Orbs.roll()));
@@ -93,14 +93,14 @@ G.Pickups = (() => {
     if (Math.random() < TICKET_RATE) push(orb('ticket', x + G.U.rand(-6, 6), y, 1));
     if (Math.random() < SPHERE_RATE) push(orb('sphere', x + G.U.rand(-6, 6), y, G.Orbs.roll()));
 
-    // Drops ocasionales.
+    // Occasional drops.
     const r = Math.random();
     if (r < 0.012) push(orb('heal', x + G.U.rand(-8, 8), y, 0));
     else if (r < 0.020) push(orb('magnet', x, y, 0));
     else if (r < 0.026) push(orb('bomb', x, y, 0));
   }
 
-  /** Suelta un objeto suelto: 'heal' | 'magnet' | 'bomb' | 'coin'. */
+  /** Drop a standalone item: 'heal' | 'magnet' | 'bomb' | 'coin'. */
   function drop(kind, x, y, value = 0) {
     push(orb(kind, x, y, value));
   }
@@ -115,8 +115,8 @@ G.Pickups = (() => {
   }
 
   /**
-   * @param players  un jugador o la lista de jugadores (los caídos no recogen)
-   * @param onCollect(pickup, jugador)
+   * @param players  one player or a list of players (downed players do not collect)
+   * @param onCollect(pickup, player)
    */
   function update(dt, players, onCollect) {
     if (!Array.isArray(players)) players = [players];
@@ -124,7 +124,7 @@ G.Pickups = (() => {
       const p = list[i];
       p.t += dt * 4;
 
-      // El jugador vivo más cercano (en solitario, siempre tú). Una esfera, sólo a quien le quepa.
+      // Nearest living player (always you in solo play). An orb goes only to a player who has room.
       let pl = null, d2 = Infinity;
       for (const o of players) {
         if (o.dead && players.length > 1) continue;
@@ -181,17 +181,17 @@ G.Pickups = (() => {
         ctx.lineTo(p.x, y + r); ctx.lineTo(p.x - r * 0.78, y);
         ctx.closePath(); ctx.fill();
       } else if (p.kind === 'coin') {
-        // Moneda que gira: elipse que se estrecha.
+        // Spinning coin: a narrowing ellipse.
         const sx = Math.max(0.25, Math.abs(Math.cos(p.t * 0.9)));
         ctx.beginPath(); ctx.ellipse(p.x, y, r * sx, r, 0, 0, 6.2832); ctx.fill();
         ctx.fillStyle = '#b8860b';
         ctx.beginPath(); ctx.ellipse(p.x, y, r * sx * 0.5, r * 0.5, 0, 0, 6.2832); ctx.fill();
       } else {
-        // Baya, imán y bomba: su icono pixel art.
+        // Berry, magnet, and bomb: their pixel-art icons.
         const ICON = { heal: 'berry', magnet: 'magnet', bomb: 'bomb', ticket: 'ticket', ticket10: 'ticket10' };
         const sz = p.kind === 'ticket10' || p.kind === 'item' || p.kind === 'sphere' ? 24 : 18;
         if (p.kind === 'sphere') {
-          // Esfera: brillo de su color, para distinguirlas desde lejos.
+          // Orb: glow in its color, making it visible from a distance.
           ctx.globalAlpha = 0.3 + Math.sin(p.t * 1.5) * 0.12;
           ctx.fillStyle = (G.Orbs.BY[p.value] || {}).col || k.color;
           ctx.beginPath(); ctx.arc(p.x, y, 16, 0, 6.2832); ctx.fill();
@@ -200,7 +200,7 @@ G.Pickups = (() => {
           continue;
         }
         if (p.kind === 'item') {
-          // Objeto: brillo dorado latiendo, para que se vea desde lejos.
+          // Item: pulsing golden glow, making it visible from a distance.
           ctx.globalAlpha = 0.35 + Math.sin(p.t * 1.5) * 0.15;
           ctx.fillStyle = '#ffe14d';
           ctx.beginPath(); ctx.arc(p.x, y, 18, 0, 6.2832); ctx.fill();

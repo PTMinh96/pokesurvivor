@@ -1,24 +1,24 @@
-/* ============ score.js — la música del tráiler (compuesta para él) ============
- * La mete record.mjs en la página. director.js llama a __score(ctx) al
- * empezar a grabar y aquí se programa TODA la música de una vez sobre el
- * mismo contexto de sonido que los efectos (el OfflineAudioContext de shim.js).
+/* ============ score.js — trailer music (composed for the trailer) ============
+ * record.mjs injects this into the page. director.js calls __score(ctx) when
+ * recording starts, and this schedules ALL the music at once on the same audio
+ * context as the effects (shim.js's OfflineAudioContext).
  *
- * 164 ppm, La menor. Cada compás n empieza en 0,1 + n·(4 tiempos), igual que
- * los cortes del tráiler (B(n) en director.js), así los golpes caen en los cortes:
+ * 164 BPM, A minor. Each bar n starts at 0.1 + n·(4 beats), matching
+ * the cuts in the trailer (B(n) in director.js), so hits land on the cuts:
  *
- *   0-3    intro: colchón oscuro, impactos en los rótulos, subida y golpe en el logo
- *   3-8    tienda y Mochila: tema alegre (Do mayor) con pizzicato y campanitas
- *   8-11   naturalezas: entra la melodía
- *   11-13  MT: parón (sólo colchón y bombo), redoble que sube
- *   13-15  Mewtwo: vuelve el ritmo, subida
- *   15-16  "38": golpes en seco
- *   16-24  los 8 ataques: estribillo, un golpe en cada corte
- *   24-26  físico / especial: golpes 3+3+2
- *   26-28  cartas: parón con filtro
- *   28-30  mando e idiomas: arpegio que sube y redoble
- *   30-32  cooperativo y segundo ataque inicial: arpegio y redoble
- *   32-34  966 Pokémon: estribillo final
- *   34-38  logo: golpe, acordes largos y final que se apaga
+ *   0-3    intro: dark pad, caption hits, riser, and logo hit
+ *   3-8    shop and Backpack: cheerful theme (C major) with pizzicato and bells
+ *   8-11   natures: melody enters
+ *   11-13  TMs: breakdown (pad and kick only), rising drum roll
+ *   13-15  Mewtwo: rhythm returns, riser
+ *   15-16  "38": dry hits
+ *   16-24  8 attacks: chorus, one hit per cut
+ *   24-26  physical / special: 3+3+2 hits
+ *   26-28  cards: filtered breakdown
+ *   28-30  controller and languages: rising arpeggio and drum roll
+ *   30-32  co-op and second starting move: arpeggio and drum roll
+ *   32-34  966 Pokémon: final chorus
+ *   34-38  logo: hit, long chords, and fading ending
  */
 window.__score = ctx => {
   const BPM = 164, BEAT = 60 / BPM, BAR = BEAT * 4, S = BEAT / 4, T0 = 0.1;
@@ -29,7 +29,7 @@ window.__score = ctx => {
   const NOTE = { C: 0, D: 2, E: 4, F: 5, G: 7, A: 9, B: 11 };
   const midi = n => { const m = /^([A-G])(#|b)?(-?\d)$/.exec(n); return NOTE[m[1]] + (m[2] === '#' ? 1 : m[2] === 'b' ? -1 : 0) + (+m[3] + 1) * 12; };
 
-  // ---------------- mezcla ----------------
+  // ---------------- mixing ----------------
   const comp = ctx.createDynamicsCompressor();
   comp.threshold.value = -14; comp.ratio.value = 3; comp.attack.value = 0.004; comp.release.value = 0.18;
   const master = ctx.createGain(); master.gain.value = 0.5;
@@ -52,7 +52,7 @@ window.__score = ctx => {
   const dlyOut = ctx.createGain(); dlyOut.gain.value = 0.35;
   dly.connect(dlp).connect(fb).connect(dly); dlp.connect(dlyOut).connect(master);
 
-  /** Salida de una voz: directo + reverb (+ eco). */
+  /** Voice output: direct + reverb (+ echo). */
   function out(node, { dry = 1, wet = 0.15, echo = 0 } = {}) {
     const g = ctx.createGain(); g.gain.value = dry; node.connect(g).connect(master);
     if (wet) { const r = ctx.createGain(); r.gain.value = wet; node.connect(r).connect(revIn); }
@@ -112,7 +112,7 @@ window.__score = ctx => {
     g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(0.8 * v, t + 0.004); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.33);
     o.connect(g); out(g, { wet: 0.2 });
   }
-  /** Golpe de cine: sub que cae, ruido grave y platillo. */
+  /** Cinematic hit: falling sub-bass, low noise, and cymbal. */
   function boom(t, v = 1) {
     const o = osc('sine', 70, t, t + 1.8), g = ctx.createGain();
     o.frequency.setValueAtTime(90, t); o.frequency.exponentialRampToValueAtTime(30, t + 1.4);
@@ -124,7 +124,7 @@ window.__score = ctx => {
     crash(t, v * 0.9, 2.4);
     kick(t, v);
   }
-  /** Subida: ruido con filtro que abre y un diente de sierra que sube. */
+  /** Riser: filtered noise opening up and a rising sawtooth. */
   function riser(t0, t1, v = 1) {
     const n = nsrc(t0, t1), bp = filt('bandpass', 400, 1.6), g = ctx.createGain();
     bp.frequency.setValueAtTime(350, t0); bp.frequency.exponentialRampToValueAtTime(7000, t1);
@@ -135,7 +135,7 @@ window.__score = ctx => {
     og.gain.setValueAtTime(0.0001, t0); og.gain.exponentialRampToValueAtTime(0.12 * v, t1 - 0.01); og.gain.linearRampToValueAtTime(0.0001, t1 + 0.02);
     o.connect(lp).connect(og); out(og, { wet: 0.3 });
   }
-  /** Barrido hacia abajo (para los cortes). */
+  /** Downward sweep (for transitions). */
   function swoosh(t, v = 1) {
     const n = nsrc(t, t + 0.4), bp = filt('bandpass', 5000, 1.2), g = ctx.createGain();
     bp.frequency.setValueAtTime(6000, t); bp.frequency.exponentialRampToValueAtTime(500, t + 0.35);
@@ -185,12 +185,12 @@ window.__score = ctx => {
     o.connect(lp); o2.connect(mix).connect(lp); lp.connect(g); out(g, { wet: 0.25, echo: 0.3 });
   }
 
-  // ---------------- ayudas de escritura ----------------
+  // ---------------- composition helpers ----------------
   const CH = {
     Am: [57, 60, 64], F: [53, 57, 60], C: [48, 52, 55], G: [55, 59, 62], Dm: [50, 53, 57], E: [52, 56, 59], Em: [52, 55, 59]
   };
   const ROOT = { Am: 33, F: 29, C: 36, G: 31, Dm: 38, E: 28, Em: 28 };
-  /** Melodía "E5:3 A5:3 -:2 ..." (en semicorcheas) desde el compás `bar`. */
+  /** Play melody "E5:3 A5:3 -:2 ..." (in sixteenth notes) from bar `bar`. */
   function melody(bar, str, ins = lead, v = 1, oct = 0) {
     let step = 0;
     for (const tok of str.trim().split(/\s+/)) {
@@ -199,7 +199,7 @@ window.__score = ctx => {
       step += len;
     }
   }
-  /** Batería de un compás: 16 pasos por instrumento ('X' fuerte, 'x' medio, 'o' suave, 'O' charles abierto). */
+  /** One-bar drum pattern: 16 steps per instrument ('X' loud, 'x' medium, 'o' soft, 'O' open hi-hat). */
   function drums(bar, p) {
     const vel = ch => (ch === 'X' ? 1 : ch === 'x' ? 0.7 : ch === 'o' ? 0.4 : ch === 'O' ? 0.8 : 0);
     for (let i = 0; i < 16; i++) {
@@ -208,7 +208,7 @@ window.__score = ctx => {
       if (p.h && vel(p.h[i])) hat(at(bar, i), vel(p.h[i]), p.h[i] === 'O');
     }
   }
-  /** Bajo de un compás con patrón ('R' raíz, 'O' octava, 'F' quinta, '.' nada). */
+  /** One-bar bass pattern ('R' root, 'O' octave, 'F' fifth, '.' none). */
   function bassBar(bar, chord, p, v = 1) {
     const r = ROOT[chord];
     for (let i = 0; i < 16; i++) {
@@ -242,7 +242,7 @@ window.__score = ctx => {
   arp(2, 'Am', [0, 1, 2, 3, 2, 1, 2, 3], 2, 0.8, 12);
   riser(at(2, 8), at(2, 12), 0.6);
 
-  // ================= 3-8 tienda y Mochila (Do mayor, alegre) =================
+  // ================= 3-8 shop and Bag (C major, cheerful) =================
   const SHOP = ['C', 'Am', 'F', 'G', 'C'];
   SHOP.forEach((ch, i) => {
     const b = 3 + i;
@@ -258,7 +258,7 @@ window.__score = ctx => {
   melody(7, 'E6:4 G6:4 C7:8', bell, 1);
   tom(at(7, 12), 50, 0.8); tom(at(7, 13), 47, 0.8); tom(at(7, 14), 43, 0.9); tom(at(7, 15), 40, 1);
 
-  // ================= 8-11 naturalezas: entra el tema =================
+  // ================= 8-11 natures: theme begins =================
   const NAT = ['Am', 'F', 'C'];
   NAT.forEach((ch, i) => {
     const b = 8 + i;
@@ -273,7 +273,7 @@ window.__score = ctx => {
   melody(10, 'G5:3 E5:3 C5:2 G5:4 A5:2 G5:2', lead, 1);
   riser(at(10, 8), at(11), 0.8);
 
-  // ================= 11-13 MT: parón =================
+  // ================= 11-13 TMs: pause =================
   boom(at(11), 0.8);
   pad(at(11), [50, 57, 62, 65], BAR, 1, 1000);
   pad(at(12), [52, 56, 59, 64], BAR, 1, 1300);
@@ -295,7 +295,7 @@ window.__score = ctx => {
   riser(at(14, 8), at(15), 1);
   tom(at(14, 12), 52, 0.8); tom(at(14, 13), 48, 0.8); tom(at(14, 14), 45, 0.9); tom(at(14, 15), 41, 1);
 
-  // ================= 15-16 "38": golpes en seco =================
+  // ================= 15-16 "38": dry hits =================
   boom(at(15), 1.1);
   stab(at(15), [57, 64, 69, 72], 1.3, 0.4);
   stab(at(15, 6), [57, 64, 69, 72], 1.1, 0.25); kick(at(15, 6), 1);
@@ -303,7 +303,7 @@ window.__score = ctx => {
   riser(at(15, 12), at(16), 0.9);
   for (let i = 12; i < 16; i++) snare(at(15, i), 0.5 + (i - 12) * 0.12);
 
-  // ================= 16-24 los 8 ataques: estribillo =================
+  // ================= 16-24 8 attacks: chorus =================
   const CHORUS = ['Am', 'F', 'C', 'G', 'Am', 'F', 'G', 'E'];
   const THEME = [
     'E5:3 A5:3 G5:2 E5:4 C5:2 D5:2', 'C5:3 F5:3 E5:2 C5:4 A4:2 C5:2',
@@ -323,7 +323,7 @@ window.__score = ctx => {
     if (i === 0 || i === 4) crash(at(b), 1); else hat(at(b), 1, true);
   });
 
-  // ================= 24-26 físico / especial: 3+3+2 =================
+  // ================= 24-26 physical / special: 3+3+2 =================
   [['F', 24, [53, 57, 60, 65]], ['G', 25, [55, 59, 62, 67]]].forEach(([ch, b, st]) => {
     crash(at(b), 0.8);
     for (const s of [0, 3, 6, 8, 11, 14]) { stab(at(b, s), st, 1.1); kick(at(b, s), 0.9); }
@@ -332,7 +332,7 @@ window.__score = ctx => {
   });
   riser(at(25, 8), at(26), 0.7);
 
-  // ================= 26-28 cartas: parón con filtro =================
+  // ================= 26-28 cards: filtered pause =================
   boom(at(26), 0.7);
   pad(at(26), [45, 52, 57, 60, 64], BAR, 1, 900);
   pad(at(27), [41, 48, 53, 57, 60], BAR, 1, 1200);
@@ -341,7 +341,7 @@ window.__score = ctx => {
   for (const b of [26, 27]) { kick(at(b), 0.7); kick(at(b, 8), 0.6); snare(at(b, 12), 0.5); }
   riser(at(27, 4), at(28), 0.9);
 
-  // ================= 28-30 mando e idiomas =================
+  // ================= 28-30 controller and languages =================
   crash(at(28), 0.9);
   drums(28, FULL);
   bassBar(28, 'C', 'R.RO.RR.R.RO.RF.', 1);
@@ -349,12 +349,12 @@ window.__score = ctx => {
   melody(28, 'C6:2 E6:2 G6:2 C7:2 G6:2 E6:2 G6:2 C7:2', bell, 0.7);
   drums(29, { k: 'X...X...X...X...', h: 'xxxxxxxxxxxxxxxx' });
   bassBar(29, 'G', 'RORORORORORORORO', 0.9);
-  const UP = [55, 59, 62, 67, 71, 74, 79];                    // un tono por idioma
+  const UP = [55, 59, 62, 67, 71, 74, 79];                    // One tone per language
   UP.forEach((m, k) => bell(at(29) + k * (BAR - 0.08) / 7, m + 12, 0.8));
   for (let i = 8; i < 16; i++) snare(at(29, i), 0.35 + (i - 8) * 0.08);
   riser(at(29), at(30), 1);
 
-  // ================= 30-32 cooperativo y segundo ataque (21-10-2026) =================
+  // ================= 30-32 co-op and second move (2026-10-21) =================
   crash(at(30), 0.8);
   drums(30, FULL);
   bassBar(30, 'Am', 'R.RO.RR.R.RO.RF.', 1);
@@ -367,7 +367,7 @@ window.__score = ctx => {
   for (let i = 8; i < 16; i++) snare(at(31, i), 0.35 + (i - 8) * 0.08);
   riser(at(31), at(32), 1);
 
-  // ================= 32-34 966 Pokémon: estribillo final =================
+  // ================= 32-34 966 Pokémon: final chorus =================
   [['Am', 32, THEME[4]], ['F', 33, THEME[5]]].forEach(([ch, b, mel]) => {
     drums(b, FULL2);
     bassBar(b, ch, '.O.O.O.O.O.O.O.O', 0.9);
@@ -380,7 +380,7 @@ window.__score = ctx => {
   tom(at(33, 12), 52, 0.9); tom(at(33, 13), 48, 0.9); tom(at(33, 14), 45, 1); tom(at(33, 15), 41, 1);
   riser(at(33, 8), at(34), 1);
 
-  // ================= 34-38 logo y final =================
+  // ================= 34-38 logo and ending =================
   boom(at(34), 1.2);
   stab(at(34), [57, 64, 69, 72, 76], 1.3, 0.6);
   pad(at(34), [45, 52, 57, 60, 64, 71], BAR * 2, 1.1, 2600);
@@ -393,7 +393,7 @@ window.__score = ctx => {
   pad(at(36), [41, 48, 53, 57, 60, 64], BAR, 1, 2200);
   bass(at(36), 29, BAR * 0.95, 0.8);
   melody(36, 'A5:4 G5:4 E5:4 G5:4', bell, 0.8);
-  // acorde final (La mayor, de La menor a luz) que se apaga con el vídeo
+  // Final chord (A major, brightening from A minor) that fades out with the video
   boom(at(37), 0.8);
   pad(at(37), [45, 52, 57, 61, 64, 69], BAR * 1.2, 1.2, 2800);
   bass(at(37), 33, BAR * 1.1, 0.8);

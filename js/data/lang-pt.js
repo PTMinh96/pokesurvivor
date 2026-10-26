@@ -1,16 +1,16 @@
-/* ============ lang-pt.js — traducción al portugués de Brasil ============
- * Clave: el texto en español tal como sale en pantalla. {x} = hueco (nombre,
- * número...). Ver js/core/i18n.js. Mismo formato que lang-fr.js (PR #67):
+/* ============ lang-pt.js — Brazilian Portuguese translation ============
+ * Key: the Spanish text as it appears on screen. {x} = placeholder (name,
+ * number...). See js/core/i18n.js. Same format as lang-fr.js (PR #67):
  * add(dict, 'pt-BR').
- * Tiene las mismas claves que lang-en.js, más los textos que en un tercer
- * idioma salen en español porque el inglés los resuelve en el código (frase
- * del ranking, rasgos del test, apartados de las novedades), igual que lang-fr.js.
- * Los nombres de movimientos, objetos y biomas se quedan en inglés, como los
- * conocen los jugadores de Brasil; los tipos van en portugués. Los nombres de
- * Pokémon en pt-BR son los ingleses, salvo Código Cero (Tipo Nulo).
+ * It has the same keys as lang-en.js, plus texts that appear in Spanish in a
+ * third language because English handles them in code (leaderboard phrases,
+ * quiz traits, news sections), as in lang-fr.js.
+ * Move, item, and biome names remain in English, as Brazilian players know
+ * them; type names are in Portuguese. Pokémon names in pt-BR are English,
+ * except Código Cero (Tipo Nulo).
  */
 G.I18n.add({
-  // ---------------- tipos y regiones ----------------
+  // ---------------- types and regions ----------------
   "Acero": "Aço",
   "Agua": "Água",
   "Bicho": "Inseto",
@@ -29,7 +29,7 @@ G.I18n.add({
   "Veneno": "Venenoso",
   "Volador": "Voador",
   "Teselia": "Unova",
-  // ---------------- movimientos ----------------
+  // ---------------- moves ----------------
   "Ascuas": "Ember",
   "Lanzallamas": "Flamethrower",
   "Giro Fuego": "Fire Spin",
@@ -129,7 +129,7 @@ G.I18n.add({
   "Agilidad": "Agility",
   "Fortaleza": "Harden",
   "Surf": "Surf",
-  // descripciones de los movimientos
+  // move descriptions
   "Abanico de tres hojas perforantes.": "Um leque de três folhas perfurantes.",
   "Aguijón rápido que envenena.": "Um ferrão rápido que envenena.",
   "Barrido de alas amplio que empuja.": "Uma rajada larga de asas que empurra os inimigos.",
@@ -183,7 +183,7 @@ G.I18n.add({
   "Ventisca a tu alrededor que ralentiza.": "Uma nevasca ao seu redor que deixa os inimigos lentos.",
   "Vibración constante que machaca lo cercano.": "Uma vibração constante que esmaga o que está perto.",
   "Zarpazo de acero en arco.": "Uma garrada de aço em arco.",
-  // mejoras de los movimientos
+  // move upgrades
   "+1 proyectil": "+1 projétil",
   "+1 proyectil y +1 perforación": "+1 projétil e +1 perfuração",
   "+45% daño": "+45% de dano",
@@ -220,7 +220,7 @@ G.I18n.add({
   "Síntesis": "Síntese",
   "Imán": "Ímã",
   "Aprendizaje": "Aprendizado",
-  // ---------------- cartas al subir de nivel ----------------
+  // ---------------- level-up cards ----------------
   "EVOLUCIÓN": "EVOLUÇÃO",
   "Evoluciona": "Evolui",
   "Mejora": "Melhoria",
@@ -243,7 +243,7 @@ G.I18n.add({
   "Faltan por elegir: {x}": "Ainda escolhendo: {x}",
   "Esperando a {x}…": "Esperando {x}…",
   "tú": "você",
-  // ---------------- objetos ----------------
+  // ---------------- items ----------------
   "Restos": "Leftovers",
   "Cinta Elección": "Choice Band",
   "Garra Rápida": "Quick Claw",
@@ -273,7 +273,7 @@ G.I18n.add({
   "¡Llevas {x}!": "Você está com {x}!",
   "Ya llevas {x}": "Você já está com {x}",
   "¡Banda Focus!": "Focus Sash!",
-  // ---------------- mejoras permanentes ----------------
+  // ---------------- permanent upgrades ----------------
   "Vitalidad": "Vitalidade",
   "Fuerza": "Força",
   "Zancada": "Passada",
@@ -293,7 +293,7 @@ G.I18n.add({
   "Máx.": "Máx.",
   "Cada Pokémon tiene sus propias mejoras: sólo cuentan cuando juegas con él.": "Cada Pokémon tem suas próprias melhorias: elas só contam quando você joga com ele.",
   "(compañero)": "(parceiro)",
-  // ---------------- interactivos y clima ----------------
+  // ---------------- interactables and weather ----------------
   "¡Poder {x}! {x} durante {x} s": "Poder de {x}! {x} por {x} s",
   "Furia": "Fúria",
   "Prisa": "Pressa",
@@ -313,7 +313,7 @@ G.I18n.add({
   "Roca, Tierra y Acero se potencian; el resto sufre": "Pedra, Terrestre e Aço se fortalecem; o resto sofre",
   "el Hielo se potencia; el resto sufre y va más lento": "Gelo se fortalece; o resto sofre e fica mais lento",
   "Fantasma, Hada y Psíquico se potencian": "Fantasma, Fada e Psíquico se fortalecem",
-  // ---------------- biomas y arenas ----------------
+  // ---------------- biomes and arenas ----------------
   "Pradera Eterna": "Eternal Meadow",
   "Volcán Ígneo": "Igneous Volcano",
   "Gruta Marina": "Sea Grotto",
@@ -335,7 +335,10 @@ G.I18n.add({
   "Bosque Umbrío": "Shady Forest",
   "Cueva Cristal": "Crystal Cave",
   "Volcán Ceniza": "Ash Volcano",
-  // nombres de las arenas de la grieta, en inglés como en lang-en.js ("Rift · Igneous Volcano"). Van antes de "Grieta · {x}" porque ese patrón también lo usa el contador de la grieta ("GRIETA · 1:30"), que sí se traduce (Fenda). Las de "· {x}" son para la línea del HUD (bioma · derrotados · monedas).
+  // Rift arena names stay in English as in lang-en.js ("Rift · Igneous Volcano").
+  // They precede "Grieta · {x}" because that pattern is also used by the rift
+  // timer ("GRIETA · 1:30"), which is translated (Fenda). Entries with "· {x}"
+  // are used in the HUD line (biome · defeated · coins).
   "Grieta · Pradera Eterna": "Rift · Eternal Meadow",
   "Grieta · Volcán Ígneo": "Rift · Igneous Volcano",
   "Grieta · Gruta Marina": "Rift · Sea Grotto",
@@ -375,7 +378,7 @@ G.I18n.add({
   "Grieta · {x}": "Fenda · {x}",
   "Grieta ·": "Fenda ·",
   "GRIETA ·": "FENDA ·",
-  // ---------------- avisos durante la partida ----------------
+  // ---------------- in-run notices ----------------
   "¡{x} salvaje apareció!": "Um {x} selvagem apareceu!",
   "¡{x} shiny salvaje apareció!": "Um {x} shiny selvagem apareceu!",
   "¡Un {x} shiny anda cerca!": "Tem um {x} shiny por perto!",
@@ -395,7 +398,7 @@ G.I18n.add({
   "¿Con cuál unes {x}?": "Com qual golpe você vincula {x}?",
   "Elige el primer movimiento que vas a unir": "Escolha o primeiro golpe que vai vincular",
   "Se lanzará a la vez que {x}. Queda un hueco libre.": "Será lançado ao mesmo tempo que {x}. Um espaço fica livre.",
-  // (la frase larga antes: la corta también encajaría con ella)
+  // (The longer phrase came first; the shorter one would also fit.)
   "Se lanzará a la vez que {x}.": "Será lançado ao mesmo tempo que {x}.",
   "¡Vínculo! {x} movimientos a la vez": "Vínculo! {x} golpes ao mesmo tempo",
   "Guardas el vínculo: aprende otro movimiento para usarlo": "Vínculo guardado: aprenda outro golpe para usá-lo",
@@ -419,7 +422,7 @@ G.I18n.add({
   "WASD moverse · 1-4 / Q / E o clic en un ataque para cambiarlo · Esc pausa": "WASD mover · 1-4 / Q / E ou clique em um ataque para trocá-lo · Esc pausa",
   "El anfitrión ha terminado la partida": "O anfitrião encerrou a partida",
   "Se ha perdido la conexión con el anfitrión.": "A conexão com o anfitrião foi perdida.",
-  // ---------------- pausa y fin ----------------
+  // ---------------- pause and end ----------------
   "Pausa": "Pausa",
   "Continuar": "Continuar",
   "Abandonar run": "Abandonar run",
@@ -443,7 +446,7 @@ G.I18n.add({
   "{x} Shinies conseguidos": "{x} shinies conseguidos",
   "Tickets del gacha": "Tickets do gacha",
   "Nivel máximo": "Nível máximo",
-  // ---------------- inicio de sesión y test ----------------
+  // ---------------- sign-in and quiz ----------------
   "Mundo Misterioso": "Mystery Dungeon",
   "Entrar": "Entrar",
   "Crear cuenta": "Criar conta",
@@ -454,7 +457,7 @@ G.I18n.add({
   "3-16 letras, números o _": "3-16 letras, números ou _",
   "Sobrevive a las hordas con tu compañero Pokémon · gratis, en PC y móvil": "Sobreviva às hordas com seu parceiro Pokémon · grátis, no PC e no celular",
   "Juego de supervivencia con Pokémon, gratis en el navegador y en el móvil.": "Jogo de sobrevivência com Pokémon, grátis no navegador e no celular.",
-  // título de la página (no está en lang-en.js: el inglés lo cambia en el código)
+  // Page title (not in lang-en.js: English is set in code).
   "PokéSurvivor – Juego Pokémon gratis online estilo Survivor.io": "PokéSurvivor – Jogo Pokémon grátis online estilo Survivor.io",
   "Cargando…": "Carregando…",
   "Guía": "Guia",
@@ -493,7 +496,7 @@ G.I18n.add({
   "Elegir otro": "Escolher outro",
   "¡Vamos juntos!": "Vamos juntos!",
   "Tu compañero:": "Seu parceiro:",
-  // test de personalidad
+  // personality quiz
   "¡Hay una pelea en mitad del pueblo! ¿Qué haces?": "Tem uma briga no meio da cidade! O que você faz?",
   "Me meto a ayudar sin pensarlo.": "Entro para ajudar sem pensar.",
   "Busco a alguien que pueda pararla.": "Procuro alguém que possa parar a briga.",
@@ -550,8 +553,8 @@ G.I18n.add({
   "Rendirse no entra en tus planes.": "Desistir não está nos seus planos.",
   "Ves soluciones donde otros ven problemas.": "Você vê soluções onde os outros veem problemas.",
   "Tu amabilidad tranquiliza a todos los que te rodean.": "Sua gentileza acalma todos ao seu redor.",
-  // ---------------- menú ----------------
-  // rasgos del test de personalidad (no están en lang-en.js)
+  // ---------------- menu ----------------
+  // Personality quiz traits (not in lang-en.js).
   "Impulsivo": "Impulsivo",
   "Prudente": "Prudente",
   "Leal": "Leal",
@@ -616,7 +619,7 @@ G.I18n.add({
   "Eres invitado: se perderá todo el progreso. ¿Salir?": "Você é convidado: todo o progresso será perdido. Sair?",
   "Proyecto de fan sin ánimo de lucro · Sprites: SpriteCollab (CC BY-NC 4.0) · Pokémon © Nintendo/Creatures/GAME FREAK ·": "Projeto de fã sem fins lucrativos · Sprites: SpriteCollab (CC BY-NC 4.0) · Pokémon © Nintendo/Creatures/GAME FREAK ·",
   "Aviso legal": "Aviso legal",
-  // colección
+  // collection
   "Volver": "Voltar",
   "Todos": "Todos",
   "Tengo": "Tenho",
@@ -672,7 +675,7 @@ G.I18n.add({
   "¡¿LEGENDARIO?!": "LENDÁRIO?!",
   "¡¿ÉPICO?!": "ÉPICO?!",
   "SHINY ·": "SHINY ·",
-  // ---------------- misiones, logros y perfil ----------------
+  // ---------------- missions, achievements, and profile ----------------
   "Logros": "Conquistas",
   "Perfil": "Perfil",
   "Diarias": "Diárias",
@@ -709,7 +712,7 @@ G.I18n.add({
   "En grupo": "Em grupo",
   "Legendarios": "Lendários",
   "Cerrar": "Fechar",
-  // misiones
+  // missions
   "Derrota a {x} Pokémon": "Derrote {x} Pokémon",
   "Derrota a {x} Pokémon de tipo {x}": "Derrote {x} Pokémon do tipo {x}",
   "Derrota a {x} jefes": "Derrote {x} chefes",
@@ -726,7 +729,7 @@ G.I18n.add({
   "Evoluciona {x} movimientos": "Evolua {x} golpes",
   "Encuentra un objeto equipable": "Encontre um item equipável",
   "Completa {x} misiones diarias": "Complete {x} missões diárias",
-  // logros
+  // achievements
   "Colección": "Coleção",
   "Supervivencia": "Sobrevivência",
   "Combate": "Combate",
@@ -823,7 +826,7 @@ G.I18n.add({
   "Tragaperras": "Caça-níqueis",
   "Haz 100 tiradas en el gacha.": "Faça 100 giros no gacha.",
   "Brillante": "Brilhante",
-  // ---------------- amigos, sala e invitaciones ----------------
+  // ---------------- friends, room, and invitations ----------------
   "Elige tu apodo": "Escolha seu apelido",
   "Guardar apodo": "Salvar apelido",
   "Ahora no": "Agora não",
@@ -924,7 +927,9 @@ G.I18n.add({
   "No hay ningún Pokémon con ese nombre": "Não existe nenhum Pokémon com esse nome",
   "No se pudo cargar el ranking ({x}).": "Não foi possível carregar o ranking ({x}).",
   "Elige un apodo (en Amigos) para salir en el ranking.": "Escolha um apelido (em Amigos) para aparecer no ranking.",
-  // frase del ranking: en lang-en.js el inglés la monta en el código; para otros idiomas sale en español (ranking-ui.js). Las concretas van antes que la general.
+  // Leaderboard phrase: lang-en.js composes the English in code; other
+  // languages use the Spanish source in ranking-ui.js. Specific phrases come
+  // before the general one.
   "Tu mejor puesto de hoy {x}:": "Sua melhor posição de hoje ({x}):",
   "Tu mejor puesto de esta semana {x}:": "Sua melhor posição desta semana ({x}):",
   "Tu mejor puesto de este mes {x}:": "Sua melhor posição deste mês ({x}):",
@@ -958,7 +963,7 @@ G.I18n.add({
   "del mes": "do mês",
   "del año": "do ano",
   "histórico": "histórico",
-  // ---------------- ajustes ----------------
+  // ---------------- settings ----------------
   "Sonido": "Som",
   "Gráficos": "Gráficos",
   "Controles": "Controles",
@@ -1056,7 +1061,7 @@ G.I18n.add({
   "PokéSurvivor se juega en horizontal.": "PokéSurvivor é jogado na horizontal.",
   "No se pudo cargar todo el juego (¿se cortó la conexión?).": "Não foi possível carregar o jogo inteiro (a conexão caiu?).",
   "Recargar": "Recarregar",
-  // ---------------- aviso legal ----------------
+  // ---------------- legal notice ----------------
   "Proyecto de fan": "Projeto de fã",
   "es un juego hecho por fans,": "é um jogo feito por fãs,",
   ". No tiene anuncios, ni compras, ni ninguna forma de ingreso, y no la tendrá.": ". Não tem anúncios, nem compras, nem nenhuma forma de receita, e nunca terá.",
@@ -1079,7 +1084,7 @@ G.I18n.add({
   "PokéSurvivor necesita JavaScript para funcionar. Actívalo para jugar.": "PokéSurvivor precisa de JavaScript para funcionar. Ative para jogar.",
   "Fan game gratuito de supervivencia con 966 Pokémon de las 9 regiones: elige tu compañero, sobrevive a las hordas, evoluciona tus ataques, enfréntate a legendarios y juega en cooperativo con hasta 4 amigos.": "Fan game gratuito de sobrevivência com 966 Pokémon das 9 regiões: escolha seu parceiro, sobreviva às hordas, evolua seus ataques, enfrente lendários e jogue em cooperativo com até 4 amigos.",
   "Guía del juego": "Guia do jogo",
-  // donaciones
+  // donations
   "Apoyar": "Apoiar",
   "Apoyar el proyecto": "Apoiar o projeto",
   "Donar en Ko-fi": "Doar no Ko-fi",
@@ -1110,7 +1115,7 @@ G.I18n.add({
   "Juego de fans {x} — sin anuncios ni pagos.": "Jogo de fãs {x} — sem anúncios nem pagamentos.",
   "Código Cero": "Tipo Nulo",
   "Pokédex: todos los Pokémon jugables": "Pokédex: todos os Pokémon jogáveis",
-  // ---------------- 2026-10-10: grietas, jefes, pantalla de inicio, movimientos nuevos ----------------
+  // ---------------- 2026-10-10: rifts, bosses, title screen, new moves ----------------
   "¡SE HA ABIERTO UNA GRIETA!": "UMA FENDA SE ABRIU!",
   "Sigue la flecha morada: dentro te espera un legendario": "Siga a seta roxa: lá dentro um lendário te espera",
   "GRIETA · {x} m · {x} s": "FENDA · {x} m · {x} s",
@@ -1189,7 +1194,7 @@ G.I18n.add({
   "×1,9 daño, más distancia y menos recarga": "×1,9 de dano, mais distância e menos recarga",
   "×1,8 daño, charcos más grandes y duraderos": "×1,8 de dano, poças maiores e mais duradouras",
   "×1,7 daño, +4 disparos y +1 perforación": "×1,7 de dano, +4 disparos e +1 perfuração",
-  // ---------------- eventos y duendes (2026-10-10) ----------------
+  // ---------------- events and sprites (2026-10-10) ----------------
   "¡Horda de tipo {x}!": "Horda do tipo {x}!",
   "¡Hora dorada! Doble de experiencia": "Hora dourada! Experiência em dobro",
   "¡Un {x} se ha perdido! Búscalo y llévalo a la marca": "Um {x} se perdeu! Encontre-o e leve até o marcador",
@@ -1213,7 +1218,7 @@ G.I18n.add({
   "El juego ha fallado: tu partida se ha guardado hasta aquí": "O jogo travou: sua partida foi salva até aqui",
   "Pausa: esperando a {x} (anfitrión)…": "Pausa: esperando {x} (anfitrião)…",
   "Novedades": "Novidades",
-  // novedades: títulos de los apartados
+  // New content: section headings
   "Nuevo": "Novo",
   "Cambios": "Mudanças",
   "Arreglos": "Correções",
@@ -1233,7 +1238,7 @@ G.I18n.add({
   "Toca los movimientos que no quieres que te salgan en las cartas ({x}). El movimiento de inicio no se puede vetar.": "Toque nos golpes que você não quer que apareçam nas cartas ({x}). O golpe inicial não pode ser vetado.",
   "Ya tienes {x} vetados: quita uno primero": "Você já tem {x} vetados: remova um primeiro",
   "En iPhone, Safari no deja poner las webs a pantalla completa. Pulsa Compartir y luego \"Añadir a pantalla de inicio\": abriendo el juego desde ese icono se juega a pantalla completa.": "No iPhone, o Safari não deixa os sites ficarem em tela cheia. Toque em Compartilhar e depois em \"Adicionar à Tela de Início\": abrindo o jogo por esse ícone, ele roda em tela cheia.",
-  // ---------------- La Sentencia de Arceus (minuto 30) ----------------
+  // ---------------- Arceus Judgment (minute 30) ----------------
   "Ruinas del Juicio": "Ruins of Judgment",
   "LA SENTENCIA": "O JULGAMENTO",
   "DE ARCEUS": "DE ARCEUS",
@@ -1256,7 +1261,7 @@ G.I18n.add({
   "Derrota a 3 legendarios ante Arceus en una partida.": "Derrote 3 lendários diante de Arceus em uma partida.",
   "Juzgado": "Julgado",
   "Elegido de Arceus": "Escolhido de Arceus",
-  // ---------------- reportar marcas del ranking ----------------
+  // ---------------- report leaderboard records ----------------
   "Reportar marca sospechosa": "Denunciar recorde suspeito",
   "Ya la has reportado": "Você já denunciou",
   "Ya has reportado esta marca": "Você já denunciou este recorde",

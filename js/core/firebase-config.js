@@ -1,16 +1,16 @@
-/* ============ firebase-config.js — conexión con tu proyecto de Firebase ============
- * Pega aquí la configuración de tu app web de Firebase (Consola de Firebase >
- * Configuración del proyecto > Tus apps > SDK setup and configuration > Config).
- * Los pasos completos están en docs/FIREBASE.md.
+/* ============ firebase-config.js — connect to your Firebase project ============
+ * Paste your Firebase web app configuration here (Firebase Console >
+ * Project settings > Your apps > SDK setup and configuration > Config).
+ * Full instructions are in docs/FIREBASE.md.
  *
- * Estos datos NO son secretos: Firebase los diseña para ir en la web. Lo que
- * protege las partidas son las reglas de Firestore (firestore.rules).
+ * This data is NOT secret: Firebase is designed for these values to be public
+ * on the web. Firestore rules (firestore.rules) protect game saves.
  *
- * Si se pone a null, el juego funciona en modo local (sólo en el navegador).
+ * If set to null, the game runs in local mode (browser only).
  */
-// Proyecto pokesurvivor-free (desde el 12-10-2026): autenticación normal de Firebase,
-// SIN Identity Platform, así las cuentas son gratis sin límite. ¡No pulsar nunca
-// "Actualizar a Identity Platform" en su consola! (El viejo era pokesurvivor-jpter.)
+// pokesurvivor-free project (since 2026-10-12): standard Firebase Authentication,
+// WITHOUT Identity Platform, so accounts remain free and unlimited. Never click
+// "Upgrade to Identity Platform" in the console! (The old project was pokesurvivor-jpter.)
 G.FIREBASE_CONFIG = {
   apiKey: "AIzaSyAOHSLwJp3Fi7KNc_eF-lqZOn6ZmP44tjQ",
   authDomain: "my-pokesurvivor-firebase.firebaseapp.com",
@@ -21,7 +21,7 @@ G.FIREBASE_CONFIG = {
   databaseURL: 'https://my-pokesurvivor-firebase-default-rtdb.asia-southeast1.firebasedatabase.app'
 };
 
-/* Ejemplo de cómo debe quedar:
+/* Example configuration:
 G.FIREBASE_CONFIG = {
   apiKey: 'AIza...',
   authDomain: 'tu-proyecto.firebaseapp.com',

@@ -1,13 +1,13 @@
-/* ============ missions.js — plantillas de misiones diarias y semanales ============
- * Cada día salen 3 diarias y cada semana 2 semanales (hora de España), con
- * objetivos y tipos sorteados. Se completan jugando y el premio se recoge en
- * la pantalla de Misiones. La lógica está en systems/progress.js.
+/* ============ missions.js — daily and weekly mission templates ============
+ * Three daily missions and two weekly missions are selected (Spain time), with
+ * randomized goals and types. Complete them by playing and claim rewards on the
+ * Missions screen. Logic is in systems/progress.js.
  *
- *   ev      evento que la hace avanzar (ver G.Progress.event)
- *   match   (datos, parámetro) -> ¿cuenta este evento?
- *   value   datos -> cuánto vale; con mode 'max' se queda el mayor, con
- *           'add' (por defecto) se suma (1 si no hay value)
- *   param   'type': sortea un tipo Pokémon para la misión
+ *   ev      event that advances the mission (see G.Progress.event)
+ *   match   (data, parameter) -> does this event count?
+ *   value   data -> progress amount; mode 'max' keeps the highest value, while
+ *           'add' (default) sums values (1 if there is no value)
+ *   param   'type': randomly select a Pokémon type for the mission
  */
 G.MissionDefs = (() => {
   const T = t => G.U.TYPE_NAME[t];

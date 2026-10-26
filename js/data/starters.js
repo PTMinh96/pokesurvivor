@@ -1,8 +1,8 @@
-/* ============ starters.js — compañeros iniciales y test de personalidad ============
- * Como en Mundo Misterioso: unas preguntas deciden tu personalidad, y tu
- * personalidad decide tu compañero. Puedes rechazarlo y elegir otro.
+/* ============ starters.js — starter partners and personality quiz ============
+ * As in Mystery Dungeon, a quiz determines your personality, and your
+ * personality determines your partner. You can reject it and choose another.
  *
- * Los stats salen de G.DEX; aquí sólo van los rasgos y el movimiento inicial.
+ * Stats come from G.DEX; only the traits and starting move are defined here.
  */
 G.STARTERS = [
   { dex: 1,   start: 'vine-whip',     traits: ['leal', 'paciente'] },
@@ -39,15 +39,16 @@ G.STARTERS = [
 G.STARTER_BY = {};
 for (const s of G.STARTERS) G.STARTER_BY[s.dex] = s;
 
-/** Movimiento inicial de serie de cualquier Pokémon (starter o del gacha). */
+/** Default starting move for any Pokémon (starter or from the gacha). */
 G.baseStartOf = dex => {
   const s = G.STARTER_BY[dex];
   return s ? s.start : G.Moves.startFor(G.DEX_BY[dex]);
 };
 
 /**
- * Ataques que se pueden elegir para empezar (Mejoras → Movimiento inicial): los suyos, sin potenciadores,
- * y siempre el de serie (aunque no sea de su tipo, como Confusión en Psyduck), para poder volver a él.
+ * Moves available to choose at the start (Upgrades → Starting Move): its own
+ * moves, excluding buffs, plus its default move (even if it is not one of its
+ * types, such as Confusion for Psyduck), so the player can switch back to it.
  */
 G.startChoices = dex => {
   const ids = G.Moves.poolFor(G.DEX_BY[dex]).filter(id => G.Moves.BY_ID[id].kind !== 'buff');
@@ -57,8 +58,8 @@ G.startChoices = dex => {
 };
 
 /**
- * Movimiento con el que empieza: el elegido con la mejora Movimiento inicial
- * (si la tiene comprada para ese Pokémon y sigue siendo de los suyos) o el de serie.
+ * Starting move: the one selected with the Starting Move upgrade (if purchased
+ * for this Pokémon and still in its move pool), or its default move.
  */
 G.startMoveOf = dex => {
   const s = G.DB && G.DB.save, pick = s && s.pstart && s.pstart[dex];
@@ -67,8 +68,8 @@ G.startMoveOf = dex => {
 };
 
 /**
- * Segundo movimiento con el que empieza (Mejoras → Segundo movimiento inicial,
- * con Repertorio comprado), o null si toca al azar como siempre.
+ * Second starting move (Upgrades → Second Starting Move, with Repertory
+ * purchased), or null to choose randomly as usual.
  */
 G.startMove2Of = dex => {
   const s = G.DB && G.DB.save, pick = s && s.pstart2 && s.pstart2[dex], up = s && s.pupg && s.pupg[dex];
@@ -77,7 +78,7 @@ G.startMove2Of = dex => {
   return pick;
 };
 
-/** Descripción corta de cada rasgo, para la pantalla de resultado. */
+/** Short description of each trait, shown on the results screen. */
 G.TRAIT_TEXT = {
   valiente:  'No te lo piensas dos veces cuando alguien necesita ayuda.',
   impulsivo: 'Actúas primero y piensas después. ¡A veces sale bien!',
@@ -140,12 +141,12 @@ G.PERSONALITY_TEST = [
     { t: 'Ser el mejor.',                            p: { orgulloso: 2, tenaz: 1 } } ] }
 ];
 
-/** Puntuaciones de rasgos -> { trait, dex } con el compañero que mejor encaja. */
+/** Trait scores -> { trait, dex } with the best-matching partner. */
 G.personalityResult = scores => {
   const trait = Object.keys(scores).sort((a, b) => scores[b] - scores[a])[0];
   let best = [], bestScore = -1;
   for (const s of G.STARTERS) {
-    // El rasgo principal pesa el doble.
+    // The primary trait counts double.
     const v = (scores[s.traits[0]] || 0) * 2 + (scores[s.traits[1]] || 0);
     if (v > bestScore) { bestScore = v; best = [s]; }
     else if (v === bestScore) best.push(s);

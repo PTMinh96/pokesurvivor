@@ -1,5 +1,5 @@
-/* ============ upgrades.js — mejoras permanentes entre runs ============
- * Se compran con Pokémonedas en el menú. `per` es lo que da cada nivel.
+/* ============ upgrades.js — permanent upgrades between runs ============
+ * Purchased with Pokémon Coins in the menu. `per` is the amount granted by each level.
  */
 G.Upgrades = (() => {
   const LIST = [
@@ -16,9 +16,9 @@ G.Upgrades = (() => {
     { id: 'crit',   icon: 'star', name: 'Golpe Crítico',  unit: '+3% de críticos (x1,5 de daño)', max: 10, base: 90, grow: 1.4 },
     { id: 'reroll', icon: 'up', name: 'Cambio de cartas', unit: '+1 cambio de cartas de nivel por run', max: 5, base: 150, grow: 1.6 },
     { id: 'ban',    icon: 'ban', name: 'Veto',           unit: 'Bloquea 1 movimiento: no te sale en las cartas', max: 3, base: 300, grow: 1.9 },
-    // 19-10-2026: se compra una vez y luego se elige gratis (save.pstart, ver G.startMoveOf).
+    // 2026-10-19: purchased once, then chosen for free (save.pstart; see G.startMoveOf).
     { id: 'start',  icon: 'cursor', name: 'Movimiento inicial', unit: 'Eliges con qué ataque empiezas la partida', max: 1, base: 400, grow: 1 },
-    // 20-10-2026: igual, para el segundo de Repertorio (save.pstart2, ver G.startMove2Of). Sin Repertorio no se compra.
+    // 2026-10-20: same for the second move from Repertory (save.pstart2; see G.startMove2Of). Requires Repertory.
     { id: 'start2', icon: 'cursor', name: 'Segundo movimiento inicial', unit: 'Eliges el segundo ataque con el que empiezas (necesita Repertorio)', max: 1, base: 400, grow: 1, needs: 'moves' }
   ];
   const BY = {};
@@ -29,9 +29,9 @@ G.Upgrades = (() => {
     return Math.round(u.base * Math.pow(u.grow, lvl) / 10) * 10;
   }
 
-  /** Niveles comprados -> modificadores para G.Player. */
+  /** Purchased levels -> modifiers for G.Player. */
   function perks(levels = {}) {
-    // Nunca por encima del máximo (una partida editada a mano no da más poder).
+    // Never exceed the cap (manually editing a save does not grant extra power).
     const L = id => Math.max(0, Math.min(BY[id].max, Math.floor(+levels[id] || 0)));
     return {
       hp: L('hp') * 8,

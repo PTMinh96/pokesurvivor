@@ -1,10 +1,10 @@
-# Páginas para buscadores, en español y en inglés.
+# Search pages in Spanish and English.
 #   node tools/export_data.js && python tools/make_seo_pages.py
-# Son páginas de texto de verdad (el juego es un canvas que Google no puede leer)
-# hechas con los datos del propio juego, y enlazan al juego. Genera:
-#   es: guia/ pokedex/ legendarios/ shinies/ tipos/ movimientos/ objetos/ logros/ novedades/
-#   en: en/ (el juego en inglés) en/guide/ en/pokedex/ en/legendaries/ ... en/news/
-#   404.html, robots.txt, sitemap.xml (con las versiones de cada idioma)
+# These are real text pages (the game is a canvas Google cannot read), generated
+# from the game's own data and linking to the game. Generates:
+#   Spanish slugs: guia/ pokedex/ legendarios/ shinies/ tipos/ movimientos/ objetos/ logros/ novedades/
+#   en: en/ (English game) en/guide/ en/pokedex/ en/legendaries/ ... en/news/
+#   404.html, robots.txt, sitemap.xml (with each language version)
 import json, os, re, datetime, html
 
 ROOT = os.path.join(os.path.dirname(__file__), '..')
@@ -19,7 +19,7 @@ for m in re.finditer(r'^\s*(\d+): (\{.*\}),?\s*$', open(os.path.join(ROOT, 'js/d
 esc = html.escape
 N = len(DEX)
 
-# ---------------- traducción con el diccionario del juego ----------------
+# ---------------- translation using the game dictionary ----------------
 EN = D['en']
 PATS = []
 for k, v in EN.items():
@@ -35,7 +35,7 @@ def en(s):
             return re.sub(r'\{x\}', lambda _: en(next(g)), v)
     return s
 def L(lang, es, eng=None):
-    """Texto en el idioma: 'es' tal cual; 'en' el que se da o el del diccionario."""
+    """Text in the selected language: 'es' as-is; 'en' from the argument or dictionary."""
     return es if lang == 'es' else (eng if eng is not None else en(es))
 
 GEN = {1: 'Kanto', 2: 'Johto', 3: 'Hoenn', 4: 'Sinnoh', 5: ('Teselia', 'Unova'), 6: 'Kalos', 7: 'Alola', 8: 'Galar', 9: 'Paldea'}
@@ -45,7 +45,7 @@ def tname(t, lang): return L(lang, TN.get(t, t))
 def tbadge(t, lang): return f'<i class="ty" style="background:{TC.get(t, "#888")}">{esc(tname(t, lang))}</i>'
 LEG = set(D['legends'])
 
-# ---------------- rutas ----------------
+# ---------------- routes ----------------
 PAGES = ['home', 'guide', 'pokedex', 'legends', 'shinies', 'types', 'moves', 'items', 'achievements', 'news', 'support']
 PATH = {
     'es': {'home': '', 'guide': 'guia/', 'pokedex': 'pokedex/', 'legends': 'legendarios/', 'shinies': 'shinies/', 'types': 'tipos/',
@@ -61,7 +61,7 @@ FOOT = {'es': [('guide', 'Guía'), ('pokedex', 'Pokédex'), ('legends', 'Legenda
                ('moves', 'Moves'), ('items', 'Items'), ('achievements', 'Achievements'), ('news', 'News'), ('support', 'Support the project')]}
 
 def rel(frm, to):
-    """Ruta relativa entre dos páginas (las dos son carpetas)."""
+    """Relative path between two pages (both are directories)."""
     up = '../' * frm.count('/')
     return up + to if (up + to) else './'
 
@@ -153,7 +153,7 @@ def upof(pid, lang): return '../' * PATH[lang][pid].count('/')
 def cta(pid, lang, text):
     return f'<p class="cta"><a class="btn" href="{rel(PATH[lang][pid], PATH[lang]["home"])}">{esc(text)}</a></p>'
 
-# ================= guía =================
+# ================= guide =================
 FAQ = {
  'es': [
   ('¿PokéSurvivor es gratis?', 'Sí, totalmente. Es un juego de fans sin ánimo de lucro: no tiene anuncios ni compras. Si quieres, puedes apoyarlo con una donación voluntaria, que se usa sólo para los servidores y no da ventajas.'),
@@ -313,7 +313,7 @@ def pokedex(lang):
     ld = {'@context': 'https://schema.org', '@graph': [{'@type': 'CollectionPage', 'name': h1, 'url': SITE + PATH[lang][pid], 'inLanguage': lang}, crumbs(pid, lang, 'Pokédex')]}
     write(pid, lang, page(pid, lang, title, desc, body, ld))
 
-# ================= legendarios y arenas =================
+# ================= legendaries and arenas =================
 def legends(lang):
     pid = 'legends'; up = upof(pid, lang)
     cards = ''.join(dexcard(BY[d], lang, up) for d in sorted(LEG))
@@ -375,7 +375,7 @@ def shinies(lang):
         title, desc = 'Shinies in PokéSurvivor: odds and how to get them', 'How to get shiny Pokémon in PokéSurvivor: 1 in 4096 in the wild, 1 in 512 in rifts and 1 in 100 from the gacha (1 in 50 with the Shiny Charm). A gallery of normal and shiny forms.'
     write(pid, lang, page(pid, lang, title, desc, body, {'@context': 'https://schema.org', '@graph': [crumbs(pid, lang, h1)]}))
 
-# ================= tabla de tipos =================
+# ================= type chart =================
 def types_page(lang):
     pid = 'types'
     M = D['matrix']
@@ -415,7 +415,7 @@ document.querySelectorAll('#chart td').forEach(td => {
     body = f'<article class="doc wide"><h1>{h1}</h1>{intro}{table}{wx}{cta(pid, lang, c)}</article>{script}'
     write(pid, lang, page(pid, lang, title, desc, body, {'@context': 'https://schema.org', '@graph': [crumbs(pid, lang, h1)]}))
 
-# ================= movimientos =================
+# ================= moves =================
 KIND = {'es': {'projectile': 'Proyectil', 'melee': 'Cuerpo a cuerpo', 'beam': 'Rayo', 'orbit': 'Órbita', 'nova': 'Ráfaga', 'aura': 'Aura', 'buff': 'Mejora',
                'boomerang': 'Bumerán', 'chain': 'Cadena', 'mine': 'Minas', 'meteor': 'Meteoros', 'turret': 'Torreta', 'dash': 'Embestida',
                'trail': 'Rastro', 'cone': 'Abanico'},
@@ -456,7 +456,7 @@ def moves_page(lang):
     body = f'<article class="doc wide"><h1>{h1}</h1>{intro}<div class="tablewrap"><table class="list"><thead><tr>{th}</tr></thead><tbody>{"".join(rows)}</tbody></table></div>{cta(pid, lang, c)}</article>'
     write(pid, lang, page(pid, lang, title, desc, body, {'@context': 'https://schema.org', '@graph': [crumbs(pid, lang, h1)]}))
 
-# ================= objetos =================
+# ================= items =================
 def items_page(lang):
     pid = 'items'
     rows = ''.join(f'<li><b>{esc(L(lang, i["name"]))}</b><span>{esc(L(lang, i["desc"]))}</span></li>' for i in D['items'])
@@ -471,7 +471,7 @@ def items_page(lang):
         intro = ('<p class="lead">During a run you can find <b>held items</b> in chests and by defeating bosses. You can only hold <b>one</b> at a time: '
                  'if you find another, you choose which one to keep. They last for the whole run.</p>')
         title, desc, c = f'PokéSurvivor items: all {ni} held items', f'The {ni} held items in PokéSurvivor (Leftovers, Choice Band, Focus Sash, Life Orb…) and what each one does.', 'Find them: play free'
-    # Esferas (de un solo uso, 22-10-2026)
+    # Orbs (single-use, 2026-10-22)
     orbs = D.get('orbs') or []
     orows = ''.join(f'<li><b>{esc(L(lang, o["name"]))}</b><span>{esc(L(lang, o["desc"]))}</span></li>' for o in orbs)
     if lang == 'es':
@@ -486,7 +486,7 @@ def items_page(lang):
     body = f'<article class="doc"><h1>{h1}</h1>{intro}<ul class="items">{rows}</ul>{osec}{cta(pid, lang, c)}</article>'
     write(pid, lang, page(pid, lang, title, desc, body, {'@context': 'https://schema.org', '@graph': [crumbs(pid, lang, h1)]}))
 
-# ================= logros =================
+# ================= achievements =================
 def ach_page(lang):
     pid = 'achievements'
     cats = D['achCats'] or []
@@ -512,8 +512,8 @@ def ach_page(lang):
     body = f'<article class="doc wide"><h1>{h1}</h1>{intro}{"".join(secs)}{cta(pid, lang, c)}</article>'
     write(pid, lang, page(pid, lang, title, desc, body, {'@context': 'https://schema.org', '@graph': [crumbs(pid, lang, h1)]}))
 
-# ================= novedades =================
-# Salen de js/data/changelog.js (lo mismo que el botón "Novedades" del juego): así no se quedan atrás.
+# ================= news =================
+# Generated from js/data/changelog.js (the same source as the game's News button) to keep it up to date.
 SECT = {'new': ('Nuevo', 'New'), 'chg': ('Cambios', 'Changes'), 'fix': ('Arreglos', 'Fixes')}
 def news(lang):
     pid = 'news'
@@ -530,7 +530,7 @@ def news(lang):
     body = f'<div class="doc"><h1>{h1}</h1>{items}{cta(pid, lang, "Jugar gratis" if lang == "es" else "Play free")}</div>'
     write(pid, lang, page(pid, lang, title, desc, body, {'@context': 'https://schema.org', '@graph': [crumbs(pid, lang, h1)]}))
 
-# ================= apoyar el proyecto =================
+# ================= support the project =================
 def support(lang):
     pid = 'support'
     F = D['funding']
@@ -572,10 +572,10 @@ you can make a <b>voluntary donation</b>. <b>All the money goes to the servers a
         title, desc = 'Support PokéSurvivor: donations for the servers', 'PokéSurvivor is free and ad-free. Voluntary donations only pay for the servers and the domain.'
     write(pid, lang, page(pid, lang, title, desc, body, {'@context': 'https://schema.org', '@graph': [crumbs(pid, lang, h1)]}))
 
-# ================= el juego en inglés (/en/) =================
+# ================= English game (/en/) =================
 def game_en():
-    # Parte de dev.html (con lo de SEO) y usa el mismo app.min.js que index.html,
-    # así sale bien aunque index.html se haya generado con --sin-seo.
+    # Start from dev.html (including SEO markup) and use the same app.min.js as
+    # index.html, so this still works if index.html was generated with --sin-seo.
     dev = open(os.path.join(ROOT, 'dev.html'), encoding='utf-8').read()
     idx = open(os.path.join(ROOT, 'index.html'), encoding='utf-8').read()
     app = re.search(r'<script defer src="js/app\.min\.js\?v=[^"]+"></script>', idx).group(0)
@@ -609,7 +609,7 @@ def game_en():
     for a, b in rep:
         assert a in s, a[:60]
         s = s.replace(a, b)
-    # Enlaces a las páginas: las de inglés.
+    # Page links: use the English pages.
     s = s.replace('href="guia/"', 'href="en/guide/"').replace('href="pokedex/"', 'href="en/pokedex/"')
     s = s.replace('"description": "Fan game gratuito de supervivencia (bullet heaven, estilo Survivor.io) con Pokémon: elige compañero, sobrevive a hordas, sube de nivel, evoluciona tus ataques, enfréntate a legendarios en grietas y juega en cooperativo con hasta 4 amigos."',
                   '"description": "A free Pokémon survival fan game (bullet heaven, Survivor.io style): pick a partner, survive the hordes, level up, evolve your moves, fight legendaries in rifts and play co-op with up to 4 friends."')
@@ -617,7 +617,7 @@ def game_en():
     os.makedirs(os.path.join(ROOT, 'en'), exist_ok=True)
     open(os.path.join(ROOT, 'en', 'index.html'), 'w', encoding='utf-8').write(s)
 
-# ================= 404, robots y sitemap =================
+# ================= 404, robots, and sitemap =================
 def extra():
     nf = '''<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="robots" content="noindex"><title>404 · PokéSurvivor</title><link rel="icon" href="/favicon.ico" sizes="any"><link rel="icon" type="image/png" sizes="48x48" href="/assets/icons/icon-48.png"><link rel="stylesheet" href="/css/pages.css"></head>

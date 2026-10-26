@@ -1,12 +1,12 @@
-/* ============ items.js — objetos equipables (uno por run) ============
- * Se encuentran en los cofres (a veces en los normales, a menudo en los de
- * candado) y los sueltan los jefes. Sólo puedes llevar UNO; si encuentras
- * otro, eliges con cuál quedarte. Duran lo que dura la run.
+/* ============ items.js ? equippable items (one per run) ============
+ * Found in chests (sometimes regular ones, often locked ones) and dropped by
+ * bosses. You can carry only ONE; if you find another, choose which to keep.
+ * They last for the duration of the run.
  *
- *   on(pl)   se lo pones (lo que hace mientras lo llevas)
- *   off(pl)  se lo quitas (deshace lo de on)
- * Los que reaccionan a algo (golpe mortal, daño hecho...) los mira el
- * jugador con pl.hasItem(id).
+ *   on(pl)   equip it (apply its effect while carried)
+ *   off(pl)  unequip it (undo the effect of on)
+ * The player checks items that react to events (lethal hits, damage dealt, etc.)
+ * with pl.hasItem(id).
  */
 G.Items = (() => {
   const LIST = [
@@ -37,7 +37,7 @@ G.Items = (() => {
   const BY = {};
   for (const it of LIST) BY[it.id] = it;
 
-  /** Uno al azar, distinto del que ya llevas. */
+  /** Pick a random item other than the one already carried. */
   function roll(except) {
     const pool = LIST.filter(i => i.id !== except);
     return G.U.pick(pool).id;

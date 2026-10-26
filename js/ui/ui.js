@@ -1,9 +1,9 @@
-/* ============ ui.js — utilidades comunes de la interfaz ============
- * - Mostrar / ocultar pantallas.
- * - Sprites animados de PMD dentro de <canvas> del DOM (menú, colección,
- *   gacha...). Se registran aquí y el bucle principal los anima con tick().
- * - Sonidos de interfaz (por delegación: cualquier botón suena solo).
- * - Panel de sonido, avisos (toast), monedas, chips de tipo, estrellas.
+/* ============ ui.js — shared UI utilities ============
+ * - Show / hide screens.
+ * - Animated PMD sprites in DOM <canvas> elements (menu, collection, gacha,
+ *   etc.). They are registered here and animated by the main loop with tick().
+ * - UI sounds (delegated: every button plays a sound automatically).
+ * - Sound panel, toasts, coins, type chips, stars.
  */
 G.UI = (() => {
   const $ = id => document.getElementById(id);
@@ -19,7 +19,7 @@ G.UI = (() => {
   function hideAll() { for (const s of SCREENS) $(s).classList.add('hidden'); }
   function isOpen(id) { return !$(id).classList.contains('hidden'); }
 
-  /** Barra superior (monedas, usuario, sonido) sólo fuera de las runs. */
+  /** Top bar (coins, user, sound), only outside runs. */
   function chrome(on) {
     $('topbar').classList.toggle('hidden', !on);
     $('credits-line').classList.toggle('hidden', !on);
@@ -32,15 +32,15 @@ G.UI = (() => {
     $('coins').textContent = s ? s.coins.toLocaleString(G.I18n.locale) : '0';
     const t = (s && s.tickets) || { t1: 0, t10: 0 };
     $('tickets-pill').innerHTML = `${G.Icons.html('ticket', 18)} ${t.t1} &nbsp;${G.Icons.html('ticket10', 18)} ${t.t10}`;
-    // Punto de sincronización: verde = guardado en la nube, amarillo = hay cambios
-    // sin subir (sólo se suben con Guardar, desde el 20-10-2026), rojo = sin conexión.
+    // Sync indicator: green = saved to the cloud, yellow = unsaved changes
+    // (uploaded only when Save is clicked, since 2026-10-20), red = offline.
     const st = G.DB.guest ? 'guest' : G.DB.syncState;
     const TIP = { ok: 'Guardado en la nube', syncing: 'Guardando…', pending: 'Sin guardar en la nube: pulsa Guardar',
                   offline: 'Sin conexión: pulsa Guardar cuando vuelva', local: 'Guardado sólo en este navegador', guest: 'Invitado: no se guarda' };
     $('user-pill').innerHTML = G.Icons.html(G.DB.guest ? 'user' : 'crown', 18) + ' <span translate="no">' + (G.DB.guest ? G.T('Invitado') : (G.DB.user || '')) + '</span>' +
       `<i class="sync ${st}" title="${TIP[st] || ''}"></i>`;
     $('user-pill').title = TIP[st] || '';
-    // Botón Guardar: sólo con cuenta en la nube (en local ya se guarda al momento).
+    // Save button: only for cloud accounts (local saves happen immediately).
     const sb = $('btn-save');
     sb.classList.toggle('hidden', G.DB.guest || G.DB.mode !== 'cloud');  }
 
@@ -57,10 +57,10 @@ G.UI = (() => {
     return types.map(t => `<span class="type" style="background:${G.U.TYPE_COLOR[t]}">${G.U.TYPE_NAME[t]}</span>`).join('');
   }
 
-  /** Rareza: la Poké Ball que le corresponde (ver G.Icons.rarity). */
+  /** Rarity: the corresponding Poké Ball (see G.Icons.rarity). */
   function stars(n, size = 12) { return G.Icons.rarity(n, size > 16 ? 24 : 12); }
 
-  // ---------------- sonido de la interfaz ----------------
+  // ---------------- UI sounds ----------------
 
   const CLICKABLE = '.btn, .menu-item, .tab, .chip, .card, .cell:not(.locked), .answer, .gen-tab';
   let lastHover = null;
@@ -75,13 +75,13 @@ G.UI = (() => {
       const el = e.target.closest(CLICKABLE);
       if (!el) return;
       if (el.disabled) { G.Audio.sfx('error'); return; }
-      // Los botones con su propio sonido (comprar, tirar, elegir...) lo ponen ellos.
+      // Buttons with their own sounds (buy, roll, choose, etc.) handle them themselves.
       if (el.dataset.sfx === 'none') return;
       G.Audio.sfx(el.matches('[data-back]') ? 'back' : el.dataset.sfx || 'click');
     }, true);
   }
 
-  /** Controles de volumen (se usan en la barra superior y en la pausa). */
+  /** Volume controls (used in the top bar and pause screen). */
   function soundControls(box) {
     const st = G.Audio.settings;
     box.innerHTML = `
@@ -101,7 +101,7 @@ G.UI = (() => {
     $('btn-sound').innerHTML = G.Icons.html(G.Audio.settings.muted ? 'mute' : 'sound', 20);
   }
 
-  // ---------------- aviso legal ----------------
+  // ---------------- legal notice ----------------
 
   const CONTACT = 'jpieratorregrosa@gmail.com';
   const REPO = 'https://github.com/JPTER78/pokesurvivor';
@@ -120,10 +120,10 @@ G.UI = (() => {
   }
 
   /**
-   * "¿Seguro que quieres borrar la cuenta?". Las cuentas de nombre y
-   * contraseña escriben su contraseña (Firebase pide confirmar quién eres);
-   * las de Google la confirman en la ventana de Google al seguir.
-   * Devuelve { pass } o null si se cancela.
+   * "Are you sure you want to delete the account?" Username-and-password
+   * accounts enter their password (Firebase requires identity confirmation);
+   * Google accounts confirm in the Google dialog when continuing.
+   * Returns { pass } or null if canceled.
    */
   function confirmDelete() {
     if (!G.DB.nameAccount) return Promise.resolve(confirm(G.T('Se borrarán tu cuenta y toda tu partida, para siempre. ¿Seguro?')) ? { pass: '' } : null);
@@ -193,25 +193,24 @@ G.UI = (() => {
     };
   }
 
-  // ---------------- sprites en canvas del DOM ----------------
+  // ---------------- sprites in DOM canvases ----------------
 
   const live = new Set();
-  const byCanvas = new WeakMap();      // canvas -> su animación (para no recorrer todas)
-  // Sólo se animan los canvas que están a la vista (la colección tiene cientos).
+  const byCanvas = new WeakMap();      // canvas -> its animation (avoids iterating over all of them)
+  // Only canvases in view are animated (the collection has hundreds).
   const seen = new WeakMap();
   const io = 'IntersectionObserver' in window
     ? new IntersectionObserver(es => es.forEach(e => seen.set(e.target, e.isIntersecting)), { rootMargin: '80px' })
     : null;
 
   /**
-   * Anima un Pokémon dentro de un <canvas>.
-   * opts: { anim='Idle', dir=0, shiny, silhouette, lively (ataca de vez en
-   *         cuando), spin (va girando), shadow=true,
-   *         scale=2   tamaño de píxel FIJO (×2 como en el juego): todos los
-   *                   Pokémon de una vista salen con el mismo píxel, aunque
-   *                   los gigantes no quepan enteros
-   *         hero      vista de un solo Pokémon: puede reducir la escala para
-   *                   que quepa, porque ahí no se compara con nada }
+   * Animate a Pokémon inside a <canvas>.
+   * opts: { anim='Idle', dir=0, shiny, silhouette, lively (attacks from time
+   *         to time), spin (keeps rotating), shadow=true,
+   *         scale=2   FIXED pixel size (×2 as in the game): all Pokémon in a
+   *                   view use the same pixel size, even if giants do not fit
+   *         hero      single-Pokémon view: can reduce scale to fit because
+   *                   there is nothing to compare it with }
    */
   function sprite(cv, dex, opts = {}) {
     const prev = byCanvas.get(cv);
@@ -229,8 +228,8 @@ G.UI = (() => {
   function tick(dt) {
     for (const s of live) {
       if (!s.cv.isConnected) { live.delete(s); if (io) io.unobserve(s.cv); continue; }
-      if (s.cv.offsetParent === null) continue;            // pantalla oculta
-      if (io && seen.get(s.cv) === false) continue;         // fuera de la vista
+      if (s.cv.offsetParent === null) continue;            // hidden screen
+      if (io && seen.get(s.cv) === false) continue;         // off-screen
       s.a.update(dt);
 
       if (s.opts.lively) {
@@ -247,13 +246,13 @@ G.UI = (() => {
       ctx.clearRect(0, 0, cv.width, cv.height);
       ctx.imageSmoothingEnabled = false;
 
-      // Escala entera para que los píxeles queden nítidos.
+      // Integer scale keeps pixels crisp.
       const m = G.Sprites.animMeta(s.dex, 'Idle');
       const ay = m ? m.ay : 24;
       let k = s.opts.scale || 2;
       if (s.opts.hero) k = Math.max(1, Math.min(k, Math.floor(cv.height * 0.8 / ay)));
       s.a.scale = k / G.Sprites.PX;
-      // Si no cabe de pie, se centra el cuerpo en el recuadro.
+      // If it does not fit upright, center the body in the frame.
       const big = ay * k > cv.height * 0.8;
       const fx = cv.width / 2, fy = big ? cv.height / 2 + ay * k * 0.45 : cv.height * 0.88;
 
@@ -271,11 +270,11 @@ G.UI = (() => {
         s.a.draw(ctx, fx, fy);
       }
 
-      // Recolor (opts.hueSwap = [de, a, nuevo tono]): los píxeles con un tono entre
-      // `de` y `a` pasan a `nuevo` (el Kecleon morado de la tienda: sin sprite shiny quieto).
+      // Recolor (opts.hueSwap = [from, to, new hue]): pixels with a hue between
+      // `from` and `to` are changed to `new` (the purple Kecleon in the shop, with no static shiny sprite).
       if (s.opts.hueSwap) hueSwap(ctx, cv, s.opts.hueSwap);
 
-      // Centelleos alrededor de los shiny: cada uno nace en un sitio al azar.
+      // Sparkles around shiny Pokémon: each appears at a random position.
       if (s.opts.shiny && !s.opts.silhouette && s.opts.twinkle !== false) {
         s.tw = s.tw || [];
         s.sparkT -= dt;
@@ -294,19 +293,19 @@ G.UI = (() => {
     }
   }
 
-  /** Cambia el tono de los píxeles entre h0 y h1 (grados) por h2, con su luz y saturación. */
+  /** Change the hue of pixels between h0 and h1 (degrees) to h2, preserving lightness and saturation. */
   function hueSwap(ctx, cv, [h0, h1, h2]) {
     const img = ctx.getImageData(0, 0, cv.width, cv.height), d = img.data;
     for (let i = 0; i < d.length; i += 4) {
       if (d[i + 3] < 8) continue;
       const r = d[i] / 255, g = d[i + 1] / 255, b = d[i + 2] / 255;
       const mx = Math.max(r, g, b), mn = Math.min(r, g, b), c = mx - mn;
-      if (c < 0.12) continue;                                   // grises: igual
+      if (c < 0.12) continue;                                   // grays: unchanged
       let h = mx === r ? ((g - b) / c) % 6 : mx === g ? (b - r) / c + 2 : (r - g) / c + 4;
       h = (h * 60 + 360) % 360;
       if (h < h0 || h > h1) continue;
       const l = (mx + mn) / 2, sat = c / (1 - Math.abs(2 * l - 1));
-      // HSL -> RGB con el tono nuevo.
+      // HSL -> RGB with the new hue.
       const C = (1 - Math.abs(2 * l - 1)) * sat, X = C * (1 - Math.abs((h2 / 60) % 2 - 1)), m = l - C / 2;
       const [R, G2, B] = h2 < 60 ? [C, X, 0] : h2 < 120 ? [X, C, 0] : h2 < 180 ? [0, C, X] : h2 < 240 ? [0, X, C] : h2 < 300 ? [X, 0, C] : [C, 0, X];
       d[i] = (R + m) * 255; d[i + 1] = (G2 + m) * 255; d[i + 2] = (B + m) * 255;
@@ -314,7 +313,7 @@ G.UI = (() => {
     ctx.putImageData(img, 0, 0);
   }
 
-  /** Crea un <canvas> con un sprite animado (para rejillas). */
+  /** Create a <canvas> with an animated sprite (for grids). */
   function spriteCanvas(dex, w, h, opts) {
     const cv = document.createElement('canvas');
     cv.width = w; cv.height = h;

@@ -1,21 +1,21 @@
-/* ============ shim.js — reloj virtual para grabar el tráiler ============
- * Lo mete record.mjs en la página ANTES que cualquier otro script.
- * Todo lo que mide el tiempo (performance.now, Date, setTimeout/setInterval,
- * requestAnimationFrame y las animaciones CSS) va con un reloj que sólo
- * avanza cuando la grabadora lo pide (__advance), así cada fotograma dura
- * exactamente 1/60 s aunque el ordenador tarde lo que tarde en dibujarlo.
- * Math.random va con semilla: la misma grabación sale siempre igual.
+/* ============ shim.js — virtual clock for recording the trailer ============
+ * record.mjs injects this into the page BEFORE any other script.
+ * Everything that measures time (performance.now, Date, setTimeout/setInterval,
+ * requestAnimationFrame, and CSS animations) uses a clock that advances only
+ * when requested by the recorder (__advance), so every frame lasts exactly
+ * 1/60 s regardless of how long the computer takes to draw it.
+ * Math.random is seeded so every recording is identical.
  *
- * Sonido: AudioContext pasa a ser un OfflineAudioContext que se va
- * renderizando a la vez que la imagen (se para en cada fotograma con
- * suspend). Al acabar, __audioWav() da la pista entera en WAV.
+ * Sound: AudioContext is replaced by an OfflineAudioContext that renders
+ * alongside the image (it pauses at each frame with suspend). When finished,
+ * __audioWav() returns the complete track as a WAV.
  */
 (() => {
   const realSetTimeout = window.setTimeout.bind(window);
-  let now = 0;                                   // ms virtuales
-  const BASE = Date.UTC(2026, 9, 20, 10, 0, 0);  // 20-10-2026, 12:00 en Madrid
+  let now = 0;                                   // Virtual milliseconds
+  const BASE = Date.UTC(2026, 9, 20, 10, 0, 0);  // 2026-10-20, 12:00 in Madrid
 
-  // ---- azar con semilla (mulberry32) ----
+  // ---- seeded randomness (mulberry32) ----
   let seed = 20261020;
   Math.random = () => {
     seed = (seed + 0x6D2B79F5) | 0;
@@ -24,7 +24,7 @@
     return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
   };
 
-  // ---- reloj ----
+  // ---- clock ----
   performance.now = () => now;
   const RealDate = Date;
   class VDate extends RealDate {
@@ -64,29 +64,29 @@
     }
   }
 
-  // ---- animaciones CSS / Web Animations: con el reloj virtual ----
+  // ---- CSS / Web Animations: use the virtual clock ----
   const born = new WeakMap();
   function syncAnims() {
     let list;
     try { list = document.getAnimations(); } catch (e) { return; }
     for (const a of list) {
-      if (!born.has(a)) { born.set(a, now - (a.currentTime || 0)); try { a.pause(); } catch (e) { /* nada */ } }
+      if (!born.has(a)) { born.set(a, now - (a.currentTime || 0)); try { a.pause(); } catch (e) { /* ignored */ } }
       const t = now - born.get(a);
       try {
         const end = a.effect && a.effect.getComputedTiming().endTime;
         if (end !== Infinity && end != null && t >= end) { a.finish(); continue; }
         a.currentTime = t;
-      } catch (e) { /* nada */ }
+      } catch (e) { /* ignored */ }
     }
   }
 
-  // ---- sonido ----
+  // ---- sound ----
   const RATE = 48000;
   let off = null, rec0 = 0, rendering = null, started = false, audioLen = 0;
   const realResume = window.OfflineAudioContext && OfflineAudioContext.prototype.resume;
   window.__realAudioContext = window.AudioContext;
-  window.AudioContext = window.webkitAudioContext = undefined;     // hasta __enableAudio
-  /** La grabadora la activa al empezar: hasta entonces el juego no tiene sonido. */
+  window.AudioContext = window.webkitAudioContext = undefined;     // Until __enableAudio
+  /** The recorder activates this at startup; until then, the game is silent. */
   window.__enableAudio = seconds => {
     audioLen = seconds;
     rec0 = now;
@@ -113,8 +113,8 @@
     if (!started) { started = true; rendering = off.startRendering(); }
     else realResume.call(off).catch(() => null);
     const buf = await rendering;
-    // WAV en coma flotante (32 bits): lo que pase de 1 no se recorta aquí;
-    // encode.mjs lo limita y lo nivela con ffmpeg.
+    // Floating-point WAV (32-bit): values above 1 are not clipped here;
+    // encode.mjs limits and normalizes them with ffmpeg.
     const n = buf.length, ch = [buf.getChannelData(0), buf.getChannelData(1)];
     const out = new DataView(new ArrayBuffer(44 + n * 8));
     const w = (o, s) => { for (let i = 0; i < s.length; i++) out.setUint8(o + i, s.charCodeAt(i)); };
@@ -135,7 +135,7 @@
   };
   window.__wavChunk = (i, size) => window.__wav.slice(i * size, (i + 1) * size);
 
-  // ---- imágenes que aún cargan (la grabadora espera a que acaben) ----
+  // ---- images still loading (the recorder waits for them to finish) ----
   let pending = 0;
   const srcDesc = Object.getOwnPropertyDescriptor(HTMLImageElement.prototype, 'src');
   Object.defineProperty(HTMLImageElement.prototype, 'src', {
@@ -163,8 +163,8 @@
   };
 
   /**
-   * Corre el juego ms sin grabar (y sin que suene): para empezar una escena
-   * ya con enemigos alrededor. El sonido no avanza (rec0 se corre).
+   * Run the game for ms without recording or sound, to start a scene with
+   * enemies already around. The sound does not advance (rec0 is shifted).
    */
   window.__preroll = async ms => {
     const step = 1000 / 60, sv = window.G && G.Audio && G.Audio.settings, was = sv ? sv.sfx : 0;
@@ -181,7 +181,7 @@
     await window.__waitImages(5000);
   };
 
-  /** Avanza ms el reloj: temporizadores, un fotograma y el sonido hasta ahí. */
+  /** Advance the clock by ms: timers, one frame, and sound up to that point. */
   window.__advance = async ms => {
     const target = now + ms;
     runTimers(target);

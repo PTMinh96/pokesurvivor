@@ -1,12 +1,10 @@
-/* ============ projectile.js — proyectiles y orbes ============
- * Una sola lista para todo lo que vuela: disparos del jugador, disparos
- * enemigos y los orbes que giran alrededor del Pokémon (los orbes son
- * proyectiles con `orb`, anclados al jugador y que vuelven a golpear cada
- * `rehit` segundos).
+/* ============ projectile.js — projectiles and orbs ============
+ * A single list for everything that flies: player shots, enemy shots, and
+ * orbs that circle the Pokémon (orbs are projectiles with `orb`, anchored to
+ * the player and hitting again every `rehit` seconds).
  *
- * Viven en el plano del SUELO (como los pies de las entidades) y se dibujan
- * elevados G.LIFT unidades con su sombra debajo. Las paredes y los objetos
- * sólidos los paran (ver combat.js).
+ * They exist on the GROUND plane (like entity feet) and are drawn G.LIFT units
+ * higher, with their shadows below. Walls and solid objects stop them (see combat.js).
  */
 G.Projectiles = (() => {
   let list = [];
@@ -15,7 +13,7 @@ G.Projectiles = (() => {
   function clear() { list = []; }
   function all() { return list; }
 
-  /** Proyectil del jugador. */
+  /** Player projectile. */
   function spawn(o) {
     const p = Object.assign({
       id: nextId++, x: 0, y: 0, vx: 0, vy: 0,
@@ -29,14 +27,14 @@ G.Projectiles = (() => {
     return p;
   }
 
-  /** Orbe anclado a un jugador (`owner`): vive mientras el movimiento esté activo. */
+  /** Orb anchored to a player (`owner`): persists while the move is active. */
   function spawnOrb(o) {
     return spawn(Object.assign({
       orb: true, life: Infinity, pierce: Infinity, hitLog: new Map()
     }, o));
   }
 
-  /** Borra los orbes de un jugador (o todos) al cambiar de movimiento activo. */
+  /** Remove a player's orbs (or all orbs) when the active move changes. */
   function clearOrbs(owner) { list = list.filter(p => !p.orb || (owner && p.owner !== owner)); }
 
   function update(dt, player, enemies) {
@@ -45,7 +43,7 @@ G.Projectiles = (() => {
       p.t += dt;
 
       if (p.orb) {
-        // Gira alrededor de su jugador.
+        // Orbits its player.
         const o = p.owner || player;
         p.oa += p.ospeed * dt;
         p.x = o.x + Math.cos(p.oa) * p.orad;
@@ -55,8 +53,8 @@ G.Projectiles = (() => {
 
       if (p.t >= p.life) { list.splice(i, 1); continue; }
 
-      // Bumerán: a los `boom` segundos se da la vuelta (y puede volver a
-      // golpear a los mismos) y vuelve a su dueño; al llegar, desaparece.
+      // Boomerang: after `boom` seconds it turns around (and can hit the same
+      // targets again) and returns to its owner; it disappears on arrival.
       if (p.boom) {
         const o = p.owner || player;
         if (!p.back && p.t >= p.boom) { p.back = true; p.hits = new Set(); }
@@ -68,7 +66,7 @@ G.Projectiles = (() => {
         }
       }
 
-      // Teledirigido: curva la velocidad hacia el enemigo más cercano.
+      // Homing: steer toward the nearest enemy.
       if (p.homing > 0 && p.friendly) {
         const tg = nearest(enemies, p.x, p.y, 340);
         if (tg) {
@@ -79,7 +77,7 @@ G.Projectiles = (() => {
         }
       }
 
-      p.px = p.x; p.py = p.y;          // para la colisión barrida (ver combat.js)
+      p.px = p.x; p.py = p.y;          // For swept collision (see combat.js).
       if (p.vis && p.vis.trail && G.Camera.sees(p.x, p.y, 20)) {
         p.trailT = (p.trailT || 0) - dt;
         if (p.trailT <= 0) { p.trailT = 0.04; G.FX.trail(p.vis.trail, p.vis.pal, p.x, p.y - G.LIFT, p.vx, p.vy); }
@@ -87,14 +85,14 @@ G.Projectiles = (() => {
       p.x += p.vx * dt;
       p.y += p.vy * dt;
 
-      // Fuera de la vista con margen generoso -> se descarta.
+      // Discard when well outside the visible area.
       if (!G.Camera.sees(p.x, p.y, 260)) { list.splice(i, 1); continue; }
     }
   }
 
   function nearest(enemies, x, y, maxDist) {
     let best = null, bd = maxDist * maxDist;
-    const shield = G.Judgment && G.Judgment.shielded;      // con legendarios vivos, a Arceus no se le apunta
+    const shield = G.Judgment && G.Judgment.shielded;      // Cannot target Arceus while any Legendaries remain.
     for (const e of enemies) {
       if (e.dead || (e.arceus && shield)) continue;
       const d = G.U.dist2(x, y, e.x, e.cy());
@@ -110,12 +108,12 @@ G.Projectiles = (() => {
 
   function draw(ctx) {
     const L = G.LIFT;
-    // Sombras primero, todas juntas.
+    // Draw all shadows first.
     ctx.fillStyle = 'rgba(0,0,0,.25)';
     for (const p of list) {
       ctx.beginPath(); ctx.ellipse(p.x, p.y, p.r * 0.9, p.r * 0.38, 0, 0, 6.2832); ctx.fill();
     }
-    // Los disparos enemigos llevan un aro rojo en el suelo: "esto te hace daño".
+    // Enemy shots have a red ring on the ground: "this will hurt you."
     ctx.fillStyle = 'rgba(255,60,80,.35)';
     for (const p of list) {
       if (p.friendly) continue;

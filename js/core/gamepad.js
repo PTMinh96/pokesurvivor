@@ -1,29 +1,29 @@
-/* ============ gamepad.js — jugar con mando (Xbox, PlayStation, Switch...) ============
- * Gamepad API con la distribución "standard" (la de casi todos los mandos).
- * Se activa o quita en Ajustes > Controles ('gamepad'; vibración: 'padRumble').
+/* ============ gamepad.js — play with a controller (Xbox, PlayStation, Switch...) ============
+ * Gamepad API using the "standard" mapping (used by most controllers).
+ * Enable or disable it in Settings > Controls ('gamepad'; vibration: 'padRumble').
  *
- *   En la partida:  stick izquierdo o cruceta   moverse
- *                   LB / RB (o LT / RT)         ataque anterior / siguiente
- *                   Start                       pausa
- *                   A                           saltar la animación de Arceus
- *                   X / Y                       usar la esfera elegida / cambiar de esfera
- *                   stick derecho               apuntar (con "Apuntar a mano" en Accesibilidad)
- *   En menús, cartas y pausa:
- *                   stick o cruceta             mover la selección (recuadro dorado);
- *                                               en una barra (volumen), izquierda / derecha la mueven
- *                   A                           pulsar
- *                   B                           atrás / cerrar (como Esc)
- *                   Y                           cambiar las cartas (como R)
- *                   stick derecho               desplazar las listas
+ *   In a run:       left stick or D-pad          move
+ *                   LB / RB (or LT / RT)         previous / next move
+ *                   Start                       pause
+ *                   A                           skip Arceus's animation
+ *                   X / Y                       use selected orb / change orb
+ *                   right stick                 aim (with "Manual Aim" in Accessibility)
+ *   In menus, cards, and pause:
+ *                   stick or D-pad               move selection (gold outline);
+ *                                                left / right adjusts a slider (volume)
+ *                   A                           activate
+ *                   B                           back / close (like Esc)
+ *                   Y                           reroll cards (like R)
+ *                   right stick                 scroll lists
  *
- * Los botones se traducen a las teclas que ya entiende el juego
- * (G.Input.virtual): así no hay que tocar cada pantalla. En los menús se
- * puede pulsar todo lo que se pulsa con el ratón (lo que tiene cursor de mano).
+ * Buttons map to keys the game already understands (G.Input.virtual), so
+ * individual screens do not need controller-specific code. In menus, anything
+ * clickable with the mouse (hand cursor) can also be activated by the controller.
  */
 G.Pad = (() => {
   const DEAD = 0.25;
   const BT = { A: 0, B: 1, X: 2, Y: 3, LB: 4, RB: 5, LT: 6, RT: 7, BACK: 8, START: 9, UP: 12, DOWN: 13, LEFT: 14, RIGHT: 15 };
-  // [data-pad]: se puede pulsar aunque no tenga cursor de mano (los Pokémon que aún no tienes).
+  // [data-pad]: can be activated without a hand cursor (Pokémon not yet owned).
   const NATIVE = 'button, a[href], input, select, textarea, label[for], [data-pad]';
   let prev = [], vec = [0, 0], aimVec = [0, 0], aimAt = 0, name = '';
   let focus = null, focusScope = null, showing = false;
@@ -41,12 +41,12 @@ G.Pad = (() => {
     if (enabled() && G.UI && G.UI.toast) G.UI.toast('Mando conectado', 2200);
   });
   addEventListener('gamepaddisconnected', () => { if (!pad()) { name = ''; hideFocus(); } });
-  // Si vuelves al ratón o a la pantalla táctil, se quita el recuadro.
+  // Remove the outline when switching back to the mouse or touch screen.
   for (const ev of ['mousemove', 'pointerdown']) addEventListener(ev, e => { if (e.isTrusted && (e.movementX || e.movementY || ev === 'pointerdown')) hideFocus(); });
 
-  // ---------------- qué pantalla manda ----------------
+  // ---------------- determine the active screen ----------------
 
-  /** La pantalla que se ve por encima: la de mayor z-index (Ajustes va por delante de la pausa) y, si empatan, la última. */
+  /** Topmost visible screen: highest z-index (Settings overlays pause); ties go to the last one. */
   function topScreen() {
     let top = null, tz = -Infinity;
     for (const s of document.querySelectorAll('.scr:not(.hidden)')) {
@@ -55,25 +55,25 @@ G.Pad = (() => {
     }
     return top;
   }
-  /** En un menú, cartas, pausa o ventana: el mando mueve la selección en vez de al Pokémon. */
+  /** In menus, cards, pause, or a dialog, the controller moves selection instead of the Pokémon. */
   function uiMode() {
     return G.Game.state !== 'playing' || !!topScreen();
   }
 
-  // ---------------- selección en los menús ----------------
+  // ---------------- menu selection ----------------
 
   function scopes() {
     const top = topScreen(), out = [];
     const tap = document.getElementById('tap-start');
     if (tap && !tap.classList.contains('hidden')) return [tap];
     if (top) out.push(top);
-    // La barra de arriba (Guardar, Ajustes...) cuenta si no hay una ventana encima.
+    // The top bar (Save, Settings, etc.) is eligible if no dialog is on top.
     const bar = document.getElementById('topbar');
     if (bar && !bar.classList.contains('hidden') && (!top || !top.classList.contains('dim'))) out.push(bar);
     return out;
   }
 
-  /** Lo que se puede pulsar ahora: botones, enlaces y lo que tiene cursor de mano. */
+  /** What can be activated now: buttons, links, and elements with a hand cursor. */
   function candidates() {
     const out = [];
     const W = innerWidth, H = innerHeight;
@@ -85,12 +85,12 @@ G.Pad = (() => {
         if (el.disabled) continue;
         let ok = el.matches(NATIVE);
         if (!ok) {
-          // El cursor se hereda: sólo cuenta el de más arriba con mano.
+          // The cursor is inherited: only the topmost element with a hand cursor counts.
           const cs = getComputedStyle(el);
           ok = cs.cursor === 'pointer' && (!el.parentElement || getComputedStyle(el.parentElement).cursor !== 'pointer');
         }
         if (!ok || out.some(o => o.contains(el))) continue;
-        // Que se vea de verdad (no tapado por otra cosa).
+        // It must actually be visible (not covered by another element).
         const cx = Math.min(W - 1, Math.max(0, r.left + r.width / 2)), cy = Math.min(H - 1, Math.max(0, r.top + r.height / 2));
         const hit = document.elementFromPoint(cx, cy);
         if (hit && !el.contains(hit) && !hit.contains(el)) continue;
@@ -109,14 +109,14 @@ G.Pad = (() => {
     if (!el) return;
     el.classList.add('pad-focus');
     showing = true;
-    try { el.scrollIntoView({ block: 'nearest', inline: 'nearest' }); } catch (e) { /* nada */ }
+    try { el.scrollIntoView({ block: 'nearest', inline: 'nearest' }); } catch (e) { /* ignored */ }
   }
   function hideFocus() {
     if (focus) focus.classList.remove('pad-focus');
     focus = null; showing = false;
   }
 
-  /** La primera selección de una pantalla: el botón principal, si lo hay (nunca "Volver" o "Cerrar" si hay otra cosa). */
+  /** Initial screen selection: the primary button, if any (never "Back" or "Close" when another option exists). */
   const isBack = el => /(-close|-back)$/.test(el.id) || el.hasAttribute('data-back') || /^(Cerrar|Volver|Close|Back)$/i.test(el.textContent.trim());
   function firstOf(list) {
     const rest = list.filter(el => !isBack(el));
@@ -142,7 +142,7 @@ G.Pad = (() => {
       const ax = x - fx, ay = y - fy;
       const main = ax * dx + ay * dy;              // avance en la dirección pedida
       if (main <= 4) continue;
-      const side = Math.abs(ax * dy - ay * dx);    // desvío hacia los lados
+      const side = Math.abs(ax * dy - ay * dx);    // Lateral deviation.
       const s = main + side * 2.5;
       if (s < bs) { bs = s; best = el; }
     }
@@ -152,8 +152,8 @@ G.Pad = (() => {
   function press() {
     if (!valid()) { const list = candidates(); setFocus(firstOf(list)); return; }
     const el = focus;
-    if (el.matches('input[type=range]')) return;          // se mueve con izquierda / derecha
-    if (el.matches('select')) {                           // un desplegable no se abre: pasa a la siguiente opción
+    if (el.matches('input[type=range]')) return;          // Move with left / right.
+    if (el.matches('select')) {                           // A select does not open; move to the next option.
       el.selectedIndex = (el.selectedIndex + 1) % Math.max(1, el.options.length);
       el.dispatchEvent(new Event('change', { bubbles: true }));
       return;
@@ -161,8 +161,8 @@ G.Pad = (() => {
     if (el.matches('input, select, textarea')) { el.focus(); return; }
     const scr = topScreen(), [ox, oy] = center(el);
     el.click();
-    // Si al pulsar se redibuja la misma pantalla (un Sí/No de Ajustes), sigue en
-    // lo que haya en el mismo sitio; si cambia de pantalla, empieza en la nueva.
+    // If activation redraws the same screen (a Settings Yes/No prompt), keep
+    // the selection at the same position; if the screen changes, start on the new one.
     setTimeout(() => {
       if (!showing || valid()) return;
       const list = candidates();
@@ -174,7 +174,7 @@ G.Pad = (() => {
     }, 120);
   }
 
-  /** Barras (volumen): izquierda / derecha cambian el valor. → true si lo ha hecho. */
+  /** Sliders (volume): left / right change the value. → true if changed. */
   function slide(dir) {
     if (!valid() || !focus.matches('input[type=range]') || (dir !== 'l' && dir !== 'r')) return false;
     const r = focus, min = +r.min || 0, max = r.max === '' ? 100 : +r.max;
@@ -187,7 +187,7 @@ G.Pad = (() => {
     return true;
   }
 
-  /** B: el botón de cerrar o volver de la ventana, si lo tiene; si no, Esc. */
+  /** B: the dialog's close or back button, if available; otherwise Esc. */
   function back() {
     const top = topScreen();
     if (top) {
@@ -212,9 +212,9 @@ G.Pad = (() => {
     }
   }
 
-  // ---------------- cada fotograma ----------------
+  // ---------------- each frame ----------------
 
-  /** Lo llama el bucle del juego antes de mirar las teclas. */
+  /** Called by the game loop before checking the keys. */
   function poll(dt) {
     const p = enabled() ? pad() : null;
     if (!p) { vec = [0, 0]; aimVec = [0, 0]; prev = []; return; }
@@ -235,7 +235,7 @@ G.Pad = (() => {
 
     if (uiMode()) {
       vec = [0, 0];
-      // Mover la selección: al empujar, y repitiendo si se mantiene.
+      // Move the selection on press, and repeat while held.
       const dir = Math.hypot(x, y) < 0.5 ? null : Math.abs(x) > Math.abs(y) ? (x > 0 ? 'r' : 'l') : (y > 0 ? 'd' : 'u');
       if (dir !== navDir) { navDir = dir; navT = 0.38; if (dir) step(dir); }
       else if (dir && (navT -= dt) <= 0) { navT = 0.14; step(dir); }
@@ -261,7 +261,7 @@ G.Pad = (() => {
   }
   function step(dir) { if (!slide(dir)) move(...{ r: [1, 0], l: [-1, 0], d: [0, 1], u: [0, -1] }[dir]); }
 
-  /** Vibración (0..1, en ms), si el mando y el ajuste lo permiten. */
+  /** Vibration (0..1, in ms), if supported by the controller and setting. */
   function rumble(k, ms = 120) {
     if (!enabled() || G.Settings.get('padRumble') === false) return;
     const p = pad();
@@ -273,12 +273,12 @@ G.Pad = (() => {
 
   return {
     poll, rumble,
-    /** Vector de movimiento del stick (sólo en la partida). */
+    /** Stick movement vector (only during a run). */
     vector() { return vec; },
-    /** Stick derecho, si se está empujando: [x, y] o null; y cuándo se usó por última vez. */
+    /** Right stick while tilted: [x, y] or null; and when it was last used. */
     aim() { return aimVec[0] || aimVec[1] ? aimVec : null; },
     get aimAt() { return aimAt; },
-    /** Nombre del mando conectado ('' si no hay). */
+    /** Name of the connected controller ('' if none). */
     get name() { return pad() ? name || 'Mando' : ''; }
   };
 })();

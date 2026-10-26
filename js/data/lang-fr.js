@@ -1,11 +1,11 @@
-/* ============ lang-fr.js: traducción al francés ============
- * Clave: el texto en español tal como sale en pantalla. {x} = hueco (nombre,
- * número...). Ver js/core/i18n.js. Los nombres de Pokémon, movimientos, objetos
- * y tipos son los oficiales en francés.
- * \u00a0 es el espacio de no separación que el francés pone delante de ! ? : ; %
+/* ============ lang-fr.js: French translation ============
+ * Key: the Spanish text as it appears on screen. {x} = placeholder (name,
+ * number...). See js/core/i18n.js. Pokémon, move, item, and type names are the
+ * official French names.
+ * \u00a0 is the non-breaking space used in French before ! ? : ; %
  */
 G.I18n.add({
-  // ---------------- tipos, movimientos y objetos (nombres oficiales) ----------------
+  // ---------------- types, moves, and items (official names) ----------------
   "Acero": "Acier",
   "Agua": "Eau",
   "Bicho": "Insecte",
@@ -159,7 +159,7 @@ G.I18n.add({
   "Lanza Mugre": "Détricanon",
   "Banda Focus": "Ceinture Force",
 
-  // ---------------- descripciones y mejoras de los movimientos ----------------
+  // ---------------- move descriptions and upgrades ----------------
   "Abanico de tres hojas perforantes.": "Un éventail de trois feuilles perforantes.",
   "Aguijón rápido que envenena.": "Un dard rapide qui empoisonne.",
   "Barrido de alas amplio que empuja.": "Un large balayage d'ailes qui repousse.",
@@ -288,7 +288,7 @@ G.I18n.add({
   "×1,8 daño, charcos más grandes y duraderos": "Dégâts ×1,8, flaques plus grandes et plus durables",
   "×1,7 daño, +4 disparos y +1 perforación": "Dégâts ×1,7, +4 tirs et +1 perforation",
 
-  // ---------------- partida: cartas, objetos, mejoras, clima, avisos, pausa y fin ----------------
+  // ---------------- run: cards, items, upgrades, weather, notices, pause, and end ----------------
   "Vigor": "Vigueur",
   "Potencia": "Puissance",
   "Carrera": "Course",
@@ -510,7 +510,7 @@ G.I18n.add({
   "{x} · {x} legendarios": "{x} · {x} légendaires",
   "{x} · {x} legendario": "{x} · {x} légendaire",
 
-  // ---------------- inicio de sesión y test de personalidad ----------------
+  // ---------------- sign-in and personality quiz ----------------
   "PokéSurvivor – Juego Pokémon gratis online estilo Survivor.io": "PokéSurvivor\u00a0: jeu Pokémon gratuit en ligne façon Survivor.io",
   "Mundo Misterioso": "Donjon Mystère",
   "Entrar": "Connexion",
@@ -670,7 +670,7 @@ G.I18n.add({
   "Ves soluciones donde otros ven problemas.": "Tu vois des solutions là où les autres voient des problèmes.",
   "Tu amabilidad tranquiliza a todos los que te rodean.": "Ta gentillesse apaise tous ceux qui t'entourent.",
 
-  // ---------------- menú, colección y gacha ----------------
+  // ---------------- menu, collection, and gacha ----------------
   "Jugar": "Jouer",
   "Entra en la mazmorra": "Entre dans le donjon",
   "Tu colección": "Ta collection",
@@ -759,7 +759,7 @@ G.I18n.add({
   "¡¿LEGENDARIO?!": "LÉGENDAIRE\u00a0?!",
   "¡¿ÉPICO?!": "ÉPIQUE\u00a0?!",
 
-  // ---------------- misiones, logros y perfil ----------------
+  // ---------------- missions, achievements, and profile ----------------
   "Logros": "Succès",
   "Perfil": "Profil",
   "Diarias": "Quotidiennes",
@@ -917,7 +917,7 @@ G.I18n.add({
   "Juzgado": "Jugé",
   "Elegido de Arceus": "Élu d'Arceus",
 
-  // ---------------- amigos, sala y ranking ----------------
+  // ---------------- friends, room, and leaderboard ----------------
   "Elige tu apodo": "Choisis ton pseudo",
   "Guardar apodo": "Enregistrer le pseudo",
   "Ahora no": "Pas maintenant",
@@ -1055,7 +1055,7 @@ G.I18n.add({
   "¿Reportar la marca de {x} como trampa?": "Signaler le score de {x} comme triche\u00a0?",
   "Gracias: la revisaremos": "Merci\u00a0: nous allons l'examiner",
 
-  // ---------------- ajustes, aviso legal y donaciones ----------------
+  // ---------------- settings, legal notice, and donations ----------------
   "Sonido": "Son",
   "Gráficos": "Graphismes",
   "Controles": "Commandes",

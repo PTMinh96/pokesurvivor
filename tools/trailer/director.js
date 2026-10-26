@@ -1,19 +1,20 @@
-/* ============ director.js — las escenas del tráiler (gran actualización, 20-10-2026) ============
- * Lo mete record.mjs en dev.html junto a shim.js. La grabadora llama, en cada
- * fotograma de 1/60 s:  tick(t) (escena: juego, menús...) → el juego dibuja → draw(t) (rótulos).
+/* ============ director.js — trailer scenes (major update, 2026-10-20) ============
+ * record.mjs injects this into dev.html alongside shim.js. On each 1/60 s
+ * frame, the recorder calls tick(t) (scene: game, menus...) → the game draws
+ * → draw(t) (captions).
  *
- * Música: compuesta para el tráiler (score.js, 164 ppm); los cortes caen en los compases: B(n).
- * Las partidas son "limpias": unos pocos enemigos en corro que no caen, para que
- * se vea qué hace cada ataque. Nada que no sea de esta actualización.
+ * Music: composed for the trailer (score.js, 164 BPM); cuts land on bars: B(n).
+ * Runs are "clean": a few enemies in a circle that cannot be defeated, so you
+ * can see what each attack does. Only features from this update are shown.
  *
- *   0  Apertura: "LA GRAN ACTUALIZACIÓN" y el logo
- *   1  Tienda Kecleon (la animación de verdad), una compra y la Mochila
- *   2  Naturalezas y habilidades (la colección, con el buscador)
- *   3  MT: Mewtwo sí aprende Bola Sombra, Psyduck no aprende Lanzallamas; Mewtwo jugando
- *   4  38 ataques nuevos: 8 formas nuevas de atacar, un compás cada una
- *   5  Físico y especial (Machamp, Alakazam y las cartas de nivel)
- *   6  Mando y 7 idiomas; cooperativo (mirar a un compañero al caer) y segundo ataque inicial
- *   7  966 Pokémon (desfile) y el logo final sobre el desfile
+ *   0  Opening: "THE BIG UPDATE" and the logo
+ *   1  Kecleon Shop (the real animation), a purchase, and the Backpack
+ *   2  Natures and abilities (the collection, with search)
+ *   3  TMs: Mewtwo can learn Shadow Ball, Psyduck cannot learn Flamethrower; Mewtwo in action
+ *   4  38 new attacks: 8 new attack styles, one bar each
+ *   5  Physical and special (Machamp, Alakazam, and level-up cards)
+ *   6  Controller and 7 languages; co-op (view a teammate when downed) and second starting move
+ *   7  966 Pokémon (parade) and the final logo over the parade
  */
 (() => {
   const W = 1280, H = 720, RB = 240 / 164;
@@ -21,11 +22,11 @@
   const DUR = B(38) + 0.3;
 
   let st = 'carga', T = 0, ov = null, c = null, realMusic = null, axisFn = null;
-  // Cámara sobre la página (zoom a una parte de la interfaz): { x, y, w } en px
-  // de la página (alto = w·9/16). La grabadora recorta ahí la captura y los
-  // rótulos se dibujan encima de ese recorte. null = la pantalla entera.
+  // Camera over the page (zoom into part of the interface): { x, y, w } in page
+  // pixels (height = w·9/16). The recorder crops the capture there and captions
+  // are drawn over the crop. null = the entire screen.
   let cam = null;
-  const layers = [];          // rótulos activos: { from, to, draw(t) }
+  const layers = []; // Active captions: { from, to, draw(t) }
   const layer = (from, to, draw) => layers.push({ from, to, draw });
   const camera = (from, to, fn) => layers.push({ from, to, cam: fn });
   const cues = [];
@@ -76,7 +77,7 @@
   }
   const measure = (s, size, w = 700) => { c.save(); c.font = FONT(size, w); const m = c.measureText(s).width; c.restore(); return m; };
 
-  /** Entrada de golpe: de grande a su tamaño con rebote. */
+  /** Hit entrance: shrink from large to normal size with a bounce. */
   const slam = (t, t0, d = 0.22) => (t < t0 ? 0 : t - t0 >= d ? 1 : lerp(2.6, 1, eback((t - t0) / d)));
 
   function flash(t, t0, dur = 0.35, col = '255,255,255', max = 0.85) {
@@ -135,7 +136,7 @@
     c.restore();
   }
 
-  /** Cortinilla de Poké Ball: cubre toda la pantalla en t0 + dur/2 (ahí se cambia de escena). */
+  /** Poké Ball wipe: covers the whole screen at t0 + dur/2 (the scene changes then). */
   function wipe(t0, dur = 0.8) {
     layer(t0, t0 + dur, t => {
       const p = (t - t0) / dur, R = 920;
@@ -168,7 +169,7 @@
     c.closePath();
   }
 
-  /** Pegatina "¡NUEVO!" que late con la música. */
+  /** "NEW!" sticker that pulses with the music. */
   function badge(t, x, y, label = '¡NUEVO!', col = '#ff3b47', t0 = 0) {
     const s = slam(t, t0, 0.25);
     if (!s) return;
@@ -188,7 +189,7 @@
   }
 
   /**
-   * Rótulo de abajo a la izquierda (entra deslizando, sale por la izquierda).
+   * Lower-left caption (slides in and exits to the left).
    * o: { title, sub, color, icon, y, isNew, size }
    */
   function lowerThird(t, t0, t1, o) {
@@ -210,7 +211,7 @@
     c.fillStyle = o.color || '#ffd23f';
     c.fillRect(0, 0, 14, h);
     c.beginPath(); c.moveTo(w - 4, 0); c.lineTo(w + 10, 0); c.lineTo(w - 20, h); c.lineTo(w - 34, h); c.fill();
-    // brillo que pasa
+    // Passing highlight.
     const sh = ((t - t0) * 0.9) % 2.2;
     if (sh < 1) {
       c.save();
@@ -234,7 +235,7 @@
     if (o.isNew) badge(t, x + w - 50, y - 6, '¡NUEVO!', '#ff3b47', t0 + 0.25);
   }
 
-  /** Pixel art de un Pokémon con su Animator (para las escenas montadas). */
+  /** Pokémon pixel art with its Animator (for staged scenes). */
   const anims = {};
   function mon(key, dex, scale, shiny = false) {
     return anims[key] || (anims[key] = new G.Sprites.Animator(dex, scale, shiny));
@@ -247,7 +248,7 @@
     c.restore();
   }
 
-  /** Encuadre 16:9 que contiene el rectángulo (con margen), dentro de la pantalla. */
+  /** 16:9 frame containing the rectangle (with margin), within the screen. */
   function frame(r, pad = 24, minW = 520) {
     let w = Math.max(r.width + pad * 2, (r.height + pad * 2) * 16 / 9, minW);
     w = Math.min(W, w);
@@ -255,7 +256,7 @@
     const x = cl(r.left + r.width / 2 - w / 2, 0, W - w), y = cl(r.top + r.height / 2 - h / 2, 0, H - h);
     return { x, y, w };
   }
-  /** De la pantalla entera (k=0) al encuadre del elemento (k=1). */
+  /** Transition from the full screen (k=0) to the element framing (k=1). */
   function camOn(sel, k, pad, minW) {
     const el = typeof sel === 'string' ? document.querySelector(sel) : sel;
     if (!el || k <= 0) { cam = null; return; }
@@ -263,20 +264,20 @@
     cam = k >= 1 ? f : { x: lerp(0, f.x, k), y: lerp(0, f.y, k), w: lerp(W, f.w, k) };
   }
 
-  /** Rectángulo de la página a coordenadas de los rótulos (con la cámara). */
+  /** Convert a page rectangle to caption coordinates (with the camera). */
   function view(r) {
     const v = cam || { x: 0, y: 0, w: W }, k = W / v.w;
     return { x: (r.left - v.x) * k, y: (r.top - v.y) * k, w: r.width * k, h: r.height * k };
   }
 
-  // ---------------- control del juego ----------------
+  // ---------------- game control ----------------
   function zoom(f) {
     G.Camera.VIEW_W = 768 / f;
     G.Camera.MIN_VIEW_H = 420 / f;
     G.Camera.resize(W, H, G.Camera.dpr);
   }
 
-  /** Partida nueva ya en marcha: el Pokémon, sus ataques (al máximo y evolucionados) y enemigos alrededor. */
+  /** Fresh run already in progress: Pokémon, its moves (maxed and evolved), and surrounding enemies. */
   async function run(dex, moves, o = {}) {
     const s = G.DB.save;
     s.partner = dex;
@@ -285,7 +286,7 @@
     G.Game.debugSpeed(1);
     G.Game.startRun();
     const pl = G.Game.player;
-    // Sin daño (hurt vacío) y sin invulnerabilidad: con invuln el sprite parpadea.
+    // No damage (empty hurt handler) and no invulnerability: invuln makes the sprite blink.
     Object.defineProperty(pl, 'invuln', { get: () => 0, set() {}, configurable: true });
     pl.gainXp = () => 0;
     pl.hurt = () => {};
@@ -295,7 +296,7 @@
     for (const id of moves) {
       pl.addMove(id);
       const m = pl.moves.find(x => x.id === id);
-      while (G.Moves.levelUp(m)) { /* al máximo */ }
+      while (G.Moves.levelUp(m)) { /* max level */ }
       if (o.evolve !== false) G.Moves.evolve(m);
     }
     if (o.fuse) pl.fuse(pl.moves.slice(0, o.fuse));
@@ -304,8 +305,8 @@
     G.Game.debugTime(t);
     G.World.setBiome(Math.floor(t / 240), true);
     zoom(o.zoom || 1);
-    // Partida limpia: unos pocos enemigos en corro que no caen nunca (sin
-    // experiencia ni monedas por el suelo), lentos y sin hacer daño, y no sale nadie más.
+    // Clean run: a few enemies in a circle that never fall (no experience or
+    // coins dropped), slowed and harmless, with no additional spawns.
     G.Spawner.update = () => {};
     const bag = G.Enemies.bagAt(60).filter(d => d.behavior === 'chase' || d.behavior === 'tank');
     const sc = G.Enemies.scale(60), n = o.foes || 7, R = o.ring || 125;
@@ -319,7 +320,7 @@
     }
     axisFn = o.axis || (() => [0, 0]);
     await __preroll((o.pre == null ? 0.5 : o.pre) * 1000);
-    for (const m of pl.moves) m.t = Math.min(m.t, 0.05);     // que se lance nada más empezar el corte
+    for (const m of pl.moves) m.t = Math.min(m.t, 0.05);     // make it launch as soon as the cut begins
     G.Spawner.say('', 0);
     if (o.after) o.after(pl);
     return pl;
@@ -332,7 +333,7 @@
     zoom(1);
   }
 
-  /** Escribe en el buscador de la colección letra a letra y abre el primero. */
+  /** Type into the collection search field one character at a time and open the first result. */
   function typeSearch(t0, word, step = 0.06) {
     at(t0, () => { const q = $('dex-q'); q.value = ''; });
     for (let i = 1; i <= word.length; i++) {
@@ -352,7 +353,7 @@
   }
 
   // =====================================================================
-  //   GUION
+  //   SCRIPT
   // =====================================================================
   function script() {
     // ---------- 0. Apertura ----------
@@ -402,7 +403,7 @@
     at(B(6), () => { const b = document.querySelector('[data-buy="mint"]'); if (b) b.click(); });
     at(B(6.5), () => { const b = document.querySelector('[data-buy="cap"]'); if (b) b.click(); });
 
-    // ---------- 1b. Mochila (desde el menú principal) ----------
+    // ---------- 1b. Backpack (from the main menu) ----------
     at(B(7), () => { toUI(); G.ShopUI.openBag(); });
     camera(B(7), B(8), t => camOn('#scr-bag .box', eio((t - B(7)) / 0.35), 24, 760));
     layer(B(7), B(8), t => {
@@ -411,15 +412,15 @@
     });
 
     // ---------- 2. Naturalezas y habilidades ----------
-    // Buscador ("lucario"), zoom a su ficha (sprite y stats), la cámara baja
-    // hasta la naturaleza y la habilidad, y corte a Gengar.
+    // Search ("lucario"), zoom in on its card (sprite and stats), pan the camera
+    // down to the nature and ability, then cut to Gengar.
     at(B(8), () => {
       toUI();
       G.MenuUI.openDex();
     });
     typeSearch(B(8) + 0.05, 'lucario', 0.045);
     const search = w => { const q = $('dex-q'); q.value = w; q.dispatchEvent(new Event('input', { bubbles: true })); };
-    at(B(8) + 0.75, () => search(''));                 // la rejilla, otra vez llena de Pokémon
+    at(B(8) + 0.75, () => search(''));                 // the grid, full of Pokémon again
     at(B(10) - 0.4, () => search('gengar'));
     at(B(10) - 0.03, () => { const cell = document.querySelector('#dex-grid .cell:not(.locked)'); if (cell) cell.click(); sfx('select'); });
     at(B(10) + 0.06, () => search(''));
@@ -486,7 +487,7 @@
       c.beginPath(); c.ellipse(W * 0.73, H * 0.78, 90, 18, 0, 0, 7); c.fill();
       drawMon(mw, W * 0.27, H * 0.78, dt);
       drawMon(ps, W * 0.73, H * 0.78, dt);
-      // disco de MT que cae a cada uno
+      // TM disc drops to each one
       const disc = (x, y0, y1, k0, ok) => {
         const k = cl((lt - k0) / 0.45);
         if (k <= 0) return;
@@ -524,7 +525,7 @@
     at(B(11) + 0.7, () => { sfx('levelup'); mon('mewtwo', 150, 3.2).play('Charge'); });
     at(B(11) + 1.65, () => { sfx('error'); mon('psyduck', 54, 3.6).play('Hurt'); });
 
-    // Mewtwo jugando con Bola Sombra (partida limpia: pocos enemigos)
+    // Mewtwo in action with Shadow Ball (clean run: few enemies)
     at(B(13), async () => {
       $('game').style.filter = '';
       await run(150, ['shadow-ball'], { time: 330, zoom: 1.35 });
@@ -535,7 +536,7 @@
       lowerThird(t, B(13) + 0.2, B(15) - 0.05, { title: 'Mewtwo · Bola Sombra', sub: 'Lo que aprende con MT, para siempre', color: TYPE('ghost'), icon: 'move:shadow-ball' });
     });
 
-    // ---------- 4. 38 ataques nuevos ----------
+    // ---------- 4. 38 new attacks ----------
     at(B(15), () => sfx('reveal', { rarity: 5 }));
     layer(B(15), B(16), t => {
       const g = c.createRadialGradient(W / 2, H / 2, 60, W / 2, H / 2, 820);
@@ -579,7 +580,7 @@
       });
     });
 
-    // ---------- 5. Físico y especial ----------
+    // ---------- 5. Physical and special ----------
     at(B(24), async () => { await run(68, ['dynamic-punch'], { time: 250, zoom: 1.4, ring: 100 }); });
     at(B(25), async () => { await run(65, ['psychic'], { time: 150, zoom: 1.4 }); });
     layer(B(24), B(26), t => {
@@ -603,7 +604,7 @@
       });
     });
 
-    // ---------- 6. Mando e idiomas (fondos propios, sin partida) ----------
+    // ---------- 6. Controller and languages (custom backgrounds, no run) ----------
     at(B(28), () => { toUI(); $('game').style.filter = 'blur(4px) brightness(.3)'; sfx('confirm'); });
     layer(B(28), B(29), t => {
       const g = c.createLinearGradient(0, 0, W, H);
@@ -651,7 +652,7 @@
     });
     for (let k = 0; k < LANGS.length; k++) at(B(29) + k * LSTEP, () => sfx('select'));
 
-    // ---------- 6b. Cooperativo y segundo ataque inicial (21-10-2026; carteles, sin partida) ----------
+    // ---------- 6b. Co-op and second starting move (2026-10-21; captions, no run) ----------
     const DOWN = { x: 330, y: 400 }, MATE = { x: 930, y: 400 }, SW = B(30) + RB * 0.45;
     at(B(30), () => { sfx('confirm'); mon('coop-down', 25, 3.4).play('Faint', { hold: true }); });
     at(SW, () => sfx('select'));
@@ -663,7 +664,7 @@
       flash(t, B(30), 0.2, '255,255,255', 0.5);
       text('COOPERATIVO', W / 2, 84, 72, { scale: slam(t, B(30)), colors: ['#ffffff', '#c8fff0', '#5fe0b8'], deep: '#0b3a30' });
       text('Si caes, mira a un compañero mientras te levantan', W / 2, 146, 28, { scale: slam(t, B(30) + 0.1), fill: '#fff', depth: 2, deep: '#123', weight: 400 });
-      // Tu Pokémon caído (en gris) y el compañero que sigue luchando
+      // Your downed Pokémon (in gray) and the teammate still fighting.
       const k = eio((t - SW) / 0.35);
       c.save(); c.globalAlpha = 0.55; c.filter = 'grayscale(1)';
       drawMon(mon('coop-down', 25, 3.4), DOWN.x, DOWN.y, 1 / 60);
@@ -676,7 +677,7 @@
       c.restore();
       const lu = mon('coop-mate', 448, 3.4); lu.loop('Walk'); lu.dir = 2;
       drawMon(lu, MATE.x, MATE.y, 1 / 60);
-      // La cámara: un marco que pasa de tu cuerpo al compañero
+      // The camera: a frame that moves from your character to your teammate
       const fx = lerp(DOWN.x, MATE.x, k), fy = DOWN.y - 50, fw = 300, fh = 230;
       c.save(); c.strokeStyle = '#fff'; c.lineWidth = 5; c.globalAlpha = cl((t - B(30) - 0.15) / 0.2);
       for (const [sx, sy] of [[-1, -1], [1, -1], [1, 1], [-1, 1]]) {
@@ -684,7 +685,7 @@
         c.beginPath(); c.moveTo(x0, y0 - sy * 34); c.lineTo(x0, y0); c.lineTo(x0 - sx * 34, y0); c.stroke();
       }
       c.restore();
-      // El botón, como en el juego
+      // The button, as it appears in the game.
       const label = k > 0.5 ? 'Viendo a Lucario · cambiar' : 'Ver a un compañero';
       c.save(); c.font = FONT(24, 800);
       const bw = c.measureText(label).width + 48, bx = W / 2 - bw / 2, by = H - 120;
@@ -728,7 +729,7 @@
       text('En Mejoras · necesita Repertorio', W / 2, H - 50, 22, { fill: '#ffd23f', depth: 0, stroke: 4, outline: '#1d0e00', weight: 400, alpha: cl((t - LOCK) / 0.2) });
     });
 
-    // ---------- 7. Desfile de Pokémon y final (sin partida de fondo) ----------
+    // ---------- 7. Pokémon parade and finale (no run in the background) ----------
     const ROWS = 5, PER = 13;
     function parade(t, t0, dim) {
       const g = c.createLinearGradient(0, 0, 0, H);
@@ -794,7 +795,7 @@
     },
     begin() {
       $('tap-start').classList.add('hidden');
-      // Música propia del tráiler (score.js): el juego no pone la suya.
+      // Trailer's own music (score.js): the game does not play its soundtrack.
       G.Audio.music(null);
       G.Audio.unlock();
       realMusic = G.Audio.music.bind(G.Audio);
@@ -832,8 +833,8 @@
     for (const m of G.DEX) G.DB.grant(m.dex, 'gacha');
     sv.partner = sv.starter = 448;
     sv.coins = 99999;
-    G.Settings.set('dmgNumbers', false);        // sin números de daño: se ve mejor qué hace cada ataque
-    // Naturalezas que se notan en la ficha (una sube y otra baja) y la habilidad oculta de Lucario.
+    G.Settings.set('dmgNumbers', false);        // No damage numbers: makes each attack easier to see.
+    // Natures visible on the details card (one stat rises and another falls) and Lucario's hidden ability.
     G.Mons.setNature(448, 'modest');
     G.Mons.setNature(94, 'timid');
     G.Mons.setAbility(448, 2);

@@ -1,26 +1,25 @@
-/* ============ updater.js — actualizaciones automáticas ============
- * Al publicar una versión nueva (node tools/build.js escribe version.json con
- * la huella de js/app.min.js), todos los jugadores la reciben sin perder nada:
+/* ============ updater.js — automatic updates ============
+ * When a new version is published (node tools/build.js writes version.json with
+ * the js/app.min.js hash), all players receive it without losing progress:
  *
- *   - Cada 5 min (y al volver a la pestaña) se mira version.json (lo sirve
- *     GitHub Pages: no cuesta nada).
- *   - Si NO está en partida: aviso "actualizando en 5 s…" y se recarga.
- *     Si está en el gacha, la tienda de mejoras, los ajustes o escribiendo en
- *     un campo, espera a que termine. En una sala de cooperativo, se recarga
- *     igual (decisión del 12-10-2026).
- *   - Si está EN PARTIDA: no se toca. Al acabar, la run se guarda como
- *     siempre (récords, monedas, tickets, ranking) y, al volver al menú, se
- *     recarga.
- *   - Antes de recargar se espera a que la partida guardada suba a la nube
- *     (como mucho unos segundos; si no, queda en este navegador y se sube al
- *     entrar).
- *   - Versión OBLIGATORIA (node tools/build.js --forzar escribe force:true en
- *     version.json): quien esté en partida ve un aviso de 10 s y la partida
- *     se termina como al abandonarla (se guardan monedas, tickets, récords y
- *     ranking), sube a la nube y se recarga. Sólo la entienden los jugadores
- *     que ya tengan este updater.js (desde el 15-10-2026).
- * Sólo funciona en la web publicada (con app.min.js); en dev.html o con
- * doble clic (file://) no hace nada.
+ *   - Check version.json every 5 minutes and when returning to the tab
+ *     (served by GitHub Pages at no cost).
+ *   - If NOT in a run: show an "updating in 5 s…" notice and reload.
+ *     If the player is in the gacha, upgrade shop, settings, or typing in a
+ *     field, wait until they finish. Co-op rooms reload too (decision of
+ *     2026-10-12).
+ *   - If IN A RUN: do nothing. When it ends, save as usual (records, coins,
+ *     tickets, leaderboard), then reload on returning to the menu.
+ *   - Before reloading, wait for the saved game to upload to the cloud (for
+ *     at most a few seconds; otherwise it remains in this browser and uploads
+ *     on the next sign-in).
+ *   - REQUIRED update (node tools/build.js --forzar writes force:true to
+ *     version.json): players in a run see a 10-second notice, then the run
+ *     ends as if they had quit (coins, tickets, records, and leaderboard are
+ *     saved), uploads to the cloud, and reloads. This is supported only by
+ *     players who already have this updater.js (since 2026-10-15).
+ * Only works on the published site (with app.min.js); does nothing in
+ * dev.html or when opened with a double-click (file://).
  */
 G.Updater = (() => {
   const EVERY = 5 * 60 * 1000, COUNTDOWN = 5, FORCED = 10;
@@ -36,24 +35,24 @@ G.Updater = (() => {
       if (!r.ok) return;
       const j = await r.json();
       if (j && j.v && j.v !== mine) { pending = true; forced = !!j.force; console.log('[Actualizar] versión nueva', j.v, '(esta es', mine + ')', forced ? 'OBLIGATORIA' : ''); }
-    } catch (e) { /* sin red: se mira la próxima vez */ }
+    } catch (e) { /* offline: check again next time */ }
   }
 
-  /** ¿Se puede recargar ahora sin cortar nada? */
+  /** Can we reload now without interrupting anything? */
   function safe() {
-    if (!G.Game || G.Game.state !== 'ui') return false;                   // en partida o en el resumen
+    if (!G.Game || G.Game.state !== 'ui') return false;                   // in a run or results screen
     if (['scr-gacha', 'scr-upgrades', 'scr-settings'].some(id => document.getElementById(id) && G.UI.isOpen(id))) return false;
     const fx = document.getElementById('pull-fx');
-    if (fx && !fx.classList.contains('hidden')) return false;             // tirada del gacha en marcha
+    if (fx && !fx.classList.contains('hidden')) return false;             // gacha pull in progress
     const a = document.activeElement;
-    if (a && /^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName)) return false;   // escribiendo (contraseña, apodo...)
+    if (a && /^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName)) return false;   // typing (password, nickname, etc.)
     return true;
   }
 
   async function reload() {
-    // Que lo guardado suba a la nube antes de recargar (como mucho 6 s).
+    // Upload pending saves to the cloud before reloading (wait no more than 6 s).
     const dirty = G.DB.syncState && G.DB.syncState !== 'ok' && G.DB.syncState !== 'local';
-    if (dirty) { try { await Promise.race([G.DB.flush(), new Promise(r => setTimeout(r, 6000))]); } catch (e) { /* queda en este navegador */ } }
+    if (dirty) { try { await Promise.race([G.DB.flush(), new Promise(r => setTimeout(r, 6000))]); } catch (e) { /* remains in this browser */ } }
     location.reload();
   }
 
@@ -61,7 +60,7 @@ G.Updater = (() => {
     counting = true;
     let n = COUNTDOWN;
     const tick = () => {
-      if (!safe()) { counting = false; G.UI.toast('', 1); return; }     // ha empezado una partida: se espera
+      if (!safe()) { counting = false; G.UI.toast('', 1); return; }     // a run has started; wait
       if (n <= 0) { reload(); return; }
       G.UI.toast('Hay una versión nueva del juego: actualizando en ' + n + ' s…', 1500);
       n--;
@@ -70,18 +69,18 @@ G.Updater = (() => {
     tick();
   }
 
-  /** ¿Está jugando una partida (que una versión obligatoria debe cerrar)? */
+  /** Is a session in progress (one that a required update must close)? */
   function inRun() { return G.Game && G.Game.state !== 'ui' && G.Game.state !== 'over'; }
 
-  /** Versión obligatoria en partida: aviso, se termina la partida (se guarda todo) y se recarga. */
+  /** Required update during a run: notify, end the run (saving everything), and reload. */
   function forceEnd() {
     counting = true;
     let n = FORCED;
     const tick = () => {
-      if (!inRun()) { reload(); return; }                                 // la ha acabado él mismo
+      if (!inRun()) { reload(); return; }                                 // the player finished it
       if (n <= 0) {
-        G.Game.quit();                                                    // como abandonar: se guarda lo ganado
-        setTimeout(reload, 4000);                                         // deja salir récord y ranking
+        G.Game.quit();                                                    // same as quitting: save progress
+        setTimeout(reload, 4000);                                         // allow the record and leaderboard to appear
         return;
       }
       G.UI.toast('Actualización obligatoria: tu partida se guarda y el juego se recarga en ' + n + ' s…', 1500);
@@ -93,7 +92,7 @@ G.Updater = (() => {
 
   function loop() {
     if (pending && forced && !counting && inRun()) { forceEnd(); return; }
-    if (pending && forced && !counting && G.Game && G.Game.state === 'over') { reload(); return; }   // resumen: ya está guardado
+    if (pending && forced && !counting && G.Game && G.Game.state === 'over') { reload(); return; }   // results screen: already saved
     if (pending && !counting && safe()) countdown();
     if (!pending && Date.now() - lastCheck > EVERY) check();
   }

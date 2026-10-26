@@ -1,16 +1,16 @@
-/* ============ lang-en.js — traducción al inglés ============
- * Clave: el texto en español tal como sale en pantalla. {x} = hueco (nombre,
- * número...). Ver js/core/i18n.js. Los nombres de movimientos, objetos y tipos
- * son los oficiales en inglés.
+/* ============ lang-en.js — English translation ============
+ * Key: the Spanish text as it appears on screen. {x} = placeholder (name,
+ * number...). See js/core/i18n.js. Move, item, and type names are the official
+ * English names.
  */
 G.I18n.add({
-  // ---------------- tipos y regiones ----------------
+  // ---------------- types and regions ----------------
   'Acero': 'Steel', 'Agua': 'Water', 'Bicho': 'Bug', 'Dragón': 'Dragon', 'Eléctrico': 'Electric', 'Fantasma': 'Ghost',
   'Fuego': 'Fire', 'Hada': 'Fairy', 'Hielo': 'Ice', 'Lucha': 'Fighting', 'Planta': 'Grass', 'Psíquico': 'Psychic',
   'Roca': 'Rock', 'Siniestro': 'Dark', 'Tierra': 'Ground', 'Veneno': 'Poison', 'Volador': 'Flying',
   'Teselia': 'Unova',
 
-  // ---------------- movimientos ----------------
+  // ---------------- moves ----------------
   'Ascuas': 'Ember', 'Lanzallamas': 'Flamethrower', 'Giro Fuego': 'Fire Spin', 'Onda Ígnea': 'Heat Wave', 'Llamarada': 'Fire Blast',
   'Sofoco': 'Overheat', 'Fuego Sagrado': 'Sacred Fire', 'Erupción': 'Eruption', 'Pistola Agua': 'Water Gun', 'Burbuja': 'Bubble',
   'Hidrobomba': 'Hydro Pump', 'Escaldar': 'Scald', 'Hidrocañón': 'Hydro Cannon', 'Acua Aro': 'Aqua Ring',
@@ -35,7 +35,7 @@ G.I18n.add({
   'Velocidad Extrema': 'Extreme Speed', 'Gigaimpacto': 'Giga Impact', 'Alboroto': 'Uproar', 'Danza Espada': 'Swords Dance',
   'Agilidad': 'Agility', 'Fortaleza': 'Harden', 'Surf': 'Surf',
 
-  // descripciones de los movimientos
+  // move descriptions
   'Abanico de tres hojas perforantes.': 'A fan of three piercing leaves.',
   'Aguijón rápido que envenena.': 'A quick poisonous sting.',
   'Barrido de alas amplio que empuja.': 'A wide wing sweep that pushes foes back.',
@@ -91,7 +91,7 @@ G.I18n.add({
   'Vibración constante que machaca lo cercano.': 'A constant vibration that pounds everything nearby.',
   'Zarpazo de acero en arco.': 'A steel swipe in an arc.',
 
-  // mejoras de los movimientos
+  // move upgrades
   '+1 proyectil': '+1 projectile', '+1 proyectil y +1 perforación': '+1 projectile and +1 pierce', '+45% daño': '+45% damage',
   '-25% recarga': '-25% cooldown', '+40% daño': '+40% damage', '+25% alcance': '+25% range', 'Golpea en 360° y +50% daño': 'Hits in 360° and +50% damage',
   '+30% alcance y grosor': '+30% range and width', '+50% daño': '+50% damage', '+1 orbe': '+1 orb', '+55% daño': '+55% damage',
@@ -108,7 +108,7 @@ G.I18n.add({
   'Vigor': 'Vigor', 'Potencia': 'Power', 'Carrera': 'Sprint', 'Reflejos': 'Reflexes', 'Coraza': 'Armor', 'Síntesis': 'Synthesis',
   'Imán': 'Magnet', 'Aprendizaje': 'Learning',
 
-  // ---------------- cartas al subir de nivel ----------------
+  // ---------------- level-up cards ----------------
   'EVOLUCIÓN': 'EVOLUTION', 'Evoluciona': 'Evolves', 'Mejora': 'Upgrade', 'Nuevo · {x}': 'New · {x}', 'Nv.': 'Lv.',
   '+20 de vida máxima (y la recupera).': '+20 max HP (and heals it).', '+10% de daño con todos los movimientos.': '+10% damage with every move.',
   '+7% de velocidad de movimiento.': '+7% movement speed.', '-8% de recarga en todos los movimientos.': '-8% cooldown on every move.',
@@ -118,7 +118,7 @@ G.I18n.add({
   '¡Nivel': 'Level', '¡Nivel {x}!': 'Level {x}!', 'Elige una recompensa ·': 'Choose a reward ·', 'Elige tu carta': 'Choose your card',
   'Faltan por elegir: {x}': 'Still choosing: {x}', 'Esperando a {x}…': 'Waiting for {x}…', 'tú': 'you',
 
-  // ---------------- objetos ----------------
+  // ---------------- items ----------------
   'Restos': 'Leftovers', 'Cinta Elección': 'Choice Band', 'Garra Rápida': 'Quick Claw', 'Banda Focus': 'Focus Sash',
   'Cascabel Concha': 'Shell Bell', 'Moneda Amuleto': 'Amulet Coin', 'Huevo Suerte': 'Lucky Egg', 'Vidasfera': 'Life Orb',
   'Pañuelo Elección': 'Choice Scarf', 'Casco Dentado': 'Rocky Helmet', 'Chaleco Asalto': 'Assault Vest',
@@ -133,7 +133,7 @@ G.I18n.add({
   '¡Un objeto!': 'An item!', 'Sólo puedes llevar uno ·': 'You can only hold one ·', 'Quedarme con': 'Keep', 'Cambiar a': 'Switch to',
   '¡Llevas {x}!': 'You\'re holding {x}!', 'Ya llevas {x}': 'You already hold {x}', '¡Banda Focus!': 'Focus Sash!',
 
-  // ---------------- mejoras permanentes ----------------
+  // ---------------- permanent upgrades ----------------
   'Vitalidad': 'Vitality', 'Fuerza': 'Strength', 'Zancada': 'Stride', 'Fortuna': 'Fortune', 'Sabiduría': 'Wisdom', 'Repertorio': 'Repertoire',
   '+8 vida': '+8 HP', '+4% daño': '+4% damage', '+3% velocidad': '+3% speed', '-3% recarga': '-3% cooldown', '+2% defensa': '+2% defense',
   '+0.2 vida/s': '+0.2 HP/s', '+12% recogida': '+12% pickup', '+8% Pokémonedas': '+8% PokéCoins', '+5% experiencia': '+5% experience',
@@ -141,7 +141,7 @@ G.I18n.add({
   'Cada Pokémon tiene sus propias mejoras: sólo cuentan cuando juegas con él.': 'Each Pokémon has its own upgrades: they only count when you play with it.',
   '(compañero)': '(partner)',
 
-  // ---------------- interactivos y clima ----------------
+  // ---------------- interactables and weather ----------------
   '¡Poder {x}! {x} durante {x} s': '{x} power! {x} for {x} s', 'Furia': 'Fury', 'Prisa': 'Haste', 'daño ×2': 'damage ×2', '+45% velocidad': '+45% speed',
   '-40% recarga': '-40% cooldown', 'atraes todo desde lejos': 'you pull everything from afar', '¡Pegajoso!': 'Sticky!',
   'El manantial se ha secado (se recarga solo)': 'The spring has dried up (it refills on its own)',
@@ -152,7 +152,7 @@ G.I18n.add({
   'el Hielo se potencia; el resto sufre y va más lento': 'Ice is boosted; the rest suffer and slow down',
   'Fantasma, Hada y Psíquico se potencian': 'Ghost, Fairy and Psychic are boosted',
 
-  // ---------------- biomas y arenas ----------------
+  // ---------------- biomes and arenas ----------------
   'Pradera Eterna': 'Eternal Meadow', 'Volcán Ígneo': 'Igneous Volcano', 'Gruta Marina': 'Sea Grotto', 'Selva Esmeralda': 'Emerald Jungle',
   'Central Voltio': 'Volt Plant', 'Glaciar Eterno': 'Eternal Glacier', 'Dojo Ancestral': 'Ancient Dojo', 'Ciénaga Tóxica': 'Toxic Swamp',
   'Desierto Rojo': 'Red Desert', 'Pico Celeste': 'Sky Peak', 'Templo Mental': 'Mind Temple', 'Bosque Colmena': 'Hive Forest',
@@ -161,7 +161,7 @@ G.I18n.add({
   'Bosque Umbrío': 'Shady Forest', 'Cueva Cristal': 'Crystal Cave', 'Volcán Ceniza': 'Ash Volcano',
   'Grieta · {x}': 'Rift · {x}', 'Grieta ·': 'Rift ·', 'GRIETA ·': 'RIFT ·',
 
-  // ---------------- avisos durante la partida ----------------
+  // ---------------- in-run notices ----------------
   '¡{x} salvaje apareció!': 'A wild {x} appeared!', '¡{x} shiny salvaje apareció!': 'A wild shiny {x} appeared!',
   '¡Un {x} shiny anda cerca!': 'A shiny {x} is nearby!', '¡Marea de Pokémon!': 'Pokémon swarm!',
   '¡Has conseguido a {x} shiny!': 'You got a shiny {x}!', '¡Otro {x} shiny! (+300 monedas)': 'Another shiny {x}! (+300 coins)',
@@ -188,7 +188,7 @@ G.I18n.add({
   '¿Con cuál unes {x}?': 'Which move do you bond {x} with?',
   'Elige el primer movimiento que vas a unir': 'Choose the first move to bond',
   'Se lanzará a la vez que {x}. Queda un hueco libre.': 'It will fire at the same time as {x}. A slot is freed.',
-  // (la frase larga antes: la corta también encajaría con ella)
+  // (The longer phrase came first; the shorter one would also fit.)
   'Se lanzará a la vez que {x}.': 'It will fire at the same time as {x}.',
   '¡Vínculo! {x} movimientos a la vez': 'Bond! {x} moves at once',
   'Guardas el vínculo: aprende otro movimiento para usarlo': 'Bond saved: learn another move to use it',
@@ -203,7 +203,7 @@ G.I18n.add({
   'WASD moverse · 1-4 / Q / E o clic en un ataque para cambiarlo · Esc pausa': 'WASD move · 1-4 / Q / E or click a move to switch · Esc pause',
   'El anfitrión ha terminado la partida': 'The host has ended the game', 'Se ha perdido la conexión con el anfitrión.': 'Lost connection to the host.',
 
-  // ---------------- pausa y fin ----------------
+  // ---------------- pause and end ----------------
   'Pausa': 'Pause', 'Continuar': 'Continue', 'Abandonar run': 'Quit run', 'moverse ·': 'move ·', 'movimiento ·': 'move ·', 'ciclar ·': 'cycle ·', 'pausa': 'pause',
   'Partida en grupo: el juego sigue mientras estás aquí.': 'Group game: the game keeps running while you\'re here.',
   'Has caído…': 'You fell…', 'Run terminada': 'Run over', 'Volver al menú': 'Back to menu', 'Salir de la partida': 'Leave the game',
@@ -211,7 +211,7 @@ G.I18n.add({
   'Movimientos': 'Moves', '¡Nuevo récord de tiempo!': 'New time record!', '· ¡nuevo!': '· new!', '{x} Shinies conseguidos': '{x} shinies caught',
   'Tickets del gacha': 'Gacha tickets', 'Nivel máximo': 'Max level',
 
-  // ---------------- inicio de sesión y test ----------------
+  // ---------------- sign-in and quiz ----------------
   'Mundo Misterioso': 'Mystery Dungeon', 'Entrar': 'Log in', 'Crear cuenta': 'Sign up', 'Nombre': 'Name', 'Contraseña': 'Password',
   'Entrar con Google': 'Sign in with Google', 'Jugar como invitado': 'Play as guest', '3-16 letras, números o _': '3-16 letters, numbers or _',
   'Sobrevive a las hordas con tu compañero Pokémon · gratis, en PC y móvil': 'Survive the hordes with your partner Pokémon · free, on PC and mobile',
@@ -238,7 +238,7 @@ G.I18n.add({
   'Tu personalidad es…': 'Your personality is…', 'Pregunta {x} de {x}': 'Question {x} of {x}', 'Selecciona un Pokémon': 'Pick a Pokémon',
   '¡{x} se une a ti!': '{x} joins you!', 'Elige a tu compañero': 'Choose your partner', 'Los iniciales de todas las regiones, y dos amigos más.': 'The starters from every region, plus two more friends.',
   'Elegir': 'Choose', 'Elegir otro': 'Choose another', '¡Vamos juntos!': 'Let\'s go together!', 'Tu compañero:': 'Your partner:',
-  // test de personalidad
+  // personality quiz
   '¡Hay una pelea en mitad del pueblo! ¿Qué haces?': 'There\'s a fight in the middle of town! What do you do?',
   'Me meto a ayudar sin pensarlo.': 'I jump in to help without thinking.', 'Busco a alguien que pueda pararla.': 'I look for someone who can stop it.',
   'Lo observo todo desde lejos.': 'I watch everything from afar.', 'Me río y animo a los dos.': 'I laugh and cheer both of them on.',
@@ -272,7 +272,7 @@ G.I18n.add({
   'Ves soluciones donde otros ven problemas.': 'You see solutions where others see problems.',
   'Tu amabilidad tranquiliza a todos los que te rodean.': 'Your kindness calms everyone around you.',
 
-  // ---------------- menú ----------------
+  // ---------------- menu ----------------
   'Jugar': 'Play', 'Entra en la mazmorra': 'Enter the dungeon', 'Pokémon': 'Pokémon', 'Tu colección': 'Your collection',
   'Mejoras': 'Upgrades', 'Haz más fuerte cada run': 'Make every run stronger', '9 regiones · Pokémon y shinies': '9 regions · Pokémon and shinies',
   'Misiones': 'Missions', 'Misiones, logros y perfil': 'Missions, achievements and profile', 'Amigos': 'Friends', 'Juega en grupo, hasta 4': 'Play in a group, up to 4',
@@ -284,7 +284,7 @@ G.I18n.add({
   'Salir': 'Log out', 'Eres invitado: se perderá todo el progreso. ¿Salir?': 'You\'re a guest: all your progress will be lost. Log out?',
   'Proyecto de fan sin ánimo de lucro · Sprites: SpriteCollab (CC BY-NC 4.0) · Pokémon © Nintendo/Creatures/GAME FREAK ·': 'Non-profit fan project · Sprites: SpriteCollab (CC BY-NC 4.0) · Pokémon © Nintendo/Creatures/GAME FREAK ·',
   'Aviso legal': 'Legal notice',
-  // colección
+  // collection
   'Volver': 'Back', 'Todos': 'All', 'Tengo': 'Owned', 'Me faltan': 'Missing', 'Legendaria': 'Legendary', 'Épica': 'Epic', 'Rara': 'Rare',
   'Poco común': 'Uncommon', 'Común': 'Common', 'Ninguno con este filtro.': 'None with this filter.', 'Ataque': 'Attack', 'Vida': 'HP', 'Velocidad': 'Speed',
   'Empieza con': 'Starts with', 'Es tu compañero': 'It\'s your partner', 'Elegir de compañero{x}': 'Choose as partner{x}', '(shiny)': '(shiny)',
@@ -303,10 +303,10 @@ G.I18n.add({
   'No tienes tickets suficientes: consíguelos jugando': 'Not enough tickets: earn them by playing', '¡NUEVO!': 'NEW!', '¡SHINY NUEVO!': 'NEW SHINY!',
   'Repetido ·': 'Duplicate ·', '· {x} {x} shiny': '· {x} {x} shiny', '{x} Shiny': '{x} Shiny', 'Clic para acelerar': 'Click to speed up',
   'TIRADA': 'PULL', 'TIRADA ×10': 'PULL ×10', '¡SUERTE!': 'GOOD LUCK!', '¡¿SHINY?!': 'SHINY?!', '¡¿LEGENDARIO?!': 'LEGENDARY?!', '¡¿ÉPICO?!': 'EPIC?!', 'SHINY ·': 'SHINY ·',
-  // mejoras
+  // upgrades
   'Pokémon': 'Pokémon',
 
-  // ---------------- misiones, logros y perfil ----------------
+  // ---------------- missions, achievements, and profile ----------------
   'Logros': 'Achievements', 'Perfil': 'Profile', 'Diarias': 'Daily', 'Semanales': 'Weekly', 'Se renuevan en {x}': 'Refreshes in {x}',
   'Recoger': 'Claim', 'Recogido': 'Claimed', 'En curso': 'In progress', 'Cambiar': 'Swap', 'Cambia esta misión por otra (una vez al día)': 'Swap this mission for another (once a day)',
   '¡Premio recogido!': 'Reward claimed!', 'Misión completada: {x}': 'Mission complete: {x}', 'Recoge el premio en Misiones': 'Claim your reward in Missions',
@@ -318,14 +318,14 @@ G.I18n.add({
   'Tu perfil se publica cuando juegas con una cuenta online.': 'Your profile is published when you play with an online account.',
   'Este jugador aún no tiene perfil.': 'This player has no profile yet.', 'Sin favoritos todavía.': 'No favorites yet.', 'Aún sin medallas.': 'No medals yet.',
   'Medallas': 'Medals', 'Mejor tiempo': 'Best time', 'En grupo': 'In a group', 'Legendarios': 'Legendaries', 'Cerrar': 'Close',
-  // misiones
+  // missions
   'Derrota a {x} Pokémon': 'Defeat {x} Pokémon', 'Derrota a {x} Pokémon de tipo {x}': 'Defeat {x} {x}-type Pokémon', 'Derrota a {x} jefes': 'Defeat {x} bosses',
   'Derrota a un jefe': 'Defeat a boss', 'Aguanta {x} minutos en una run': 'Survive {x} minutes in a run',
   'Aguanta {x} minutos con un Pokémon de tipo {x}': 'Survive {x} minutes with a {x}-type Pokémon', 'Llega al nivel {x} en una run': 'Reach level {x} in a run',
   'Recoge {x} monedas en tus runs': 'Collect {x} coins in your runs', 'Abre un cofre con candado': 'Open a locked chest', 'Abre {x} cofres con candado': 'Open {x} locked chests',
   'Gana una pelea en una grieta': 'Win a rift battle', 'Gana {x} peleas en grietas': 'Win {x} rift battles', 'Evoluciona un movimiento': 'Evolve a move',
   'Evoluciona {x} movimientos': 'Evolve {x} moves', 'Encuentra un objeto equipable': 'Find a held item', 'Completa {x} misiones diarias': 'Complete {x} daily missions',
-  // logros
+  // achievements
   'Colección': 'Collection', 'Supervivencia': 'Survival', 'Combate': 'Combat', 'Grietas': 'Rifts', 'Misiones y más': 'Missions & more',
   'Primer compañero': 'First partner', 'Pequeño equipo': 'Small team', 'Coleccionista': 'Collector', 'Enciclopedia': 'Encyclopedia',
   'Profesor Pokémon': 'Pokémon Professor', 'Maestro Pokémon': 'Pokémon Master', 'Anticuario': 'Antiquarian',
@@ -356,7 +356,7 @@ G.I18n.add({
   'Compañero fiel': 'Loyal partner', 'Juega 50 runs.': 'Play 50 runs.', 'Afortunado': 'Lucky', 'Tragaperras': 'Slot machine',
   'Haz 100 tiradas en el gacha.': 'Make 100 gacha pulls.', 'Brillante': 'Brilliant',
 
-  // ---------------- amigos, sala e invitaciones ----------------
+  // ---------------- friends, room, and invitations ----------------
   'Elige tu apodo': 'Choose your nickname', 'Guardar apodo': 'Save nickname', 'Ahora no': 'Not now',
   'Es el nombre que verán tus amigos y el que sale en el ranking. Tu nombre y tu correo de Google no se enseñan a nadie.': 'It\'s the name your friends will see and the one on the leaderboard. Your real name and Google email are never shown to anyone.',
   'Tu apodo:': 'Your nickname:', '· dáselo a tus amigos para que te añadan.': '· give it to your friends so they can add you.', 'Tu apodo es {x}': 'Your nickname is {x}',
@@ -389,7 +389,7 @@ G.I18n.add({
   '{x} te invita a jugar en su sala': '{x} invites you to play in their room', 'te invita a jugar en su sala': 'invites you to play in their room',
   'Unirme': 'Join', 'No, gracias': 'No, thanks', 'Ir a la sala': 'Go to the room',
 
-  // ---------------- ranking ----------------
+  // ---------------- leaderboard ----------------
   'tiempo aguantado': 'survival time', '· tiempo aguantado': '· survival time', 'Diario': 'Daily', 'Semanal': 'Weekly', 'Mensual': 'Monthly', 'Anual': 'Yearly',
   'Histórico': 'All-time', 'Sólo amigos': 'Friends only', 'Filtrar por Pokémon (histórico)': 'Filter by Pokémon (all-time)', 'Quitar filtro': 'Clear filter',
   '{x} Solo': '{x} Solo', '{x} Grupo': '{x} Group', 'Grupo': 'Group', 'Todavía no hay marcas aquí. ¡Sé el primero!': 'No records here yet. Be the first!',
@@ -400,7 +400,7 @@ G.I18n.add({
   'en solitario': 'solo', 'en grupo': 'in a group', 'Nv. {x} · {x} derrotados': 'Lv. {x} · {x} defeated',
   '¡Nueva mejor marca {x} en el ranking!': 'New best record {x} on the leaderboard!', 'de la semana': 'of the week', 'del mes': 'of the month', 'del año': 'of the year', 'histórico': 'all-time',
 
-  // ---------------- ajustes ----------------
+  // ---------------- settings ----------------
   'Sonido': 'Sound', 'Gráficos': 'Graphics', 'Controles': 'Controls', 'Cuenta': 'Account', 'Acerca de': 'About', 'Música': 'Music', 'Efectos': 'Effects',
   'Silenciar todo': 'Mute all', 'Activar sonido': 'Unmute', 'Calidad': 'Quality', 'Auto': 'Auto', 'Alta': 'High', 'Media': 'Medium', 'Baja': 'Low',
   'Cuántos efectos y partículas se dibujan.': 'How many effects and particles are drawn.', 'la baja sola si el juego va a tirones (ahora:': 'lowers it automatically if the game stutters (now:',
@@ -442,7 +442,7 @@ G.I18n.add({
   'Crítico': 'Critical', 'Reducción de daño': 'Damage reduction', 'Recarga': 'Cooldown', 'Regeneración': 'Regeneration',
   'Objeto y cartas': 'Item and cards', 'Sin objeto.': 'No item.', 'Aún no has cogido cartas de mejora.': 'You haven’t picked any upgrade cards yet.',
   '{x} físico': '{x} physical', '{x} especial': '{x} special',
-  // ---- ataques nuevos (19-10-2026) ----
+  // ---- new moves (2026-10-19) ----
   'Hiperrayo': 'Hyper Beam',
   'Giro Rápido': 'Rapid Spin',
   'Nitrocarga': 'Flame Charge',
@@ -617,7 +617,7 @@ G.I18n.add({
   'Gira el móvil': 'Rotate your phone', 'PokéSurvivor se juega en horizontal.': 'PokéSurvivor is played in landscape.',
   'No se pudo cargar todo el juego (¿se cortó la conexión?).': 'The game couldn\'t fully load (did the connection drop?).', 'Recargar': 'Reload',
 
-  // ---------------- aviso legal ----------------
+  // ---------------- legal notice ----------------
   'Proyecto de fan': 'Fan project', 'es un juego hecho por fans,': 'is a game made by fans,',
   '. No tiene anuncios, ni compras, ni ninguna forma de ingreso, y no la tendrá.': '. It has no ads, no purchases and no source of income of any kind, and it never will.',
   'No está afiliado, patrocinado ni aprobado por Nintendo, Creatures Inc., GAME FREAK ni The Pokémon Company. Pokémon y todos los nombres y personajes relacionados son marcas y propiedad de sus respectivos dueños.': 'It is not affiliated with, sponsored or endorsed by Nintendo, Creatures Inc., GAME FREAK or The Pokémon Company. Pokémon and all related names and characters are trademarks and property of their respective owners.',
@@ -637,7 +637,7 @@ G.I18n.add({
   'PokéSurvivor necesita JavaScript para funcionar. Actívalo para jugar.': 'PokéSurvivor needs JavaScript to work. Please enable it to play.',
   'Fan game gratuito de supervivencia con 966 Pokémon de las 9 regiones: elige tu compañero, sobrevive a las hordas, evoluciona tus ataques, enfréntate a legendarios y juega en cooperativo con hasta 4 amigos.': 'A free survival fan game with 966 Pokémon from all 9 regions: choose your partner, survive the hordes, evolve your moves, take on legendaries and play co-op with up to 4 friends.',
   'Guía del juego': 'Game guide',
-  // donaciones
+  // donations
   'Apoyar': 'Support', 'Apoyar el proyecto': 'Support the project', 'Donar en Ko-fi': 'Donate on Ko-fi', 'Más información': 'More info',
   'PokéSurvivor es y será': 'PokéSurvivor is and will stay', 'gratis': 'free',
   ', sin anuncios ni compras. Si quieres ayudar a que siga en línea, puedes hacer una': ', with no ads or purchases. If you\'d like to help keep it online, you can make a',
@@ -651,7 +651,7 @@ G.I18n.add({
   '. No tiene anuncios ni compras. Se puede apoyar con donaciones voluntarias, que se usan sólo para pagar los servidores y el dominio, y que no dan ninguna ventaja en el juego.': '. It has no ads or purchases. You can support it with voluntary donations, which are used only to pay for the servers and the domain and give no advantage in the game.', 'Compañero': 'Partner', 'tickets y': 'tickets and', 'directamente': 'directly', 'Tienes': 'You have', 'Movimientos que puede aprender': 'Moves it can learn',
   'Juego de fans {x} — sin anuncios ni pagos.': 'Fan game {x} — no ads or payments.', 'Código Cero': 'Type: Null', 'Pokédex: todos los Pokémon jugables': 'Pokédex: every playable Pokémon',
 
-  // ---------------- 2026-10-10: grietas, jefes, pantalla de inicio, movimientos nuevos ----------------
+  // ---------------- 2026-10-10: rifts, bosses, title screen, new moves ----------------
   '¡SE HA ABIERTO UNA GRIETA!': 'A RIFT HAS OPENED!', 'Sigue la flecha morada: dentro te espera un legendario': 'Follow the purple arrow: a legendary awaits inside',
   'GRIETA · {x} m · {x} s': 'RIFT · {x} m · {x} s', 'GRIETA · {x} s': 'RIFT · {x} s',
   '¡{x} se ha enfurecido!': '{x} is enraged!',
@@ -694,7 +694,7 @@ G.I18n.add({
   '×1,8 daño, +1 a la vez y dispara más rápido': '×1.8 damage, +1 at a time and fires faster', '×1,9 daño, más distancia y menos recarga': '×1.9 damage, more distance and less cooldown',
   '×1,8 daño, charcos más grandes y duraderos': '×1.8 damage, bigger and longer-lasting pools', '×1,7 daño, +4 disparos y +1 perforación': '×1.7 damage, +4 shots and +1 pierce',
 
-  // ---------------- eventos y duendes (2026-10-10) ----------------
+  // ---------------- events and sprites (2026-10-10) ----------------
   '¡Horda de tipo {x}!': 'A {x}-type horde!', '¡Hora dorada! Doble de experiencia': 'Golden hour! Double experience',
   '¡Un {x} se ha perdido! Búscalo y llévalo a la marca': 'A {x} is lost! Find it and take it to the marker',
   '¡{x} te sigue! Llévalo a la marca verde': '{x} is following you! Take it to the green marker',
@@ -732,7 +732,7 @@ G.I18n.add({
   'En iPhone, Safari no deja poner las webs a pantalla completa. Pulsa Compartir y luego "Añadir a pantalla de inicio": abriendo el juego desde ese icono se juega a pantalla completa.':
     'On iPhone, Safari does not let websites go fullscreen. Tap Share and then "Add to Home Screen": opening the game from that icon plays it fullscreen.',
 
-  // ---------------- La Sentencia de Arceus (minuto 30) ----------------
+  // ---------------- Arceus Judgment (minute 30) ----------------
   'Ruinas del Juicio': 'Ruins of Judgment', 'LA SENTENCIA': 'THE JUDGMENT', 'DE ARCEUS': 'OF ARCEUS',
   'El tiempo se ha agotado…': 'Time has run out…', '¡ARCEUS HA DESCENDIDO!': 'ARCEUS HAS DESCENDED!',
   'Es invencible: huye y aguanta todo lo que puedas': 'It is invincible: run and survive as long as you can',
@@ -746,7 +746,7 @@ G.I18n.add({
   'Desafío divino': 'Divine challenge', 'Derrota a 3 legendarios ante Arceus en una partida.': 'Defeat 3 legendaries against Arceus in a single run.',
   'Juzgado': 'Judged', 'Elegido de Arceus': 'Chosen of Arceus',
 
-  // ---------------- recuperar la cuenta (vincular Gmail) ----------------
+  // ---------------- account recovery (link Gmail) ----------------
   '¿Olvidaste tu contraseña?': 'Forgot your password?',
   '¿Te da miedo perder tu cuenta?': 'Afraid of losing your account?',
   'Vincular mi Gmail': 'Link my Gmail', 'Ahora no': 'Not now', 'No volver a preguntar': "Don't ask again",
@@ -754,21 +754,21 @@ G.I18n.add({
   'Ese Gmail ya tiene su propia cuenta del juego. Usa otro Gmail.': 'That Gmail already has its own game account. Use another Gmail.',
   'Inicia sesión primero.': 'Sign in first.',
 
-  // ---------------- reportar marcas del ranking ----------------
+  // ---------------- report leaderboard records ----------------
   'Reportar marca sospechosa': 'Report suspicious record', 'Ya la has reportado': 'You already reported it',
   'Ya has reportado esta marca': 'You already reported this record',
   '¿Reportar la marca de {x} como trampa?': "Report {x}'s record as cheating?", 'Gracias: la revisaremos': 'Thanks: we will review it'
 ,
 
-  // ---------------- idiomas nuevos (19-10-2026) ----------------
+  // ---------------- new languages (2026-10-19) ----------------
   'PokéSurvivor – Juego Pokémon gratis online estilo Survivor.io': 'PokéSurvivor – Free online Pokémon survival game (Survivor.io style)',
   'Tipo': 'Type', 'Nuevo': 'New', 'Cambios': 'Changes', 'Arreglos': 'Fixes', 'Entendido': 'Got it',
-  // Frases del ranking en francés, italiano... (en inglés se montan enteras en ranking-ui.js)
+  // Leaderboard phrases in French, Italian, etc. (English phrases are composed in ranking-ui.js.)
   'Tu mejor puesto: {x}': 'Your best rank: {x}',
   'Aún no estás en el top 50. Tu puesto está en Histórico.': 'You are not in the top 50 yet. Your rank is in All-time.',
   'Aún no tienes marca.': 'You do not have a record yet.',
   'Folagor, Sekiam, PokeAlex: ¿un hueco?': 'Folagor, Sekiam, PokeAlex: room for one more?',
-  // ---------------- Tienda Kecleon, naturalezas y habilidades (20-10-2026) ----------------
+  // ---------------- Kecleon Shop, natures, and abilities (2026-10-20) ----------------
   "+35 % de daño de tipo {x} con poca vida (menos de 1/3).": "+35% {x}-type damage at low HP (under 1/3).",
   "+20 % de daño con movimientos de tipo {x}.": "+20% damage with {x}-type moves.",
   "+40 % de daño de tipo {x} y recibe la mitad de daño de Fuego.": "+40% {x}-type damage and takes half damage from Fire.",
@@ -933,21 +933,21 @@ G.I18n.add({
   "¡Robustez!": "Sturdy!",
   "¡Irascible!": "Anger Point!",
   "Mejora nueva: Tienda Kecleon (botón en el menú) con Mentas, Cápsulas Habilidad y 8 MT nuevas cada día. Cada Pokémon tiene ahora su naturaleza (±10 % a dos stats) y su habilidad, con efecto en la partida; se ven y se cambian en su ficha de la colección. Las MT enseñan para siempre ataques de fuera de sus tipos, pero sólo si los aprende en los juegos (Mewtwo puede aprender Bola Sombra; Psyduck no puede aprender Lanzallamas). Gracias a TheAdro7 por la idea y el trabajo de base.": "New: the Kecleon Shop (button in the menu) with Mints, Ability Capsules and 8 new TMs every day. Every Pokémon now has its own nature (±10% to two stats) and ability, with an effect in the run; you can see and change them on its page in the collection. TMs permanently teach moves outside its types, but only if it learns them in the games (Mewtwo can learn Shadow Ball; Psyduck cannot learn Flamethrower). Thanks to TheAdro7 for the idea and the groundwork.",
-  // ---------------- Tienda Kecleon, naturalezas y habilidades (20-10-2026) ----------------
+  // ---------------- Kecleon Shop, natures, and abilities (2026-10-20) ----------------
   "¡Bienvenido a la Tienda Kecleon!": "Welcome to the Kecleon Shop!",
   "¡Hola! Echa un vistazo, ¿eh?": "Hello! Have a look around, OK?",
   "¡Muchas gracias!": "Thank you very much!",
   "¡Gracias, vuelve pronto!": "Thanks, come back soon!",
-  // ---------------- Tienda Kecleon, naturalezas y habilidades (20-10-2026) ----------------
+  // ---------------- Kecleon Shop, natures, and abilities (2026-10-20) ----------------
   "Vacía": "Empty",
   "{x} objetos · {x} MT": "{x} items · {x} TMs",
   "Tu Mochila está vacía.": "Your Bag is empty.",
   "Ir a la Tienda Kecleon": "Go to the Kecleon Shop",
-  // ---------------- Tienda Kecleon, naturalezas y habilidades (20-10-2026) ----------------
+  // ---------------- Kecleon Shop, natures, and abilities (2026-10-20) ----------------
   "Objetos: {x} · MT: {x}": "Items: {x} · TMs: {x}",
-  // ---------------- Cooperativo: mirar a un compañero estando caído (21-10-2026) ----------------
+  // ---------------- Co-op: spectate a teammate while downed (2026-10-21) ----------------
   "Ver a un compañero": "Watch a teammate", "Viendo a {x}": "Watching {x}", "cambiar": "switch",
-  // ---------------- Amuletos Iris, uno por generación (22-10-2026) ----------------
+  // ---------------- Rainbow Charms, one per generation (2026-10-22) ----------------
   "Amuletos Iris": "Shiny Charms",
   "Amuleto Iris": "Shiny Charm",
   "Completa la Pokédex de una región (legendarios incluidos) y te dan su Amuleto Iris: en su banner, los shiny salen el doble (del 1 % al 2 %).": "Complete a region's Pokédex (legendaries included) to get its Shiny Charm: in its banner, shinies are twice as likely (from 1% to 2%).",
@@ -958,13 +958,13 @@ G.I18n.add({
   "Has completado la Pokédex de {x}: en su banner, los shiny salen el doble (2 %). Lo tienes en la Mochila.": "You completed the {x} Pokédex: in its banner, shinies are twice as likely (2%). You can find it in your Bag.",
   "¡Amuleto Iris de {x}! Shiny al 2 % en su banner": "{x} Shiny Charm! 2% shiny in its banner",
   "Amuletos Iris: {x}": "Shiny Charms: {x}",
-  // ---------------- Gacha ×100 y Saltar (22-10-2026) ----------------
+  // ---------------- ×100 gacha and Skip (2026-10-22) ----------------
   "Tirar ×100 ·": "Pull ×100 ·",
   "TIRADA ×100": "PULL ×100",
   "Saltar": "Skip",
   "Nuevos: {x}": "New: {x}",
   "Shiny: {x}": "Shiny: {x}",
-  // ---------------- Esferas de Mundo Misterioso (22-10-2026) ----------------
+  // ---------------- Mystery Dungeon Orbs (2026-10-22) ----------------
   "Soporesfera": "Slumber Orb",
   "Ralentosfera": "Slow Orb",
   "Rafagaesfera": "Blowback Orb",
@@ -985,7 +985,7 @@ G.I18n.add({
   "Arrastra el dedo para moverte · toca un ataque para cambiarlo · toca una esfera para usarla": "Drag your finger to move · tap a move to switch · tap an orb to use it",
   "Aún no llevas esferas. Salen de los cofres, de los jefes y, a veces, al derrotar a un Pokémon.": "You have no orbs yet. They come from chests, bosses and sometimes from defeated Pokémon."
 });
-// Sentencia de Arceus con daño, Tablas y ranking partido (23-10-2026)
+// Arceus Judgment with damage, Plates, and split leaderboard (2026-10-23)
 G.I18n.add({
   "Tabla Llama": "Flame Plate",
   "Tabla Linfa": "Splash Plate",

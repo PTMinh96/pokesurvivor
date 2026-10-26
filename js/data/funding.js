@@ -1,12 +1,12 @@
-/* ============ funding.js — donaciones ============
- * Las donaciones son voluntarias, no dan ninguna ventaja en el juego y se
- * usan sólo para mantenerlo en línea: servidores y dominio.
- * Este archivo es la fuente de lo que se enseña en el juego (botón "Apoyar")
- * y en la página /apoyar/. Se actualiza a mano:
+/* ============ funding.js — donations ============
+ * Donations are voluntary, provide no in-game advantages, and are used only
+ * to keep the game online: servers and domain.
+ * This file is the source for what is shown in-game (the "Support" button)
+ * and on the /apoyar/ page. Updated manually:
  *
- *   kofi      usuario de Ko-fi (vacío = el botón no sale)
- *   sponsors  usuario de GitHub Sponsors (para quien entra al repositorio)
- *   costs     gastos [concepto, euros al mes]; si el coste no es fijo, un texto
+ *   kofi      Ko-fi username (empty = button is hidden)
+ *   sponsors  GitHub Sponsors username (for repository visitors)
+ *   costs     expenses [description, euros per month]; use text for variable costs
  */
 G.Funding = {
   kofi: 'jpter78',

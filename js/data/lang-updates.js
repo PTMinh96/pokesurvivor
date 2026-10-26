@@ -1,8 +1,8 @@
 /* Shared additions against upstream e4ba0e1 (19 October 2026).
  * Columns: Spanish source, French, Italian, Brazilian Portuguese,
  * Simplified Chinese, Traditional Chinese. Keep placeholder order unchanged.
- * Los textos nuevos del juego se añaden aquí, en los cinco idiomas a la vez
- * (node tools/build_langs.js --faltan --todo dice cuáles faltan).
+ * New game text is added here in all five languages at once
+ * (node tools/build_langs.js --faltan --todo lists any missing translations).
  * Existing dictionaries retain their authorship; see docs/LOCALIZATION.md.
  */
 (() => {
@@ -143,8 +143,8 @@
     ['Aún no estás en el top 50. Tu puesto está en Histórico.', 'Tu n’es pas encore dans le top 50. Ton classement figure dans Tous les temps.', 'Non sei ancora nella top 50. Trovi la tua posizione nella classifica di sempre.', 'Você ainda não está no top 50. Sua posição está no Histórico.', '你尚未进入前 50 名。可在历史榜查看名次。', '你尚未進入前 50 名。可在歷史榜查看名次。'],
     ['Aún no tienes marca.', 'Tu n’as pas encore de record.', 'Non hai ancora un record.', 'Você ainda não tem um recorde.', '你还没有记录。', '你還沒有紀錄。'],
 
-    // ---------------- 19-10-2026: 38 ataques nuevos, Movimiento inicial, monotipos, idiomas ----------------
-    // Nombres de ataques: los oficiales de cada idioma (en portugués, en inglés, como el resto de lang-pt.js).
+    // ---------------- 2026-10-19: 38 new moves, Starting Move, monotypes, languages ----------------
+    // Move names use each language's official names (English in Portuguese, as elsewhere in lang-pt.js).
     ["Hiperrayo", "Ultralaser", "Iper Raggio", "Hyper Beam", "破坏光线", "破壞光線"],
     ["Giro Rápido", "Tour Rapide", "Rapigiro", "Rapid Spin", "高速旋转", "高速旋轉"],
     ["Nitrocarga", "Nitrocharge", "Nitrocarica", "Flame Charge", "蓄能焰袭", "蓄能焰襲"],
@@ -290,7 +290,7 @@
     ["{x} empezará con {x}", "{x} commencera avec {x}", "{x} inizierà con {x}", "{x} começará com {x}", "{x} 将以{x}开局", "{x} 將以{x}開局"],
     ["Monotipo: +20 % de daño con sus ataques de tipo {x}", "Monotype : +20 % de dégâts avec ses attaques de type {x}", "Monotipo: +20% di danno con le sue mosse di tipo {x}", "Tipo único: +20% de dano com seus golpes do tipo {x}", "单属性：{x}属性招式伤害 +20%", "單屬性：{x}屬性招式傷害 +20%"],
 
-    // Novedades del 19-10-2026 (las de días anteriores sin traducir salen en inglés).
+    // Features added on 2026-10-19 (older untranslated entries fall back to English).
     ["38 ataques nuevos", "38 nouvelles attaques", "38 nuove mosse", "38 golpes novos", "38 个新招式", "38 個新招式"],
     ["38 ataques nuevos: ahora todos los tipos tienen 5 o más (Roca, Lucha, Dragón y Hada tenían sólo 2). Entre ellos Hiperrayo, Rayo Solar, Magnitud, Torbellino, Onda Trueno, Enfado, Carantoña, Golpe Bajo... cada uno con su evolución.",
      "38 nouvelles attaques : chaque type en a désormais 5 ou plus (Roche, Combat, Dragon et Fée n’en avaient que 2). Parmi elles Ultralaser, Lance-Soleil, Ampleur, Siphon, Cage-Éclair, Colère, Câlinerie, Coup Bas… chacune avec son évolution.",
@@ -341,7 +341,7 @@
      "Cooperativo: o chefe que devia aparecer ao voltar de uma fenda podia surgir a milhares de metros, onde ninguém o encontrava, e a partida ficava sem novas fendas. Agora ele aparece perto, e se um chefe ficar longe demais de todos, reaparece perto em poucos segundos.",
      "合作模式：从裂缝返回时出现的首领可能生成在数千米外，无人能找到，导致本局不再出现裂缝。现在首领会在附近出现；若首领离所有人过远，几秒后会重新出现在附近。",
      "合作模式：從裂縫返回時出現的首領可能生成在數千公尺外，無人能找到，導致本局不再出現裂縫。現在首領會在附近出現；若首領離所有人過遠，幾秒後會重新出現在附近。"],
-    // Avisos al entrar (login.js): el aviso entero, con sus negritas, como en español.
+    // Login notices (login.js): the full notice, including bold text, as in the Spanish source.
     ["La partida se guarda en la nube automáticamente cada 10 minutos.",
      "Ta partie est enregistrée automatiquement dans le cloud toutes les 10 minutes.",
      "La partita viene salvata automaticamente nel cloud ogni 10 minuti.",
@@ -454,7 +454,7 @@
     ["Primero compra Repertorio", "Achète d’abord Répertoire", "Prima compra Repertorio", "Compre Repertório primeiro", "请先购买招式库", "請先購買招式庫"],
     ["Mejora nueva, Segundo movimiento inicial: con Repertorio, se compra una vez por Pokémon y luego eliges gratis el segundo ataque con el que empiezas (o lo dejas al azar).", "Nouvelle amélioration, Deuxième attaque de départ : avec Répertoire, elle s’achète une fois par Pokémon et tu choisis ensuite gratuitement la deuxième attaque de départ (ou tu la laisses aléatoire).", "Nuovo potenziamento, Seconda mossa iniziale: con Repertorio, si compra una volta per Pokémon e poi scegli gratis la seconda mossa con cui inizi (o la lasci casuale).", "Nova melhoria, Segundo golpe inicial: com Repertório, compra-se uma vez por Pokémon e depois você escolhe de graça o segundo golpe com que começa (ou deixa aleatório).", "新强化“第二初始招式”：拥有招式库后，每只宝可梦购买一次，之后可免费选择开局的第二个招式（或保持随机）。", "新強化「第二初始招式」：擁有招式庫後，每隻寶可夢購買一次，之後可免費選擇開局的第二個招式（或保持隨機）。"],
     ["Sin conexión: pulsa Guardar cuando vuelva", "Hors ligne : appuie sur Enregistrer quand la connexion revient", "Offline: premi Salva quando torna la connessione", "Sem conexão: aperte Salvar quando voltar", "离线：恢复连接后请点“保存”", "離線：恢復連線後請點「儲存」"],
-    // ---------------- 20-10-2026: Tienda Kecleon, naturalezas y habilidades ----------------
+    // ---------------- 2026-10-20: Kecleon Shop, natures, and abilities ----------------
     ["+35 % de daño de tipo {x} con poca vida (menos de 1/3).", "+35 % de dégâts de type {x} quand il a peu de PV (moins d’1/3).", "+35% di danni di tipo {x} con pochi PS (meno di 1/3).", "+35% de dano do tipo {x} com pouca vida (menos de 1/3).", "体力较低时（不到1/3）{x}属性伤害+35%。", "體力較低時（不到1/3）{x}屬性傷害+35%。"],
     ["+20 % de daño con movimientos de tipo {x}.", "+20 % de dégâts avec les capacités de type {x}.", "+20% di danni con le mosse di tipo {x}.", "+20% de dano com golpes do tipo {x}.", "{x}属性招式伤害+20%。", "{x}屬性招式傷害+20%。"],
     ["+40 % de daño de tipo {x} y recibe la mitad de daño de Fuego.", "+40 % de dégâts de type {x} et subit moitié moins de dégâts Feu.", "+40% di danni di tipo {x} e subisce metà danni dal Fuoco.", "+40% de dano do tipo {x} e recebe metade do dano de Fogo.", "{x}属性伤害+40%，受到的火属性伤害减半。", "{x}屬性傷害+40%，受到的火屬性傷害減半。"],
@@ -619,17 +619,17 @@
     ["¡Robustez!", "Fermeté !", "Vigore!", "Robustez!", "结实！", "結實！"],
     ["¡Irascible!", "Colérique !", "Irascibile!", "Fúria!", "愤怒穴位！", "憤怒穴位！"],
     ["Mejora nueva: Tienda Kecleon (botón en el menú) con Mentas, Cápsulas Habilidad y 8 MT nuevas cada día. Cada Pokémon tiene ahora su naturaleza (±10 % a dos stats) y su habilidad, con efecto en la partida; se ven y se cambian en su ficha de la colección. Las MT enseñan para siempre ataques de fuera de sus tipos, pero sólo si los aprende en los juegos (Mewtwo puede aprender Bola Sombra; Psyduck no puede aprender Lanzallamas). Gracias a TheAdro7 por la idea y el trabajo de base.", "Nouveau : la Boutique Kecleon (bouton dans le menu) avec des Aromates, des Pilules Talent et 8 nouvelles CT chaque jour. Chaque Pokémon a maintenant sa nature (±10 % à deux stats) et son talent, avec un effet pendant la partie ; on les voit et on les change sur sa fiche dans la collection. Les CT apprennent pour toujours des capacités hors de ses types, mais seulement s’il les apprend dans les jeux (Mewtwo peut apprendre Ball’Ombre ; Psykokwak ne peut pas apprendre Lance-Flammes). Merci à TheAdro7 pour l’idée et le travail de base.", "Novità: il Negozio Kecleon (pulsante nel menu) con Mente, Capsule Abilità e 8 MT nuove ogni giorno. Ogni Pokémon ora ha la sua natura (±10% a due statistiche) e la sua abilità, con effetto nella partita; si vedono e si cambiano nella sua scheda della collezione. Le MT insegnano per sempre mosse fuori dai suoi tipi, ma solo se le impara nei giochi (Mewtwo può imparare Palla Ombra; Psyduck non può imparare Lanciafiamme). Grazie a TheAdro7 per l’idea e il lavoro di base.", "Novidade: a Loja Kecleon (botão no menu) com Mentas, Cápsulas de Habilidade e 8 TMs novos todo dia. Cada Pokémon agora tem a sua natureza (±10% em dois atributos) e a sua habilidade, com efeito na partida; dá para ver e mudar na ficha dele na coleção. Os TMs ensinam para sempre golpes fora dos seus tipos, mas só se ele os aprende nos jogos (Mewtwo pode aprender Shadow Ball; Psyduck não pode aprender Flamethrower). Obrigado a TheAdro7 pela ideia e pelo trabalho de base.", "新内容：隐形龙商店（菜单中的按钮），出售薄荷、特性胶囊和每天8种新的招式学习器。现在每只宝可梦都有自己的性格（两项能力±10%）和特性，在对局中会生效；可以在收藏中它的页面查看和更改。招式学习器能让宝可梦永久学会本身属性以外的招式，但只限它在正作中能学会的（超梦能学会暗影球，可达鸭学不会喷射火焰）。感谢 TheAdro7 提供创意和基础工作。", "新內容：隱形龍商店（選單中的按鈕），出售薄荷、特性膠囊和每天8種新的招式學習器。現在每隻寶可夢都有自己的性格（兩項能力±10%）和特性，在對局中會生效；可以在收藏中牠的頁面查看和更改。招式學習器能讓寶可夢永久學會本身屬性以外的招式，但只限牠在正作中能學會的（超夢能學會暗影球，可達鴨學不會噴射火焰）。感謝 TheAdro7 提供創意和基礎工作。"],
-    // ---------------- 20-10-2026: Tienda Kecleon, naturalezas y habilidades ----------------
+    // ---------------- 2026-10-20: Kecleon Shop, natures, and abilities ----------------
     ["¡Bienvenido a la Tienda Kecleon!", "Bienvenue à la Boutique Kecleon !", "Benvenuto al Negozio Kecleon!", "Bem-vindo à Loja Kecleon!", "欢迎光临隐形龙商店！", "歡迎光臨隱形龍商店！"],
     ["¡Hola! Echa un vistazo, ¿eh?", "Bonjour ! Jette un œil, d’accord ?", "Ciao! Dai un’occhiata, eh?", "Olá! Dá uma olhada, tá?", "你好！随便看看吧！", "你好！隨便看看吧！"],
     ["¡Muchas gracias!", "Merci beaucoup !", "Grazie mille!", "Muito obrigado!", "非常感谢！", "非常感謝！"],
     ["¡Gracias, vuelve pronto!", "Merci, reviens vite !", "Grazie, torna presto!", "Obrigado, volte logo!", "谢谢，欢迎再来！", "謝謝，歡迎再來！"],
-    // ---------------- 20-10-2026: Tienda Kecleon, naturalezas y habilidades ----------------
+    // ---------------- 2026-10-20: Kecleon Shop, natures, and abilities ----------------
     ["Vacía", "Vide", "Vuota", "Vazia", "空空如也", "空空如也"],
     ["{x} objetos · {x} MT", "{x} objets · {x} CT", "{x} strumenti · {x} MT", "{x} itens · {x} TMs", "{x} 件道具 · {x} 个招式学习器", "{x} 件道具 · {x} 個招式學習器"],
     ["Tu Mochila está vacía.", "Ton Sac est vide.", "La tua Borsa è vuota.", "Sua Mochila está vazia.", "背包是空的。", "背包是空的。"],
     ["Ir a la Tienda Kecleon", "Aller à la Boutique Kecleon", "Vai al Negozio Kecleon", "Ir para a Loja Kecleon", "前往隐形龙商店", "前往隱形龍商店"],
-    // ---------------- 20-10-2026: Tienda Kecleon, naturalezas y habilidades ----------------
+    // ---------------- 2026-10-20: Kecleon Shop, natures, and abilities ----------------
     ["Objetos: {x} · MT: {x}", "Objets : {x} · CT : {x}", "Strumenti: {x} · MT: {x}", "Itens: {x} · TMs: {x}", "道具：{x} · 招式学习器：{x}", "道具：{x} · 招式學習器：{x}"],
     ["La gran actualización: Tienda Kecleon", "La grande mise à jour : Boutique Kecleon", "Il grande aggiornamento: Negozio Kecleon", "A grande atualização: Loja Kecleon", "大型更新：隐形龙商店", "大型更新：隱形龍商店"],
     ["Ver a un compañero", "Regarder un coéquipier", "Guarda un compagno", "Assistir um colega", "观看队友", "觀看隊友"],
@@ -637,7 +637,7 @@
     ["cambiar", "changer", "cambia", "trocar", "切换", "切換"],
     ["Cooperativo: si caes, puedes mirar a un compañero que siga en pie mientras esperas a que te levanten. Pulsa el botón que sale debajo del aviso (o Q / E, o LB / RB en el mando) para pasar de uno a otro y volver a ti. Sólo cambia la cámara: no gasta más conexión.", "Coop : si tu es K.O., tu peux regarder un coéquipier encore debout en attendant qu’on te relève. Appuie sur le bouton sous le message (ou Q / E, ou LB / RB à la manette) pour passer de l’un à l’autre et revenir à toi. Seule la caméra change : aucune connexion supplémentaire.", "Cooperativa: se sei a terra, puoi guardare un compagno ancora in piedi mentre aspetti di essere rianimato. Premi il pulsante sotto l’avviso (o Q / E, o LB / RB sul controller) per passare dall’uno all’altro e tornare a te. Cambia solo la visuale: nessun consumo di connessione in più.", "Cooperativo: se você cair, pode assistir um colega que ainda está de pé enquanto espera ser levantado. Toque no botão abaixo do aviso (ou Q / E, ou LB / RB no controle) para passar de um para outro e voltar para você. Só a câmera muda: não gasta mais conexão.", "合作模式：倒下后，在等待队友救起时可以观看仍在战斗的队友。按提示下方的按钮（或 Q / E，控制器上为 LB / RB）在队友之间切换并回到自己。只切换镜头，不会额外消耗网络。", "合作模式：倒下後，在等待隊友救起時可以觀看仍在戰鬥的隊友。按提示下方的按鈕（或 Q / E，控制器上為 LB / RB）在隊友之間切換並回到自己。只切換鏡頭，不會額外消耗網路。"],
 
-    // Amuletos Iris (22-10-2026)
+    // Rainbow Charms (2026-10-22)
     ["Amuletos Iris: uno por región (Kanto, Johto, Hoenn, Sinnoh, Teselia, Kalos, Alola, Galar y Paldea). Al completar la Pokédex de una región (legendarios incluidos) te dan su Amuleto Iris y en su banner del gacha los shiny salen el doble: del 1 % al 2 %. Los tienes en la Mochila, con lo que te falta para cada uno. Si ya habías completado alguna región, el suyo ya es tuyo.", "Charmes Chroma : un par région (Kanto, Johto, Hoenn, Sinnoh, Unys, Kalos, Alola, Galar et Paldea). Complète le Pokédex d’une région (légendaires compris) pour obtenir son Charme Chroma : dans sa bannière du gacha, les shiny sortent deux fois plus, de 1 % à 2 %. Tu les trouveras dans ton Sac, avec ce qu’il te manque pour chacun. Si tu avais déjà complété une région, son charme est déjà à toi.", "Cromamuleti: uno per regione (Kanto, Johto, Hoenn, Sinnoh, Unima, Kalos, Alola, Galar e Paldea). Completa il Pokédex di una regione (leggendari inclusi) per ottenere il suo Cromamuleto: nel suo banner del gacha gli shiny escono il doppio, dall’1% al 2%. Li trovi nella Borsa, con quanto ti manca per ognuno. Se avevi già completato una regione, il suo è già tuo.", "Amuletos Brilhantes: um por região (Kanto, Johto, Hoenn, Sinnoh, Unova, Kalos, Alola, Galar e Paldea). Complete a Pokédex de uma região (lendários incluídos) para ganhar o Amuleto Brilhante dela: no banner dela no gacha, os shiny saem em dobro, de 1% para 2%. Eles ficam na sua Mochila, com quanto falta para cada um. Se você já tinha completado alguma região, o amuleto dela já é seu.", "闪耀护符：每个地区一个（关都、城都、丰缘、神奥、合众、卡洛斯、阿罗拉、伽勒尔和帕底亚）。集齐一个地区的宝可梦图鉴（包括传说宝可梦）即可获得该地区的闪耀护符，其扭蛋卡池的异色出现率翻倍：从 1% 提升到 2%。可在背包中查看，并显示每个还差多少。如果你已经集齐过某个地区，它的护符已经是你的了。", "閃耀護符：每個地區一個（關都、城都、豐緣、神奧、合眾、卡洛斯、阿羅拉、伽勒爾和帕底亞）。集齊一個地區的寶可夢圖鑑（包括傳說寶可夢）即可獲得該地區的閃耀護符，其扭蛋卡池的異色出現率翻倍：從 1% 提升到 2%。可在背包中查看，並顯示每個還差多少。如果你已經集齊過某個地區，它的護符已經是你的了。"],
     ["Amuletos Iris", "Charmes Chroma", "Cromamuleti", "Amuletos Brilhantes", "闪耀护符", "閃耀護符"],
     ["Amuleto Iris", "Charme Chroma", "Cromamuleto", "Amuleto Brilhante", "闪耀护符", "閃耀護符"],
@@ -649,7 +649,7 @@
     ["Has completado la Pokédex de {x}: en su banner, los shiny salen el doble (2 %). Lo tienes en la Mochila.", "Tu as complété le Pokédex de {x} : dans sa bannière, les shiny sortent deux fois plus (2 %). Tu le trouveras dans ton Sac.", "Hai completato il Pokédex di {x}: nel suo banner, gli shiny escono il doppio (2%). Lo trovi nella Borsa.", "Você completou a Pokédex de {x}: no banner dela, os shiny saem em dobro (2%). Ele está na sua Mochila.", "你已集齐{x}图鉴：在其卡池中，异色出现率翻倍（2%）。可在背包中查看。", "你已集齊{x}圖鑑：在其卡池中，異色出現率翻倍（2%）。可在背包中查看。"],
     ["¡Amuleto Iris de {x}! Shiny al 2 % en su banner", "Charme Chroma de {x} ! Shiny à 2 % dans sa bannière", "Cromamuleto di {x}! Shiny al 2% nel suo banner", "Amuleto Brilhante de {x}! Shiny a 2% no banner", "获得{x}闪耀护符！该卡池异色率 2%", "獲得{x}閃耀護符！該卡池異色率 2%"],
     ["Amuletos Iris: {x}", "Charmes Chroma : {x}", "Cromamuleti: {x}", "Amuletos Brilhantes: {x}", "闪耀护符：{x}", "閃耀護符：{x}"],
-    // Gacha ×100 y Saltar (22-10-2026)
+    // ×100 gacha and Skip (2026-10-22)
     ["Tirar ×100 ·", "Tirer ×100 ·", "Lancia ×100 ·", "Girar ×100 ·", "抽 100 次 ·", "抽 100 次 ·"],
     ["TIRADA ×100", "TIRAGE ×100", "LANCIO ×100", "GIRO ×100", "百连抽", "百連抽"],
     ["Saltar", "Passer", "Salta", "Pular", "跳过", "跳過"],
@@ -658,7 +658,7 @@
     ["Esferas de Mundo Misterioso, Amuletos Iris y gacha ×100", "Orbes de Donjon Mystère, Charmes Chroma et gacha ×100", "Sfere di Mystery Dungeon, Cromamuleti e gacha ×100", "Orbes de Mundo Misterioso, Amuletos Brilhantes e gacha ×100", "不可思议迷宫宝玉、闪耀护符与百连抽", "不可思議迷宮寶玉、閃耀護符與百連抽"],
     ["Gacha: nueva tirada ×100, con 100 tickets normales o con 10 tickets ×10 (son diez ×10 seguidas, cada una con su Épica asegurada). La tragaperras gira 10 veces enseñando lo mejor de cada ×10 y al final ves un resumen (nuevos, shiny y Pokémonedas) con las cartas de mejor a peor. Para que quepa, ya no está la tirada ×1: se tira de 10 en 10 o de 100 en 100.", "Gacha : nouveau tirage ×100, avec 100 tickets normaux ou 10 tickets ×10 (dix ×10 d’affilée, chacun avec son Épique garanti). La machine à sous tourne 10 fois en montrant le meilleur de chaque ×10, et à la fin tu vois un résumé (nouveaux, shiny et PokéPièces) avec les cartes de la meilleure à la moins bonne. Pour faire de la place, le tirage ×1 disparaît : on tire par 10 ou par 100.", "Gacha: nuovo lancio ×100, con 100 ticket normali o con 10 ticket ×10 (dieci ×10 di fila, ognuno con il suo Epico garantito). La slot gira 10 volte mostrando il meglio di ogni ×10 e alla fine vedi un riepilogo (nuovi, shiny e Pokémonete) con le carte dalla migliore alla peggiore. Per fare spazio, il lancio ×1 non c’è più: si lancia di 10 in 10 o di 100 in 100.", "Gacha: novo giro ×100, com 100 tickets normais ou com 10 tickets ×10 (dez ×10 seguidos, cada um com seu Épico garantido). O caça-níquel gira 10 vezes mostrando o melhor de cada ×10 e no final você vê um resumo (novos, shiny e Pokémoedas) com as cartas da melhor para a pior. Para caber, o giro ×1 saiu: agora se gira de 10 em 10 ou de 100 em 100.", "扭蛋：新增百连抽，可用 100 张普通券或 10 张十连券（连续十次十连抽，每次都保底一个史诗）。老虎机会转 10 次，展示每次十连中最好的结果，最后显示汇总（新获得、异色和宝可币），卡牌按从好到差排列。为了腾出位置，取消了单抽：现在每次抽 10 次或 100 次。", "扭蛋：新增百連抽，可用 100 張普通券或 10 張十連券（連續十次十連抽，每次都保底一個史詩）。老虎機會轉 10 次，展示每次十連中最好的結果，最後顯示匯總（新獲得、異色和寶可幣），卡牌按從好到差排列。為了騰出位置，取消了單抽：現在每次抽 10 次或 100 次。"],
     ["Gacha: botón Saltar (o Esc) durante la animación: se acaba la tragaperras y salen todas las cartas de golpe.", "Gacha : bouton Passer (ou Échap) pendant l’animation : la machine à sous s’arrête et toutes les cartes apparaissent d’un coup.", "Gacha: pulsante Salta (o Esc) durante l’animazione: la slot si ferma e tutte le carte appaiono subito.", "Gacha: botão Pular (ou Esc) durante a animação: o caça-níquel termina e todas as cartas aparecem de uma vez.", "扭蛋：动画播放时可按「跳过」（或 Esc）：老虎机立即结束，所有卡牌一次性显示。", "扭蛋：動畫播放時可按「跳過」（或 Esc）：老虎機立即結束，所有卡牌一次顯示。"],
-    // Esferas de Mundo Misterioso (22-10-2026)
+    // Mystery Dungeon Orbs (2026-10-22)
     ["Soporesfera", "Orbe Sommeil", "Sfera Sonno", "Orbe do Sono", "睡眠宝玉", "睡眠寶玉"],
     ["Ralentosfera", "Orbe Lenteur", "Sfera Lenta", "Orbe Lento", "缓慢宝玉", "緩慢寶玉"],
     ["Rafagaesfera", "Orbe Souffle", "Sfera Raffica", "Orbe de Rajada", "吹飞宝玉", "吹飛寶玉"],
@@ -679,10 +679,10 @@
     ["esferas ·", "orbes ·", "sfere ·", "orbes ·", "宝玉 ·", "寶玉 ·"],
     ["Arrastra el dedo para moverte · toca un ataque para cambiarlo · toca una esfera para usarla", "Glisse le doigt pour te déplacer · touche une attaque pour en changer · touche un orbe pour l’utiliser", "Trascina il dito per muoverti · tocca una mossa per cambiarla · tocca una sfera per usarla", "Arraste o dedo para se mover · toque em um ataque para trocar · toque em um orbe para usá-lo", "拖动手指移动 · 点击招式切换 · 点击宝玉使用", "拖動手指移動 · 點擊招式切換 · 點擊寶玉使用"],
     ["Aún no llevas esferas. Salen de los cofres, de los jefes y, a veces, al derrotar a un Pokémon.", "Tu n’as pas encore d’orbes. On les trouve dans les coffres, sur les boss et parfois en battant un Pokémon.", "Non hai ancora sfere. Si trovano nei forzieri, dai boss e a volte sconfiggendo un Pokémon.", "Você ainda não tem orbes. Eles saem de baús, de chefes e às vezes ao derrotar um Pokémon.", "你还没有宝玉。宝箱、首领会掉落，打倒宝可梦时也有机会获得。", "你還沒有寶玉。寶箱、首領會掉落，打倒寶可夢時也有機會獲得。"],
-    // Movimientos evolucionados con su nombre (23-10-2026)
+    // Evolved moves with their names (2026-10-23)
     ["Movimientos evolucionados con su nombre", "Les capacités évoluées gardent leur nom", "Le mosse evolute mantengono il loro nome", "Golpes evoluídos mantêm o nome", "进化招式保留原名", "進化招式保留原名"],
     ["Los movimientos evolucionados ya no cambian de nombre: se llaman igual con un «+» (Puño Meteoro pasa a Puño Meteoro +). Hacen lo mismo que antes y se siguen distinguiendo por el borde dorado.", "Les capacités évoluées ne changent plus de nom : elles le gardent avec un « + » (Poing Météore devient Poing Météore +). Elles fonctionnent comme avant et se reconnaissent toujours à leur bordure dorée.", "Le mosse evolute non cambiano più nome: lo mantengono con un \"+\" (Meteorpugno diventa Meteorpugno +). Funzionano come prima e si riconoscono sempre dal bordo dorato.", "Os golpes evoluídos não mudam mais de nome: mantêm o nome com um \"+\" (Meteor Mash vira Meteor Mash +). Funcionam como antes e continuam se destacando pela borda dourada.", "进化后的招式不再改名：保留原名并加上「+」（彗星拳变为彗星拳 +）。效果与之前相同，仍以金色边框区分。", "進化後的招式不再改名：保留原名並加上「+」（彗星拳變為彗星拳 +）。效果與之前相同，仍以金色邊框區分。"],
-    // Sentencia de Arceus con daño, Tablas y ranking partido (23-10-2026)
+    // Arceus Judgment with damage, Plates, and split leaderboard (2026-10-23)
     ["EN DIRECTO", "EN DIRECT", "IN DIRETTA", "AO VIVO", "直播中", "直播中"],
     ["Mi canal de YouTube", "Ma chaîne YouTube", "Il mio canale YouTube", "Meu canal no YouTube", "我的 YouTube 频道", "我的 YouTube 頻道"],
     ["¡Estoy en directo! Pulsa para verlo", "Je suis en direct ! Clique pour regarder", "Sono in diretta! Clicca per guardare", "Estou ao vivo! Clique para assistir", "我正在直播！点击观看", "我正在直播！點擊觀看"],

@@ -1,8 +1,8 @@
-/* ============ tms.js — GENERADO, no editar a mano ============
- * G.TM_MOVES[movimiento]: los Pokémon que lo aprenden por MT en los juegos (sólo
- * los movimientos que hay en PokéSurvivor). G.TM_OF(dex): los de un Pokémon.
- * Sacado del PR #236 de TheAdro7 (datos de PokeAPI) el 20-10-2026; los nombres en
- * otros idiomas van en lang-en.js y lang-updates.js.
+/* ============ tms.js — GENERATED, do not edit by hand ============
+ * G.TM_MOVES[move]: Pokémon that learn it via TM in the games (only moves
+ * included in PokéSurvivor). G.TM_OF(dex): moves for a Pokémon.
+ * From TheAdro7's PR #236 (PokeAPI data), 2026-10-20; names in other languages
+ * are in lang-en.js and lang-updates.js.
  */
 G.TM_MOVES = {
   "acid-spray":[1,2,3,23,24,43,44,45,48,49,69,70,71,72,73,88,89,92,93,94,109,110,126,151,167,168,182,194,195,211,240,316,317,336,434,435,453,454,467,493,559,560,603,604,690,691,705,706,747,748,757,758,841,849,903,936,938,939,965,966,969,970,980,994,1015,1016],
@@ -69,7 +69,7 @@ G.TM_OF = (() => {
   for (const id in G.TM_MOVES) for (const d of G.TM_MOVES[id]) (by[d] = by[d] || []).push(id);
   return dex => by[dex] || [];
 })();
-/** Precio en la Tienda Kecleon: según su potencia en los juegos (300 + 6 × potencia, redondeado; las de estado, 400), como en el PR #236. */
+/** Kecleon Shop price based on in-game power (300 + 6 × power, rounded; status moves cost 400), as in PR #236. */
 G.TM_PRICE = {
   "acid-spray":540,
   "aerial-ace":660,

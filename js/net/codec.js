@@ -1,10 +1,10 @@
-/* Mensajes de la partida en binario, sin perder nada (PR #221 de aaronariasperez).
- * Cada paquete va solo: sin diccionario compartido ni diferencias con el anterior.
- * 'PS' + versión 1; etiquetas null/bool/entero/negativo/float64/centésimas/texto/lista/objeto.
+/* Game messages in binary, with no loss (PR #221 by aaronariasperez).
+ * Each packet is self-contained: no shared dictionary or deltas from the previous packet.
+ * 'PS' + version 1; tags for null/bool/integer/negative/float64/hundredths/text/list/object.
  * Etiquetas 32..127 = enteros 0..95; 128..223 = enteros -1..-96.
- * Sólo se usa si el otro lo ha aceptado; lo que no se pueda codificar va en JSON.
- * Llega lo mismo que con JSON.parse(JSON.stringify(x)): -0 es 0, NaN/Infinity son null
- * y lo undefined es null en una lista o no se manda en un objeto.
+ * Used only if the other peer supports it; values that cannot be encoded use JSON.
+ * The result matches JSON.parse(JSON.stringify(x)): -0 becomes 0, NaN/Infinity become null,
+ * and undefined becomes null in arrays or is omitted from objects.
  */
 G.NetCodec = (() => {
   const MAX_BYTES = 1024 * 1024, MAX_NODES = 100000, MAX_DEPTH = 32;
@@ -27,7 +27,7 @@ G.NetCodec = (() => {
       }
       function string(s) {
         if (s.length > MAX_BYTES) throw Error('string size');
-        // UTF-8 cambiaría una mitad suelta de un carácter: mejor JSON que tocar un nombre.
+        // UTF-8 would alter a lone surrogate half: JSON is safer than modifying a name.
         for (let i = 0; i < s.length; i++) {
           const c = s.charCodeAt(i);
           if (c >= 0xd800 && c <= 0xdbff) {
@@ -44,7 +44,7 @@ G.NetCodec = (() => {
         if (v === false) { byte(1); return; }
         if (v === true) { byte(2); return; }
         if (typeof v === 'number') {
-          if (v === 0) { byte(32); return; }          // también -0, como en JSON
+          if (v === 0) { byte(32); return; }          // Also -0, as in JSON.
           if (Number.isSafeInteger(v)) {
             if (v >= 0 && v <= 95) { byte(32 + v); return; }
             if (v < 0 && v >= -96) { byte(127 - v); return; }

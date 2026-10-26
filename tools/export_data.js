@@ -1,6 +1,6 @@
-/* Exporta los datos del juego a JSON para generar las páginas web (make_seo_pages.py).
+/* Export game data to JSON for webpage generation (make_seo_pages.py).
  *   node tools/export_data.js  ->  tools/cache/gamedata.json
- * Carga los mismos archivos que el juego en un contexto aislado (sin navegador). */
+ * Loads the same files as the game in an isolated context (without a browser). */
 const fs = require('fs'), path = require('path'), vm = require('vm');
 const ROOT = path.join(__dirname, '..');
 const noop = () => {};
@@ -18,7 +18,7 @@ vm.createContext(sandbox);
 const load = f => vm.runInContext(fs.readFileSync(path.join(ROOT, f), 'utf8'), sandbox, { filename: f });
 const EN = {};
 for (const f of ['js/core/locales.js', 'js/core/util.js', 'js/core/i18n.js']) load(f);
-// Captura el diccionario inglés (clave en español).
+// Capture the English dictionary (keys are in Spanish).
 const add = G.I18n.add;
 G.I18n.add = (d, language = 'en', context = '') => { if (language === 'en' && !context) Object.assign(EN, d); add(d, language, context); };
 for (const f of ['js/data/lang-en.js', 'js/core/settings.js', 'js/data/pokedex.js', 'js/data/sprites-meta.js', 'js/data/moves.js', 'js/data/types.js',
@@ -44,10 +44,10 @@ const out = {
   typeName: G.U.TYPE_NAME,
   typeOrder: Object.keys(G.U.TYPE_NAME),
   matrix: Object.fromEntries(Object.keys(G.U.TYPE_NAME).map(a => [a, Object.fromEntries(Object.keys(G.U.TYPE_NAME).map(d => [d, G.Types.mult(a, [d])]))])),
-  // (Sin la arena de Arceus: las de las grietas son una por tipo.)
+  // Exclude Arceus's arena: rift arenas have one per type.
   arenas: Object.fromEntries(Object.entries(G.ARENA_THEMES || (G.Tiles && G.Tiles.ARENA_THEMES) || {}).filter(([k]) => k !== 'judgment').map(([k, v]) => [k, v.name])),
   funding: { kofi: G.Funding.kofi, sponsors: G.Funding.sponsors, costs: G.Funding.costs },
-  // Las novedades de la web salen de las del juego (antes era una lista aparte que se quedaba atrás).
+  // Website news comes from the game changelog (it used to be a separate list that fell out of date).
   changelog: G.CHANGELOG || [],
   en: EN
 };
@@ -55,4 +55,3 @@ fs.mkdirSync(path.join(__dirname, 'cache'), { recursive: true });
 fs.writeFileSync(path.join(__dirname, 'cache', 'gamedata.json'), JSON.stringify(out));
 console.log('ok:', out.dex.length, 'Pokémon,', out.moves.length, 'movimientos,', out.items.length, 'objetos,', out.achievements.length, 'logros,',
   Object.keys(out.arenas).length, 'arenas,', Object.keys(out.en).length, 'traducciones');
-

@@ -1,15 +1,15 @@
-/* ============ hazards.js — ataques con aviso de los enemigos ============
- * Un peligro se dibuja primero en el suelo como AVISO (se va llenando) y, al
- * cumplirse el tiempo, golpea a quien esté dentro:
+/* ============ hazards.js — enemy attacks with telegraphs ============
+ * A hazard is first drawn on the ground as a TELEGRAPH (which fills up), then
+ * hits anyone inside when its delay expires:
  *
- *   zone  círculo (zonas de Tierra/Fuego/Veneno, explosiones, caídas de salto)
- *   beam  rayo recto desde el enemigo (Eléctrico, Psíquico, Dragón, Hielo)
+ *   zone  circle (Ground/Fire/Poison zones, explosions, jump landings)
+ *   beam  straight beam from an enemy (Electric, Psychic, Dragon, Ice)
  *
- * Cada ordenador dibuja los peligros y comprueba sólo SU Pokémon. En
- * cooperativo los crea el anfitrión y los manda con 'hz'.
+ * Each computer draws hazards and checks only ITS Pokémon. In co-op, the host
+ * creates them and sends them with 'hz'.
  *
- * Los de Arceus (systems/judgment.js) quitan un % de la vida (pct) sin mirar
- * tipos ni defensa (pure), y la Sentencia cae como un pilar de luz (vis).
+ * Arceus hazards (systems/judgment.js) remove a percentage of health (pct),
+ * ignoring type and defense (pure); Judgment falls as a pillar of light (vis).
  */
 G.Hazards = (() => {
   let list = [];
@@ -45,7 +45,7 @@ G.Hazards = (() => {
       if (!h.hit && h.t >= h.delay) {
         h.hit = true;
         detonate(h);
-        // (Humedad: la explosión de un kamikaze no le daña, ver data/ability-fx.js.)
+        // (Damp: a kamikaze's explosion does not damage it; see data/ability-fx.js.)
         if (pl && !pl.dead && inside(h, pl.x, pl.y, pl.r) && !(h.boom && pl.abil && pl.abil.damp)) {
           pl.invuln = 0;
           pl.hurt(h.pct ? Math.max(h.dmg, pl.maxHp * h.pct) : h.dmg, h.type, !!h.pure, h.cat);
@@ -58,7 +58,7 @@ G.Hazards = (() => {
   function detonate(h) {
     const near = G.Camera.sees(h.x, h.y, 120);
     if (h.vis === 'pillar') {
-      // Pilar de luz que cae del cielo.
+      // Pillar of light falling from the sky.
       G.FX.beam(h.x, h.y, -Math.PI / 2, 420, h.r * 1.1, h.color, G.VFX.forType('electric'));
       G.FX.ring(h.x, h.y, 4, h.r * 1.3, '#fff3c8', 0.4, 5);
       G.FX.burst(h.x, h.y - 6, h.color, 10, 180);
@@ -73,7 +73,7 @@ G.Hazards = (() => {
     }
   }
 
-  /** Avisos en el suelo (debajo de los Pokémon). */
+  /** Telegraphs on the ground (under Pokémon). */
   function draw(ctx) {
     const blink = Math.sin(performance.now() / 60) > 0;
     for (const h of list) {

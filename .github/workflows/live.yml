@@ -1,8 +1,8 @@
-# ¿Está el canal de YouTube en directo? Cada 5 min (GitHub lo retrasa a veces
-# unos minutos) mira la página /live del canal y deja live.json en la rama
-# «live»: { live, id, at }. El juego la lee (js/ui/live-ui.js) sin Firebase.
-# Sólo se sube algo al cambiar o, en directo, cada 30 min (para que «at» no
-# caduque). Gratis: el repositorio es público.
+# Is the YouTube channel live? Every 5 minutes (GitHub may delay this by a few
+# minutes), check the channel's /live page and write live.json on the
+# "live" branch: { live, id, at }. The game reads it (js/ui/live-ui.js) without Firebase.
+# Upload only when something changes, or every 30 minutes while live (so "at"
+# does not expire). Free because the repository is public.
 name: live
 
 on:
@@ -31,7 +31,7 @@ jobs:
           curl -sL --max-time 25 -A 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0 Safari/537.36' \
             -H 'Accept-Language: en' --cookie 'CONSENT=YES+1; SOCS=CAI' \
             'https://www.youtube.com/channel/UC5nyI589EfbS3KvyNdAVOGA/live' -o page.html || true
-          # Si YouTube no da la página de verdad (aviso de bots, error...), no se toca nada.
+          # If YouTube does not return the actual page (bot warning, error, etc.), leave everything unchanged.
           if ! grep -q '"channelId":"UC5nyI589EfbS3KvyNdAVOGA"' page.html; then echo 'página rara: sin cambios'; rm -f page.html; exit 0; fi
           live=false; id=''
           if grep -q '"isLiveNow":true' page.html; then

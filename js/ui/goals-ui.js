@@ -1,16 +1,16 @@
-/* ============ goals-ui.js — misiones, logros y perfil ============
- * Una pantalla con tres pestañas:
- *   Misiones  3 diarias + 2 semanales, con barra, premio y botón de recoger
- *   Logros    medallas por categoría; los legendarios, uno a uno con su sprite
- *   Perfil    tus 3 favoritos y tu título; vista previa del perfil público
- * y la ventana del perfil público de cualquier jugador (G.ProfileUI.show).
+/* ============ goals-ui.js — missions, achievements, and profile ============
+ * One screen with three tabs:
+ *   Missions  3 daily + 2 weekly, with a progress bar, reward, and claim button
+ *   Goals     medals by category; Legendaries shown individually with their sprite
+ *   Profile   your 3 favorites and title; public profile preview
+ * Also includes the public profile window for any player (G.ProfileUI.show).
  */
 (() => {
   const $ = G.UI.$;
   const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   const fmt = t => (t >= 3600 ? Math.floor(t / 3600) + ':' + G.U.mmss(t % 3600).padStart(5, '0') : G.U.mmss(t));
 
-  // ======================= PANTALLA =======================
+  // ======================= SCREEN =======================
 
   G.GoalsUI = (() => {
     let tab = 'missions', cat = 'coleccion';
@@ -42,7 +42,7 @@
 
     function untilText(kind) {
       const now = new Date();
-      // Medianoche (diarias) o lunes (semanales), hora de España aproximada por la del navegador.
+      // Midnight (daily) or Monday (weekly), approximated using the browser's local time.
       const end = new Date(now);
       end.setHours(24, 0, 0, 0);
       if (kind === 'w') { const add = (8 - (now.getDay() || 7)) % 7; end.setDate(end.getDate() + add); }
@@ -111,7 +111,7 @@
       for (const a of list) grid.appendChild(achCard(a, s));
       box.appendChild(grid);
 
-      // Legendarios: uno a uno, con su sprite (en sombra si aún no le has vencido).
+      // Legendaries: one at a time, with their sprite (shadowed until defeated).
       if (cat === 'legendarios') {
         const legs = all.filter(a => a.dex);
         const beaten = legs.filter(a => s.legends && s.legends[a.dex]).length;
@@ -235,7 +235,7 @@
     }
     function close() { $('scr-profile').classList.add('hidden'); }
 
-    /** Abre el perfil de otro jugador por su uid. */
+    /** Open another player's profile by uid. */
     async function show(uid) {
       if (!uid) return;
       if (uid === G.Social.uid) { showData(G.Social.profileData()); return; }

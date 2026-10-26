@@ -1,18 +1,18 @@
-/* ============ weather.js — climas (evento raro) ============
- * De vez en cuando (desde el minuto 2, ~1 de cada 6 minutos) llega un clima
- * que dura alrededor de un minuto. Cambia el daño según el tipo del ataque,
- * para ti y para los enemigos:
+/* ============ weather.js — weather (rare event) ============
+ * Occasionally (from minute 2, about once every 6 minutes), a weather event
+ * that lasts about a minute. It changes damage based on the attack type,
+ * for both you and enemies:
  *
- *   sol      Fuego ×1,5 · Agua ×0,5
- *   lluvia   Agua ×1,5 · Eléctrico ×1,2 · Fuego ×0,5
- *   arena    Roca, Tierra y Acero ×1,3; los demás pierden un poco de vida
- *   nieve    Hielo ×1,5; los demás pierden un poco de vida y van algo más lentos
- *   niebla   Fantasma, Hada y Psíquico ×1,3
+ *   sun      Fire ×1.5 · Water ×0.5
+ *   rain     Water ×1.5 · Electric ×1.2 · Fire ×0.5
+ *   sand     Rock, Ground, and Steel ×1.3; others gradually lose HP
+ *   snow     Ice ×1.5; others gradually lose HP and move a little slower
+ *   fog      Ghost, Fairy, and Psychic ×1.3
  *
- * Cada bioma tiene sus climas más probables (el volcán, sol y arena...).
- * Lo visual es suave a propósito: un tinte leve y pocas partículas.
+ * Each biome has its most likely weather (sun and sand in the volcano, etc.).
+ * The visuals are intentionally subtle: a light tint and a few particles.
  *
- * Cooperativo: lo decide el anfitrión y lo manda con 'wx'.
+ * Co-op: the host decides and sends it with 'wx'.
  */
 G.Weather = (() => {
   const KINDS = {
@@ -28,7 +28,7 @@ G.Weather = (() => {
     fog:  { name: 'Niebla', icon: 'wfog', color: '#c9cfdc', tint: [190, 195, 210, 0.12],
             mult: { ghost: 1.3, fairy: 1.3, psychic: 1.3 }, hint: 'Fantasma, Hada y Psíquico se potencian' }
   };
-  // Probabilidad de cada clima según el bioma (bosque, cueva, volcán).
+  // Probability of each weather type by biome (forest, cave, volcano).
   const BIOME_W = [
     { rain: 3, fog: 2, sun: 1.5, snow: 0.5, sand: 0.5 },
     { fog: 3, snow: 2.5, rain: 1, sand: 1 },
@@ -45,25 +45,25 @@ G.Weather = (() => {
 
   function def() { return cur ? KINDS[cur.kind] : null; }
 
-  /** Multiplicador de daño de un ataque de este tipo con el clima actual. */
+  /** Damage multiplier for an attack of this type in the current weather. */
   function mult(type) {
     const d = def();
     return d && d.mult[type] ? 1 + (d.mult[type] - 1) * level() : 1;
   }
 
-  /** Intensidad 0..1 (entra y sale en 3 s). */
+  /** Intensity 0..1 (fades in and out over 3 s). */
   function level() {
     if (!cur) return 0;
     return Math.min(1, cur.t / 3, (cur.dur - cur.t) / 3);
   }
 
-  /** ¿Le afecta el daño de arena/nieve a un Pokémon con estos tipos? */
+  /** Does sand/snow damage affect a Pokémon with these types? */
   function hurts(types) {
     const d = def();
     return !!(d && d.safe && !types.some(t => d.safe.includes(t)));
   }
 
-  /** Factor de velocidad (nieve) para un Pokémon con estos tipos. */
+  /** Speed factor (snow) for a Pokémon with these types. */
   function speedFor(types) {
     const d = def();
     return d && d.slow && !types.includes('ice') ? 1 - 0.1 * level() : 1;
@@ -78,7 +78,7 @@ G.Weather = (() => {
 
   function stop() {
     if (!cur) return;
-    // Deja que se desvanezca.
+    // Let it fade out.
     cur.dur = Math.min(cur.dur, cur.t + 3);
   }
 
@@ -104,7 +104,7 @@ G.Weather = (() => {
         }
       }
     }
-    // Arena y nieve: te van quitando un poco de vida (nunca te dejan KO).
+    // Sand and snow gradually drain your health (but never knock you out).
     chipT -= dt;
     if (chipT <= 0) {
       chipT = 2;
@@ -127,12 +127,12 @@ G.Weather = (() => {
     }
   }
 
-  /** Cooperativo: el anfitrión manda el clima. */
+  /** Co-op: the host sends the weather. */
   function onEvent(ev) { if (ev[1]) start(ev[1], ev[2]); else stop(); }
 
-  // ---------------- dibujo (en pantalla) ----------------
+  // ---------------- rendering (on screen) ----------------
 
-  /** Partículas suaves y un tinte leve. Se llama después de dibujar el mundo. */
+  /** Soft particles and a subtle tint. Called after rendering the world. */
   function draw(ctx, w, h, dt) {
     const d = def();
     const k = level();
@@ -144,7 +144,7 @@ G.Weather = (() => {
     const want = { rain: 70, snow: 45, sand: 40, sun: 14, fog: 0 }[cur.kind] * k * (w / 1280);
     while (parts.length < want) parts.push(spawn(w, h, true));
     if (parts.length > want + 4) parts.length = Math.ceil(want);
-    const s = Math.max(2, Math.round(w / 640));          // un "píxel" del juego
+    const s = Math.max(2, Math.round(w / 640));          // One game "pixel."
     for (let i = parts.length - 1; i >= 0; i--) {
       const p = parts[i];
       p.x += p.vx * dt; p.y += p.vy * dt; p.t += dt;
@@ -164,7 +164,7 @@ G.Weather = (() => {
     if (kind === 'rain') return { x: Math.random() * (w + 200), y, vx: -120, vy: 720, a: 0.5, c: '#cfe2ff', t: 0, life: 9 };
     if (kind === 'snow') return { x: Math.random() * w, y, vx: G.U.rand(-20, 20), vy: G.U.rand(40, 80), a: 0.7, c: '#ffffff', t: 0, life: 20 };
     if (kind === 'sand') return { x: anywhere ? Math.random() * w : w + 20, y: Math.random() * h, vx: G.U.rand(-520, -380), vy: G.U.rand(20, 60), a: 0.4, c: '#e8cf8f', t: 0, life: 9 };
-    // sol: motas de luz que suben despacio
+    // Sun: light specks that rise slowly.
     return { x: Math.random() * w, y: anywhere ? Math.random() * h : h + 5, vx: G.U.rand(-8, 8), vy: -G.U.rand(15, 30), a: 0.45, c: '#fff1b0', t: 0, life: 12 };
   }
 
@@ -172,9 +172,9 @@ G.Weather = (() => {
     KINDS, reset, update, draw, mult, speedFor, hurts, onEvent,
     get current() { return cur && level() > 0 ? Object.assign({ left: Math.max(0, cur.dur - cur.t) }, cur, KINDS[cur.kind]) : null; },
     get vignette() { return cur && cur.kind === 'fog' ? level() : 0; },
-    /** Pone un clima ya (la arena de la grieta; no se manda: cada uno lo pone). */
+    /** Set the weather immediately (rift arena; not synced, each player sets it locally). */
     force(kind, dur) { start(kind, dur); },
-    /** Quita el clima de golpe (al salir de la arena). */
+    /** Clear the weather immediately (when leaving the arena). */
     clear() { cur = null; parts.length = 0; },
     debugStart(kind = 'rain', dur = 60) { start(kind, dur); if (G.Coop.isHost) G.Coop.broadcast(['wx', kind, dur]); }
   };

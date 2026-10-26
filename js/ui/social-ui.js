@@ -1,9 +1,9 @@
-/* ============ social-ui.js — apodo, amigos, sala e invitaciones ============ */
+/* ============ social-ui.js — nicknames, friends, rooms, and invitations ============ */
 (() => {
   const $ = G.UI.$;
   const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
-  /** ¿Se puede usar lo online? Si no, explica por qué. */
+  /*  * Is online play available? If not, explain why. */
   function needOnline() {
     if (G.DB.online) return true;
     G.UI.toast(G.DB.guest ? 'Crea una cuenta para jugar con amigos y salir en el ranking.'
@@ -11,7 +11,7 @@
     return false;
   }
 
-  // ======================= APODO =======================
+  // ======================= NICKNAME =======================
 
   G.NickUI = (() => {
     let then = null, skipped = false;
@@ -32,7 +32,7 @@
       $('nick-later').onclick = () => { skipped = true; then = null; G.MenuUI.open(); };
     }
 
-    /** @param next  qué abrir después de elegirlo */
+    /** @param next  what to open after setting the nickname */
     function open(next) {
       then = next || null;
       G.UI.show('scr-nick');
@@ -44,14 +44,14 @@
     return { init, open, get skipped() { return skipped; } };
   })();
 
-  /** Abre `fn` si tienes apodo; si no, pide el apodo primero. */
+  /** Call `fn` if a nickname is set; otherwise ask for one first. */
   function withNick(fn) {
     if (!needOnline()) return;
     if (G.Social.me) { fn(); return; }
     G.Social.start().then(r => { if (r === 'ok') fn(); else G.NickUI.open(fn); });
   }
 
-  // ======================= AMIGOS =======================
+  // ======================= FRIENDS =======================
 
   G.FriendsUI = (() => {
     function init() {
@@ -80,7 +80,7 @@
       });
     }
 
-    // (Sin "en línea" desde el 20-10-2026: costaba 1/4 de las escrituras de Firestore.)
+    // (Online status removed on 2026-10-20; it accounted for 1/4 of Firestore writes.)
     function stateText(f) {
       if (f.status === 'in') return 'Quiere ser tu amigo';
       if (f.status === 'out') return 'Solicitud enviada';
@@ -135,7 +135,7 @@
     return { init, open, render };
   })();
 
-  // ======================= SALA =======================
+  // ======================= ROOM =======================
 
   G.LobbyUI = (() => {
     let membersKey = '';
@@ -149,13 +149,13 @@
       $('lobby-menu').onclick = () => G.MenuUI.open();
       $('lobby-start').onclick = start;
       $('lobby-start').dataset.sfx = 'confirm';
-      // Conecta / desconecta la red al entrar o salir de una sala.
+      // Connect / disconnect the network when entering or leaving a room.
       G.Social.on(what => {
         const room = G.Social.room;
         if (room) {
           G.Net.open(room.id, room.isHost, room.host);
-          // En partida la lista de la sala no echa a nadie (puede faltar alguien un
-          // momento por un corte con la base de datos): manda el canal directo.
+          // During a run, the room list does not remove anyone if they briefly
+          // disappear due to a database disconnect; the direct channel decides.
           if (!G.Coop.active && !room.lost) G.Net.syncMembers(room.members.map(m => m.uid));
         } else if (G.Net.open_) G.Net.close();
         if (what === 'room-closed') {
@@ -193,7 +193,7 @@
         ? 'Eres el anfitrión. Invita a tus amigos (hasta ' + G.Social.MAX_PLAYERS + ') y empezad cuando estéis.'
         : 'Estás en la sala de ' + ((ms.find(m => m.uid === room.host) || {}).name || '…') + '. El anfitrión empezará la partida.';
 
-      // Las tarjetas sólo se rehacen si cambian los miembros (los sprites no parpadean).
+      // Cards are only rebuilt when the members change (so sprites do not flicker).
       const key = ms.map(m => m.uid + ':' + m.dex + ':' + (m.shiny ? 1 : 0)).join('|');
       const box = $('lobby-members');
       if (key !== membersKey) {
@@ -219,7 +219,7 @@
         el.className = 'conn' + (t === 'Conectando…' ? ' wait' : '');
       });
 
-      // Invitar (sólo el anfitrión y si queda sitio).
+      // Invite (host only, and only if there is room).
       const canInvite = room.isHost && ms.length < G.Social.MAX_PLAYERS;
       $('lobby-inv-title').classList.toggle('hidden', !canInvite);
       const inv = $('lobby-invite');
@@ -267,7 +267,7 @@
     return { init, open, close, render };
   })();
 
-  // ======================= INVITACIONES =======================
+  // ======================= INVITATIONS =======================
 
   G.InvitePop = (() => {
     let cur = null;
@@ -287,7 +287,7 @@
 
     function hide() { cur = null; $('invite-pop').classList.add('hidden'); }
 
-    /** Enseña la invitación más antigua si estás en los menús (no en plena partida). */
+    /** Show the oldest invitation while in menus (not during a run). */
     function refresh() {
       const room = G.Social.room;
       const list = G.Social.invites.filter(i => !room || i.room !== room.id).sort((a, b) => a.at - b.at);
